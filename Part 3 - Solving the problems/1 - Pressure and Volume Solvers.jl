@@ -105,7 +105,6 @@ T =
 # ╔═╡ fee14db9-d42d-4a6b-8ef3-a539421be776
 let
 	function cubic_volume(model, p, T)
-		R = 8.31446261815324 # We need to use a more exact ideal gas constant to match our result to Clapeyron!
 		Tc, pc, _ = crit_pure(model)
 	
 		a = 27/64 * (R*Tc)^2/pc
@@ -320,6 +319,10 @@ To generate liquid-like initial guesses for SAFT equations, we're going to use a
 
 $$V_0^\mathrm{liq} = \frac{\pi}{6}\cdot N_A \cdot \sigma^3$$
 
+"""
+
+# ╔═╡ 7cfbb284-72ae-4d7f-ad5a-c98dd4ad2f97
+md"""
 For the vapour-like initial guesses we can use the ideal gas equation
 
 $$V^\mathrm{vap} = \frac{nRT}{p}~.$$
@@ -337,7 +340,6 @@ but this isn't necessary for now, as the sequence defined by equation (2) genera
 # ╔═╡ 68cad9ec-8f72-41f1-8665-3b0fb87147de
 let
 	model = PCSAFT(["carbon dioxide"])
-	R = 8.314
 	
 	p_raw(v, T) = pressure(model, v, T)
 	
@@ -350,10 +352,6 @@ let
 	for (i, T) in enumerate(Tsat)
 		(psat[i], Vlsat[i], Vvsat[i]) = saturation_pressure(model, T)
 	end
-
-	# Z = pV/RT
-	Zlsat = @. psat*Vlsat/(R*Tsat)
-	Zvsat = @. psat*Vvsat/(R*Tsat)
 
 	psat = psat./1e6
 	pcrit = pcrit/1e6
@@ -564,74 +562,6 @@ else
 		# 	keep_working(md"Make sure you've defined `A` and `B` carefully")
 		# end
 	end
-end
-
-# ╔═╡ 1333f8e7-bfdd-4f80-8eaa-124d184b03c6
-function data_table(headers, names, values)
-	app_id = randstring('a':'z')
-	data = JSON2.write(Dict(
-	    "headers" => [Dict("text" => headers[1], "value" => "const"), Dict("text" => headers[2], "value" => "val")],
-	    "states" => [Dict("const" => name, "val" => values[idx]) for (idx, name) in enumerate(names)]
-	))
-	return HTML("""
-		<link href="https://cdn.jsdelivr.net/npm/@mdi/font@5.x/css/materialdesignicons.min.css" rel="stylesheet">
-		<link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
-
-	  <div id=$app_id>
-		<v-app>
-		  <v-data-table
-		  :headers="headers"
-		  :items="states"
-		></v-data-table>
-		</v-app>
-	  </div>
-
-	  <script src="https://cdn.jsdelivr.net/npm/vue@2.x/dist/vue.js"></script>
-	  <script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script>
-	
-	<script>
-		new Vue({
-		  el: $app_id,
-		  vuetify: new Vuetify(),
-		  data () {
-				return $data
-			}
-		})
-	</script>
-	<style>
-		.v-application--wrap {
-			min-height: 10vh;
-		}
-		.v-data-footer__select {
-			display: none;
-		}
-	</style>
-	""")
-end
-
-# ╔═╡ 5b27286b-0a51-49ff-a783-90bf8334e080
-# begin
-# 	headers = ["Variable", "Value"]
-# 	names = ["c₁", "c₂", "c₃"]
-# 	values = ["1.0", "2.0", "3.0"]
-# 	data_table(headers, names, values)
-# end
-
-# ╔═╡ e3a0f37d-dd52-4d00-99a1-37076a474de0
-function latex_table(headers, names, values) # TODO: Make this work on input lists?
-	str1 = join([L"&"*h for h in headers])
-	str2 = join([names[i]*"&"*values[i]*"\\" for i in range(1,length(zip(names, values)))])
-
-	return Markdown.parse(L"$\begin{array}{lc}\hline"*str1*L"\\\hline"*str2*L"\hline\end{array}$")
-	# return md"""
-	# $\begin{array}{lcc}
-	# \hline & \text { Treatment A } & \text { Treatment B } \\
-	# \hline \text { John Smith } & 1 & 2 \\
-	# \text { Jane Doe } & - & 3 \\
-	# \text { Mary Johnson } & 4 & 5 \\
-	# \hline
-	# \end{array}$
-	# """
 end
 
 # ╔═╡ 808c11cb-f930-4fd6-b827-320e845a47a7
@@ -2073,7 +2003,8 @@ version = "0.9.1+5"
 # ╟─f4ab1c61-1f6d-4a4c-8b0b-cf7c14f3d096
 # ╟─11bd73c1-c745-4d30-adc0-19209e0c0c82
 # ╟─d0cfc031-3153-4ac5-9b50-1fba2729e9f4
-# ╟─8ecab7d3-be38-4733-b02f-9b00d5e75bd1
+# ╠═8ecab7d3-be38-4733-b02f-9b00d5e75bd1
+# ╟─7cfbb284-72ae-4d7f-ad5a-c98dd4ad2f97
 # ╟─d7a60eae-0393-4b11-b1e1-faec368d324b
 # ╟─68cad9ec-8f72-41f1-8665-3b0fb87147de
 # ╟─0c4d1e42-f778-4679-a9be-1ba814de43c0
@@ -2094,11 +2025,8 @@ version = "0.9.1+5"
 # ╟─94caf041-6363-4b38-b2c2-daaf5a6aecf1
 # ╟─217956f7-f5f5-4345-8642-7736dc4321d7
 # ╟─dbe0cb67-b166-40b6-aeaf-a2e2d6ca4c87
-# ╟─f67c10e6-8aa1-4eed-9561-b629fa8ac91b
+# ╠═f67c10e6-8aa1-4eed-9561-b629fa8ac91b
 # ╟─970bb661-c959-4f0c-a1d6-50f655b80ef8
-# ╟─1333f8e7-bfdd-4f80-8eaa-124d184b03c6
-# ╟─5b27286b-0a51-49ff-a783-90bf8334e080
-# ╟─e3a0f37d-dd52-4d00-99a1-37076a474de0
 # ╟─808c11cb-f930-4fd6-b827-320e845a47a7
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002

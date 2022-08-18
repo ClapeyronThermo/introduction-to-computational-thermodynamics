@@ -122,122 +122,15 @@ function sat_p_objective(model, T, V)
 	return [f1, f2[1]]
 end
 
-# ╔═╡ fe3c0403-5447-4171-a536-5996cc11c77d
-"""
-	solve_sat_p(model, T; V0 = vdW_saturation_volume(model, T), itersmax=100, tol=1e-10)
-
-Solves an equation of state for the saturation pressure at a given temperature using Newton's method. By default uses the solution to the van der Waals equation for initial guesses. Returns (psat, V_liq, V_vap)
-"""
-function solve_sat_p(model, T; V0 = vdW_saturation_volume(model, T), itersmax=100, tol=1e-10)
-	# Objective function accepting a vector of volumes, R²→R² 
-	f(V) = sat_p_objective(model, T, V)
-	# function returning the Jacobian of our solution, R²→R²ˣ²
-	Jf(V) = ForwardDiff.jacobian(f, V)
-
-	Vold = 0.0
-	V = V0
-	fV = 1.0
-	fV0 = f(V0)
-	rel_norm = norm(f(V))
-	iters = 0
-	# Iterate until converged or the loop has reached the maximum number of iterations
-	while (iters < itersmax && all(abs.(fV) .> tol) && all(abs.(Vold .- V) .> tol))
-		JfV = Jf(V) # Calculate the jacobian
-		fV = f(V) # Calculate the value of f at V
-		d = -JfV\fV # Calculate the newton step
-		Vold = V
-		V = V .+ d # Take newton step
-		iters += 1 # Increment our iteration counter
-	end
-
-	# Show a warning if the solver did not converge (uses short circuit evaluation rather than if statement)
-	iters == itersmax && @warn "solver did not converge in $(iters) iterations\nfV=$(fV)"
-
-	p_sat = pressure(model, V[1], T)
-	return (p_sat, V[1], V[2])
-end
-
 # ╔═╡ 822b518b-8ebf-4bf5-b236-6282ce6a0c27
 md"""
 Now, we just need to define a model and test out our solver!
 """
 
-# ╔═╡ 03a0b678-0ad6-4c5a-b1d8-6497c9703ccb
-begin
-	# Specify our state
-	cubic_model = PR(["hexane"])
-	T = 373.15 # K
-	# Solve the nonlinear system 
-	(p_sat, V_liq, V_vap) = solve_sat_p(cubic_model, T)
-end
-
-# ╔═╡ 5f81ba8b-b7db-4571-b797-1a4ea06fa9a7
-begin
-	try
-		@htl("""
-		<table>
-		<caption>Solver Results</caption>
-		  <tr>
-		    <td>Temperature</td>
-		    <td>$(round(T; sigdigits=5))</td>
-		    <td>K</td>
-		  </tr>
-		  <tr>
-		    <td>Saturation pressure</td>
-		    <td>$(round(p_sat; sigdigits=4))</td>
-		    <td>Pa</td>
-		  </tr>
-		  <tr>
-			<td>Liquid volume</td>
-		    <td>$(@sprintf "%.2e"  V_liq)</td>
-			<td>m³</td>
-		  </tr>
-		  <tr>
-			<td>Vapour volume</td>
-		    <td>$(@sprintf "%.2e" V_vap)</td>
-			<td>m³</td>
-		  </tr>
-		</table>
-		""")
-	catch
-		@htl("""
-		<table>
-		<caption>Solver Results</caption>
-		  <tr>
-		    <td>Temperature</td>
-		    <td>?</td>
-		    <td>K</td>
-		  </tr>
-		  <tr>
-		    <td>Saturation pressure</td>
-		    <td>?</td>
-		    <td>Pa</td>
-		  </tr>
-		  <tr>
-			<td>Liquid volume</td>
-		    <td>?</td>
-			<td>m³</td>
-		  </tr>
-		  <tr>
-			<td>Vapour volume</td>
-		    <td>?</td>
-			<td>m³</td>
-		  </tr>
-		</table>
-		""")
-	end
-end
-
 # ╔═╡ 584406e0-f41c-4043-b207-ed5a39ef9d88
 md"""
 And we can compare it to the Clapeyron result
 """
-
-# ╔═╡ 61207fa8-b9cb-43dc-9130-1a8bbf7cf640
-psat_Clapeyron, Vlsat_Clapeyron, Vvsat_Clapeyron = saturation_pressure(cubic_model, T)
-
-# ╔═╡ 00722d62-afed-4dbb-951d-9de89cba8df0
-p_sat ≈ psat_Clapeyron
 
 # ╔═╡ 2ffa15ba-9c9c-4d9e-b154-08bb251d0749
 md"""
@@ -249,27 +142,6 @@ To help with this, we can reuse each previous result as the new guess to the sol
 
 When building this, remember that the triple point is not represented by typical equations of state! As only liquid and vapour phases are captured, the only significant point we see on pure phase diagrams is the critical point.
 """
-
-# ╔═╡ 59927acf-9a17-4117-870c-5cc19169311d
-let
-	Tcrit, pcrit, vcrit = crit_pure(cubic_model)
-	Ts = LinRange(280.0, 1.5*Tcrit, 500)
-	Ts2 = Ts[Ts .> 400]
-	ps = LinRange(1e5, 1.5*pcrit, 500)
-
-	satp = zeros(length(Ts2))
-	Vlsat = zeros(length(Ts2))
-	Vvsat = zeros(length(Ts2))
-	for (i, T) in enumerate(Ts2)
-		(satp[i], Vlsat[i], Vvsat[i]) = saturation_pressure(cubic_model, T)
-	end
-	
-	plotlyjs()
-	
-	surface(ps./1e6, Ts, (x, y) -> log10(volume(cubic_model, 1e6x, y)), c=:summer, xlabel="p / MPa", ylabel="T / K", zlabel="log10(v / m³/mol)", camera=(45, 90), colorbar=false)
-	scatter!([pcrit/1e6], [Tcrit], log10.([vcrit]), label="critical point", color=2)
-	plot!(repeat(satp./1e6, 2), repeat(Ts2, 2), log10.(vcat(Vlsat, Vvsat)), width=5, color=1, label="saturation envelope")
-end
 
 # ╔═╡ 65a528b6-eebb-422c-9221-f2bd9df0d2d2
 md"""
@@ -406,24 +278,16 @@ html"<br><br><br><br><br><br><br><br><br><br><br><br>"
 
 # ╔═╡ 58b76139-6976-4624-8d71-347b50e1b494
 md"""
-## Footnotes
+# Footnotes
 [^1]: The essence of automatic differentiation is tracing the elementary operations, like addition and subtraction, that happen to a given variable through some code. This can then be differentiated directly and combined using the chain rule. There are two main "modes" of automatic differentiation. Forward-mode and Reverse-mode. To learn more about these, I recommend taking a look at the [wikipedia page](https://en.wikipedia.org/wiki/Automatic_differentiation) as well as the relevant notes from the course 18.337 at MIT; [forward-mode notes](https://book.sciml.ai/notes/08/) and [reverse-mode notes](https://book.sciml.ai/notes/10/).
 
 [^2]: If you are using a model with volume translation, you should also account for that in your initial guess.
 """
 
-# ╔═╡ 365198f5-80d9-4ac1-adff-47a690cc9b4a
-md"## Function library
-
-Just some helper functions used in the notebook."
-
-# ╔═╡ e5f39d39-c08e-4199-9952-119f21d13612
-function acentric_factor(pure)
-	Tc,pc,_ = crit_pure(pure)
-	ps = first(saturation_pressure(pure,0.7*Tc))
-	ω = -log10(ps/pc) - 1.0
-	return ω
-end
+# ╔═╡ 83ba059f-cecf-4ff5-9e7e-fa6d384bccc3
+md"""
+# Function Library
+"""
 
 # ╔═╡ 33ed3f41-3107-4497-85e0-aa7de6686612
 hint(text) = Markdown.MD(Markdown.Admonition("hint", "Hint", [text]))
@@ -443,13 +307,6 @@ yays = [md"Fantastic!", md"Splendid!", md"Great!", md"Yay ❤", md"Great! 🎉",
 # ╔═╡ 02759a14-8161-4332-b960-3d3a5f052d19
 correct(text=rand(yays)) = Markdown.MD(Markdown.Admonition("correct", "Got it!", [text]))
 
-# ╔═╡ bdd0973b-2491-4ad7-a6e0-3bec21e206cd
-if p_sat ≈ psat_Clapeyron
-	correct()
-else
-	almost(md"Not quite there, you're off by δ = $(p_sat - psat_Clapeyron)")
-end
-
 # ╔═╡ 704cb182-fa73-4cd8-bad4-16118a8f8219
 if Tc ≈ Tc_Clapeyron
 	correct()
@@ -460,112 +317,8 @@ end
 # ╔═╡ a676acf4-e167-425c-b63e-9c9fb8c24d13
 not_defined(variable_name) = Markdown.MD(Markdown.Admonition("danger", "Oopsie!", [md"Make sure that you define **$(Markdown.Code(string(variable_name)))**"]))
 
-# ╔═╡ 642da62e-9369-4b4b-b747-390243ec7103
-function data_table(headers, names, values)
-	app_id = randstring('a':'z')
-	data = JSON2.write(Dict(
-	    "headers" => [Dict("text" => headers[1], "value" => "const"), Dict("text" => headers[2], "value" => "val")],
-	    "states" => [Dict("const" => name, "val" => values[idx]) for (idx, name) in enumerate(names)]
-	))
-	return HTML("""
-		<link href="https://cdn.jsdelivr.net/npm/@mdi/font@5.x/css/materialdesignicons.min.css" rel="stylesheet">
-		<link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
-
-	  <div id=$app_id>
-		<v-app>
-		  <v-data-table
-		  :headers="headers"
-		  :items="states"
-		></v-data-table>
-		</v-app>
-	  </div>
-
-	  <script src="https://cdn.jsdelivr.net/npm/vue@2.x/dist/vue.js"></script>
-	  <script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script>
-	
-	<script>
-		new Vue({
-		  el: $app_id,
-		  vuetify: new Vuetify(),
-		  data () {
-				return $data
-			}
-		})
-	</script>
-	<style>
-		.v-application--wrap {
-			min-height: 10vh;
-		}
-		.v-data-footer__select {
-			display: none;
-		}
-	</style>
-	""")
-end
-
-# ╔═╡ b52f84b1-1458-4ec2-8f8b-f94e96940480
-# begin
-# 	headers = ["Variable", "Value"]
-# 	names = ["c₁", "c₂", "c₃"]
-# 	values = ["1.0", "2.0", "3.0"]
-# 	data_table(headers, names, values)
-# end
-
-# ╔═╡ e799ebf3-55ca-4b9a-b1dd-6009b90bd4ec
-function latex_table(headers, names, values) # TODO: Make this work on input lists?
-	str1 = join([L"&"*h for h in headers])
-	str2 = join([names[i]*"&"*values[i]*"\\" for i in range(1,length(zip(names, values)))])
-
-	return Markdown.parse(L"$\begin{array}{lc}\hline"*str1*L"\\\hline"*str2*L"\hline\end{array}$")
-	# return md"""
-	# $\begin{array}{lcc}
-	# \hline & \text { Treatment A } & \text { Treatment B } \\
-	# \hline \text { John Smith } & 1 & 2 \\
-	# \text { Jane Doe } & - & 3 \\
-	# \text { Mary Johnson } & 4 & 5 \\
-	# \hline
-	# \end{array}$
-	# """
-end
-
-# ╔═╡ 512804d7-8fad-43c1-919a-468640bdcde5
-function reduce_complex(Zvec)
-	Zvec = Vector{Union{Float64, ComplexF64}}(Zvec)
-	Zvec[abs.(imag.(Zvec)) .< eps()] .= real(Zvec[abs.(imag.(Zvec)) .< eps()])
-end
-
-# ╔═╡ 846ca0ff-0d3d-4dae-899a-7964cfe99354
-function volume_guess(model::SAFTModel, T, phase)
-	if phase == :liquid
-		N_A = 6.022e23
-		σ = model.params.sigma.diagvalues[1]
-		seg = model.params.segment.values[1]
-		V0 = 1.25 * π/6 * N_A * σ^3 * seg
-	elseif phase == :vapour
-		B = second_virial_coefficient(model, T)
-		V0 = -2B
-	else
-		@error "Invalid phase specification, $phase. Specify phase as either ```:liquid``` or ```:vapour```"
-	end
-	return V0
-end
-
-# ╔═╡ 23cf8091-2a04-4651-abdf-b8390098a87c
-function volume_guess(model::ABCubicModel, T, phase)
-	if phase == :liquid
-		b = model.params.b.values[1]
-		V0 = b
-	elseif phase == :vapour
-		B = second_virial_coefficient(model, T)
-		V0 = -2B
-	else
-		@error "Invalid phase specification, $phase. Specify phase as either ```:liquid``` or ```:vapour```"
-	end
-	return V0
-end
-
 # ╔═╡ 2755df96-8731-440d-8b5e-4e4dd787f55c
-vdW_b(pc, Tc) = 1/8 * (8.31446261815324*Tc)/pc
+vdW_b(pc, Tc) = 1/8 * (R*Tc)/pc
 
 # ╔═╡ fe3ecf69-f3db-492f-a0ae-bc0622256071
 function vdW_saturation_volume(model, T)
@@ -588,6 +341,141 @@ function vdW_saturation_volume(model, T)
 	vL = 3b/cL
 	vG = 3b/cG
 	return [0.5*vL, 2*vG]
+end
+
+# ╔═╡ fe3c0403-5447-4171-a536-5996cc11c77d
+"""
+	solve_sat_p(model, T; V0 = vdW_saturation_volume(model, T), itersmax=100, tol=1e-10)
+
+Solves an equation of state for the saturation pressure at a given temperature using Newton's method. By default uses the solution to the van der Waals equation for initial guesses. Returns (psat, V_liq, V_vap)
+"""
+function solve_sat_p(model, T; V0 = vdW_saturation_volume(model, T), itersmax=100, tol=1e-10)
+	# Objective function accepting a vector of volumes, R²→R² 
+	f(V) = sat_p_objective(model, T, V)
+	# function returning the Jacobian of our solution, R²→R²ˣ²
+	Jf(V) = ForwardDiff.jacobian(f, V)
+
+	Vold = 0.0
+	V = V0
+	fV = 1.0
+	fV0 = f(V0)
+	rel_norm = norm(f(V))
+	iters = 0
+	# Iterate until converged or the loop has reached the maximum number of iterations
+	while (iters < itersmax && all(abs.(fV) .> tol) && all(abs.(Vold .- V) .> tol))
+		JfV = Jf(V) # Calculate the jacobian
+		fV = f(V) # Calculate the value of f at V
+		d = -JfV\fV # Calculate the newton step
+		Vold = V
+		V = V .+ d # Take newton step
+		iters += 1 # Increment our iteration counter
+	end
+
+	# Show a warning if the solver did not converge (uses short circuit evaluation rather than if statement)
+	iters == itersmax && @warn "solver did not converge in $(iters) iterations\nfV=$(fV)"
+
+	p_sat = pressure(model, V[1], T)
+	return (p_sat, V[1], V[2])
+end
+
+# ╔═╡ 03a0b678-0ad6-4c5a-b1d8-6497c9703ccb
+begin
+	# Specify our state
+	cubic_model = PR(["hexane"])
+	T = 373.15 # K
+	# Solve the nonlinear system 
+	(p_sat, V_liq, V_vap) = solve_sat_p(cubic_model, T)
+end
+
+# ╔═╡ 5f81ba8b-b7db-4571-b797-1a4ea06fa9a7
+begin
+	try
+		@htl("""
+		<table>
+		<caption>Solver Results</caption>
+		  <tr>
+		    <td>Temperature</td>
+		    <td>$(round(T; sigdigits=5))</td>
+		    <td>K</td>
+		  </tr>
+		  <tr>
+		    <td>Saturation pressure</td>
+		    <td>$(round(p_sat; sigdigits=4))</td>
+		    <td>Pa</td>
+		  </tr>
+		  <tr>
+			<td>Liquid volume</td>
+		    <td>$(@sprintf "%.2e"  V_liq)</td>
+			<td>m³</td>
+		  </tr>
+		  <tr>
+			<td>Vapour volume</td>
+		    <td>$(@sprintf "%.2e" V_vap)</td>
+			<td>m³</td>
+		  </tr>
+		</table>
+		""")
+	catch
+		@htl("""
+		<table>
+		<caption>Solver Results</caption>
+		  <tr>
+		    <td>Temperature</td>
+		    <td>?</td>
+		    <td>K</td>
+		  </tr>
+		  <tr>
+		    <td>Saturation pressure</td>
+		    <td>?</td>
+		    <td>Pa</td>
+		  </tr>
+		  <tr>
+			<td>Liquid volume</td>
+		    <td>?</td>
+			<td>m³</td>
+		  </tr>
+		  <tr>
+			<td>Vapour volume</td>
+		    <td>?</td>
+			<td>m³</td>
+		  </tr>
+		</table>
+		""")
+	end
+end
+
+# ╔═╡ 61207fa8-b9cb-43dc-9130-1a8bbf7cf640
+psat_Clapeyron, Vlsat_Clapeyron, Vvsat_Clapeyron = saturation_pressure(cubic_model, T)
+
+# ╔═╡ 00722d62-afed-4dbb-951d-9de89cba8df0
+p_sat ≈ psat_Clapeyron
+
+# ╔═╡ bdd0973b-2491-4ad7-a6e0-3bec21e206cd
+if p_sat ≈ psat_Clapeyron
+	correct()
+else
+	almost(md"Not quite there, you're off by δ = $(p_sat - psat_Clapeyron)")
+end
+
+# ╔═╡ 59927acf-9a17-4117-870c-5cc19169311d
+let
+	Tcrit, pcrit, vcrit = crit_pure(cubic_model)
+	Ts = LinRange(280.0, 1.5*Tcrit, 500)
+	Ts2 = Ts[Ts .> 400]
+	ps = LinRange(1e5, 1.5*pcrit, 500)
+
+	satp = zeros(length(Ts2))
+	Vlsat = zeros(length(Ts2))
+	Vvsat = zeros(length(Ts2))
+	for (i, T) in enumerate(Ts2)
+		(satp[i], Vlsat[i], Vvsat[i]) = saturation_pressure(cubic_model, T)
+	end
+	
+	plotlyjs()
+	
+	surface(ps./1e6, Ts, (x, y) -> log10(volume(cubic_model, 1e6x, y)), c=:summer, xlabel="p / MPa", ylabel="T / K", zlabel="log10(v / m³/mol)", camera=(45, 90), colorbar=false)
+	scatter!([pcrit/1e6], [Tcrit], log10.([vcrit]), label="critical point", color=2)
+	plot!(repeat(satp./1e6, 2), repeat(Ts2, 2), log10.(vcat(Vlsat, Vvsat)), width=5, color=1, label="saturation envelope")
 end
 
 # ╔═╡ c5109b81-887a-46e6-92da-10bda0397380
@@ -2074,8 +1962,7 @@ version = "1.4.1+0"
 # ╟─f87fb61e-2f63-4df8-8d31-e397966f840f
 # ╟─18f53692-50ab-4d2d-80dd-00d169fae340
 # ╟─58b76139-6976-4624-8d71-347b50e1b494
-# ╟─365198f5-80d9-4ac1-adff-47a690cc9b4a
-# ╟─e5f39d39-c08e-4199-9952-119f21d13612
+# ╟─83ba059f-cecf-4ff5-9e7e-fa6d384bccc3
 # ╟─33ed3f41-3107-4497-85e0-aa7de6686612
 # ╟─bb419121-16b9-4344-b245-3e19f8d4830a
 # ╟─bb4b3b1b-702b-4462-967d-2d25bfe3f226
@@ -2083,12 +1970,6 @@ version = "1.4.1+0"
 # ╟─f7066d86-00f8-441f-868b-7c94037b36ac
 # ╟─02759a14-8161-4332-b960-3d3a5f052d19
 # ╟─a676acf4-e167-425c-b63e-9c9fb8c24d13
-# ╟─642da62e-9369-4b4b-b747-390243ec7103
-# ╟─b52f84b1-1458-4ec2-8f8b-f94e96940480
-# ╟─e799ebf3-55ca-4b9a-b1dd-6009b90bd4ec
-# ╟─512804d7-8fad-43c1-919a-468640bdcde5
-# ╟─846ca0ff-0d3d-4dae-899a-7964cfe99354
-# ╠═23cf8091-2a04-4651-abdf-b8390098a87c
-# ╠═2755df96-8731-440d-8b5e-4e4dd787f55c
+# ╟─2755df96-8731-440d-8b5e-4e4dd787f55c
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002

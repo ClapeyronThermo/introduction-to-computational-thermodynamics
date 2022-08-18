@@ -12,10 +12,12 @@ begin
 	using Clapeyron, ForwardDiff, LinearAlgebra, NLsolve, Optimization, OptimizationOptimJL
 	using Statistics
 	using HypertextLiteral
-    using LaTeXStrings, Plots, PlutoUI
+    using LaTeXStrings, Plots
 	using ShortCodes
 	# For 3D plots
 	import PlotlyJS
+	using PlutoUI
+	PlutoUI.TableOfContents()
 	# For ternary contour plots
 	# import GMT
 end
@@ -31,6 +33,8 @@ Stability analysis deals with the question "**does a phase split occur?**". This
 The fundamental description of stability is the Gibbs tangent-plane. We know a system always exists at the minima on the Gibbs free energy surface, so when a tangent plane with a lower $G$ can be constructed, we know that a phase split will occur, as this multiple phase solution will be more stable than the single phase.
 
 For a binary mixture this can be quite easy to visualise. In the example of methane and hydrogen sulfide below you can see the mixture will split into two phases, shown by the intersection of the "equilibrium tangent plane" with the gibbs free energy of mixing surface.
+
+It's important to note that while infinite tangent planes exist, there is only a single **cotangent** plane, representing the equilibrium compositions.
 """
 
 # ╔═╡ cc88e502-8b06-44fc-b888-3bed9cf1b683
@@ -178,6 +182,27 @@ begin
 	z = [0.5, 0.5]
 end
 
+# ╔═╡ 64259d11-1310-49b6-aaec-bfe9832847fa
+# CHECKING FUNCTION
+if !@isdefined(model)
+    not_defined(:model)
+else
+    let
+        if !(model isa EoSModel)
+            still_missing(md"Make sure to define `model` using Clapeyron")
+
+        elseif (model isa RK) && (issetequal(model.components, ["methane", "ethane"])) && (model.alpha isa SoaveAlpha)
+            correct()
+
+        else
+            md"""
+            !!! warning "Incorrect"
+            	Make sure to define `model` using `SRK`
+            """
+        end
+    end
+end;
+
 # ╔═╡ f1ae7174-07ce-4316-a77a-32d330f0c278
 md"""
 ### 2. Generate initial guesses
@@ -196,7 +221,7 @@ wilson_k_values(model, p, T)
 md"""
 ### 3. Minimise our objective function
 
-Next we minimise our objective function, making sure we tell our solver to use automatic differentiation for the derivatives.
+Next we minimise our objective function, making sure we tell our solver to use automatic differentiation for the derivatives. We specify Newton's method in the call to ```solve(problem, method())```.
 """
 
 # ╔═╡ ade5b56b-de17-4950-9f92-55c8c134196c
@@ -220,6 +245,7 @@ function chemical_stability_analysis(model, p, T, z)
 	optf = OptimizationFunction(f, Optimization.AutoForwardDiff())
 	prob(w0) = OptimizationProblem(optf, log.(w0))
 	sol(w0) = solve(prob(w0), Newton())
+	# Evaluate solutions
 	sol_vec = sol.(w0_vec)
 
 	# Extract minimum
@@ -272,9 +298,17 @@ begin
 	tm_xmin2, tm_min2 = chemical_stability_analysis(model, p, T2, z)
 end
 
+# ╔═╡ 9d0d9c0d-5964-4507-b71a-4802915f4bb8
+md"""
+Techniques for more robust stability analysis include:
+- Multistart - here we start from a vapour-like and a liquid-like initial guess, but it would be possible to generate many more starting points through permutations to our initial guess or randomly generated points.
+- Stochastic methods - evolutionary algorithms are typically quite good at finding global minima, but come with considerable expense.
+- Tunnelling - Tunnelling algorithms have found considerable use in stability analysis, notably used in the HELD algorithm [^HELD]. A discussion of their use for this purpose can be found in [^PAPER_CITATION]
+"""
+
 # ╔═╡ bfc93f97-258b-482f-bd4f-3781e7fd548f
 md"""
-## Footnotes
+# Footnotes
 [^1]: 
 	The original paper detailing this is:
 """
@@ -282,55 +316,21 @@ md"""
 # ╔═╡ 30692b0e-6029-40a2-98a5-d8803304ff7e
 DOI("10.1016/0378-3812(82)85001-2")
 
-# ╔═╡ 5ed26e66-7c4b-466a-b95d-90c283aac6c6
-md"## Function library
+# ╔═╡ ece3c292-448b-445b-8eea-f94a6b9ffbaf
+md"""
+[^HELD]:
+"""
 
-Just some helper functions used in the notebook."
+# ╔═╡ f2fb8ddd-dc73-4998-801f-8b0b890d6107
+DOI("10.1016/j.compchemeng.2011.07.009")
 
-# ╔═╡ b0429aaf-cdf4-487f-972e-8761f77cc0ad
-hint(text) = Markdown.MD(Markdown.Admonition("hint", "Hint", [text]))
-
-# ╔═╡ b4939d68-71e4-480a-9c07-f1a6db51bb8b
-almost(text) = Markdown.MD(Markdown.Admonition("warning", "Almost there!", [text]))
-
-# ╔═╡ dc6f6cb6-90df-453f-ba95-9542d81908ea
-still_missing(text=md"Replace `missing` with your answer.") = Markdown.MD(Markdown.Admonition("warning", "Here we go!", [text]))
-
-# ╔═╡ b05f3f59-434d-4c94-9393-d4683e27410e
-keep_working(text=md"The answer is not quite right.") = Markdown.MD(Markdown.Admonition("danger", "Keep working on it!", [text]))
-
-# ╔═╡ 888a61a9-9b5e-41d6-bba5-ce259ecca3f5
-yays = [md"Fantastic!", md"Splendid!", md"Great!", md"Yay ❤", md"Great! 🎉", md"Well done!", md"Keep it up!", md"Good job!", md"Awesome!", md"You got the right answer!", md"Let's move on to the next section."]
-
-# ╔═╡ b90ae8a7-5746-47a4-b182-90f2e8ad19c5
-correct(text=rand(yays)) = Markdown.MD(Markdown.Admonition("correct", "Got it!", [text]))
-
-# ╔═╡ ef150bc3-65a1-4695-a1dc-ef8a2e602a5a
-not_defined(variable_name) = Markdown.MD(Markdown.Admonition("danger", "Oopsie!", [md"Make sure that you define a variable called **$(Markdown.Code(string(variable_name)))**"]))
-
-# ╔═╡ 64259d11-1310-49b6-aaec-bfe9832847fa
-# CHECKING FUNCTION
-if !@isdefined(model)
-    not_defined(:model)
-else
-    let
-        if !(model isa EoSModel)
-            still_missing(md"Make sure to define `model` using Clapeyron")
-
-        elseif (model isa RK) && (issetequal(model.components, ["methane", "ethane"])) && (model.alpha isa SoaveAlpha)
-            correct()
-
-        else
-            md"""
-            !!! warning "Incorrect"
-            	Make sure to define `model` using `SRK`
-            """
-        end
-    end
-end;
+# ╔═╡ fa4c8733-6992-4c44-982e-3ad43f5ad794
+md"""
+[^PAPER_CITATION]:
+"""
 
 # ╔═╡ 86e10ead-c665-4cb1-9956-b700968bee7f
-tangent_line(f, x₀) = (x -> f(x₀) + ForwardDiff.derivative(f, x₀) * (x - x₀))
+tangent_line(f, x₀) = (x -> f(x₀) + ForwardDiff.derivative(f, x₀) * (x - x₀));
 
 # ╔═╡ 58dabd1a-c5ca-49f5-9af1-60e86838c93a
 let
@@ -2118,9 +2118,9 @@ version = "0.9.1+5"
 """
 
 # ╔═╡ Cell order:
-# ╠═a598b2d2-f15c-11ec-10ed-a15ca6a73a60
+# ╟─a598b2d2-f15c-11ec-10ed-a15ca6a73a60
 # ╟─04089557-9381-4bbb-9882-45b5a685694b
-# ╠═ee9a3700-848e-4827-bb26-81a555b01a33
+# ╟─ee9a3700-848e-4827-bb26-81a555b01a33
 # ╟─cc88e502-8b06-44fc-b888-3bed9cf1b683
 # ╟─87bb11a1-d8f7-4b51-b67a-2cfeef4ad039
 # ╟─7782e58c-fed7-4920-81dd-02d7800ce8e6
@@ -2146,16 +2146,12 @@ version = "0.9.1+5"
 # ╟─51f6e633-e954-4542-badc-5ddb178509d1
 # ╟─217bbc70-3db5-4368-8819-0fabb9071637
 # ╟─3dafafd0-99ea-4f36-82ae-4a28d090c866
+# ╠═9d0d9c0d-5964-4507-b71a-4802915f4bb8
 # ╟─bfc93f97-258b-482f-bd4f-3781e7fd548f
 # ╟─30692b0e-6029-40a2-98a5-d8803304ff7e
-# ╟─5ed26e66-7c4b-466a-b95d-90c283aac6c6
-# ╟─b0429aaf-cdf4-487f-972e-8761f77cc0ad
-# ╟─b4939d68-71e4-480a-9c07-f1a6db51bb8b
-# ╟─dc6f6cb6-90df-453f-ba95-9542d81908ea
-# ╟─b05f3f59-434d-4c94-9393-d4683e27410e
-# ╟─888a61a9-9b5e-41d6-bba5-ce259ecca3f5
-# ╟─b90ae8a7-5746-47a4-b182-90f2e8ad19c5
-# ╟─ef150bc3-65a1-4695-a1dc-ef8a2e602a5a
+# ╟─ece3c292-448b-445b-8eea-f94a6b9ffbaf
+# ╟─f2fb8ddd-dc73-4998-801f-8b0b890d6107
+# ╟─fa4c8733-6992-4c44-982e-3ad43f5ad794
 # ╟─86e10ead-c665-4cb1-9956-b700968bee7f
 # ╟─a0b8bd11-282c-4bc6-9458-668bd9b007eb
 # ╟─06e8ef01-5d9f-4683-a2a6-46f531009253

@@ -6,6 +6,7 @@ using InteractiveUtils
 
 # ╔═╡ 23962934-2638-4788-9677-ae42245801ec
 begin
+	using Clapeyron: acentric_factor
 	using Clapeyron, ForwardDiff, LinearAlgebra, NLsolve,  Optimization, OptimizationOptimJL # Numerical packages
 	using LaTeXStrings, Plots # Display and plotting
 	using HypertextLiteral
@@ -50,12 +51,6 @@ K_i &= \frac{\varphi_i^L}{\varphi_i^V}
 ### The "trivial solution"
 
 In flash problems we run the risk of converging to the so-called trivial solution. This is where each phase is identical, meaning the equality of chemical potential is inherently satisfied. In a situation where we know there should be a 2-phase region, it can be hard to avoid converging to this solution.
-
-### Mole numbers
-
-In these problems, it is often advantageous to work using **mole numbers** in place of mole fractions. Mole numbers refers to the number of moles present, and isn't normalised to 1 like mole fractions. This is useful as it allows us to consider the problem using _unconstrained minimisation_, where we are not required to keep all mole fractions summing to 1.
-
-
 """
 
 # ╔═╡ 09dae921-9730-48a0-94b0-dd825d0ed919
@@ -392,6 +387,22 @@ begin
 	z = [0.4, 0.4, 0.2]
 end;
 
+# ╔═╡ 5fb5e842-b684-47b9-a60e-deedc485914c
+"""
+	Wilson_K_factor(pure_model, p, T)
+
+Returns the K-factor predicted by the Wilson correlation for a pure component at a given pressure and temperature
+"""
+function Wilson_K_factor(pure_model, p, T)
+	Tc, pc, vc = crit_pure(pure_model)
+	ω = acentric_factor(pure_model)
+	
+	# Complete the expression for calculating K-factors
+	K = exp(log(pc/p) + 5.373*(1+ω)*(1-Tc/T))
+	
+	return K
+end
+
 # ╔═╡ 8fdc31ec-178a-4ffd-b029-5590f192332f
 """
 	update_K_factors(model, p, T, x, y)
@@ -402,6 +413,56 @@ function update_K_factors(model, p, T, x, y)
 	φⱽ = fugacity_coefficient(model, p, T, y; phase=:vapour)
 	K = φᴸ./φⱽ
 	return K
+end
+
+# ╔═╡ cec97051-aec3-4e17-95eb-90d19b947c37
+K0 = Wilson_K_factor.(pure_models, p, T)
+
+# ╔═╡ 90baae39-478b-493c-ac23-4fadca9c3698
+begin
+	try
+		@htl("""
+		<table>
+		  <tr>
+		    <th>Component</th>
+		    <th>K-factor</th>
+		  </tr>
+		  <tr>
+		    <td>$(comps[1])</td>
+		    <td>$(round(K0[1]; digits=4))</td>
+		  </tr>
+		  <tr>
+		    <td>$(comps[2])</td>
+		    <td>$(round(K0[2]; digits=4))</td>
+		  </tr>
+		  <tr>
+		    <td>$(comps[3])</td>
+		    <td>$(round(K0[3]; digits=4))</td>
+		  </tr>
+		</table>
+		""")
+	catch
+		@htl("""
+		<table>
+		  <tr>
+		    <th>Component</th>
+		    <th>K</th>
+		  </tr>
+		  <tr>
+		    <td>$(comps[1])</td>
+		    <td>?</td>
+		  </tr>
+		  <tr>
+		    <td>$(comps[2])</td>
+		    <td>?</td>
+		  </tr>
+		  <tr>
+		    <td>$(comps[3])</td>
+		    <td>?</td>
+		  </tr>
+		</table>
+		""")
+	end
 end
 
 # ╔═╡ 1453647c-213c-4627-a5b1-ffc1f95204a1
@@ -428,6 +489,76 @@ function solve_flash(model, p, T, z, K0; maxiters=100, abstol=1e-7)
 	x = @. z/(1 + β*(K - 1))
 	y = @. K*x
 	return (β, x, y)
+end
+
+# ╔═╡ 96476f2f-a791-4ea6-9f81-8a17a00d6c1f
+β_flash, x_flash, y_flash = solve_flash(model, p, T, z, K0)
+
+# ╔═╡ 7b4e20ce-815a-46c7-bcc5-7b6531542049
+let
+	try
+		@htl("""
+		<table>
+		  <tr>
+		    <th rowspan="2">Component</th>
+		    <th colspan="2">Mole fraction</th>
+		  </tr>
+		  <tr>
+			<th>Liquid</th>
+			<th>Vapour</th>
+		  </tr>
+		  <tr>
+		    <td>$(comps[1])</td>
+		    <td>$(round(x_flash[1]; digits=4))</td>
+		    <td>$(round(y_flash[1]; digits=4))</td>
+		  </tr>
+		  <tr>
+		    <td>$(comps[2])</td>
+		    <td>$(round(x_flash[2]; digits=4))</td>
+		    <td>$(round(y_flash[2]; digits=4))</td>
+		  </tr>
+		  <tr>
+		    <td>$(comps[3])</td>
+		    <td>$(round(x_flash[3]; digits=4))</td>
+		    <td>$(round(y_flash[3]; digits=4))</td>
+		  </tr>
+		</table>
+		<center>
+		β = $(round(β_flash; digits=4))
+		</center>
+		""")
+	catch
+		@htl("""
+		<table>
+		  <tr>
+		    <th rowspan="2">Component</th>
+		    <th colspan="2">Mole fraction</th>
+		  </tr>
+		  <tr>
+			<th>Liquid</th>
+			<th>Vapour</th>
+		  </tr>
+		  <tr>
+		    <td>$(comps[1])</td>
+		    <td>?</td>
+		    <td>?</td>
+		  </tr>
+		  <tr>
+		    <td>$(comps[2])</td>
+		    <td>?</td>
+		    <td>?</td>
+		  </tr>
+		  <tr>
+		    <td>$(comps[3])</td>
+		    <td>?</td>
+		    <td>?</td>
+		  </tr>
+		</table>
+		<center>
+		β = ?
+		</center>
+		""")
+	end
 end
 
 # ╔═╡ 001c511c-34b9-4a25-b901-1b98a3eaea9b
@@ -475,6 +606,35 @@ function rootfinding_obj_func!(model, F, lnK, p, T, z, x, y)
     F .= log10.(Knew) .- lnK
 end
 
+# ╔═╡ 734dd8c9-cf26-4cf8-baf2-63cf97c34c2b
+begin
+	f!(F, K) = rootfinding_obj_func!(model, F, K, p, T, z, zeros(length(z)), zeros(length(z)))
+	
+	res_vec = []
+
+	res = nlsolve(f!, log10.(K0); store_trace=true, method=:anderson, m=0)
+	push!(res_vec, ["successive substitution", res])
+
+	res = nlsolve(f!, log10.(K0); store_trace=true, method=:anderson, m=5)
+	push!(res_vec, ["accelerated successive substitution", res])
+
+	res = nlsolve(f!, log10.(K0); autodiff=:forward, store_trace=true, method=:newton)
+	push!(res_vec, ["newton", res])
+end; 
+
+# ╔═╡ 457b66ff-7972-49b8-b57a-4b4fc5f0ad06
+let
+	p = plot(title="Convergence characteristics of flash calculations", xlabel="iteration", ylabel="error", framestyle=:box, tick_direction=:out, grid=:off, yaxis=:log, yticks=exp10.(range(-11, 0)), xlim=(0, 25), legendfont=font(10))
+	
+	for (method, res) in res_vec
+		iter = [x.iteration for x in res.trace.states]
+		method == "newton" && map!(x -> x+1, iter, iter)
+		residual = [x.fnorm for x in res.trace.states]
+		plot!(p, iter, residual, linewidth=2, label=string(method))
+	end
+	p
+end
+
 # ╔═╡ 6b9fdb5c-db31-483e-8329-0ebebb9ba40f
 md"""
 ### Benchmarks
@@ -485,15 +645,34 @@ md"""
 #### Successive substitution
 """
 
+# ╔═╡ 539b985c-2973-41f3-9b8c-9879184d8cf3
+let
+	test = @benchmarkable nlsolve(f!, log10.(K0); store_trace=true, method=:anderson, m=0)
+	run(test, samples=1)
+	run(test, samples=10000)
+end
+
 # ╔═╡ 8f4cdabd-b424-4f16-8129-d315b7f77aad
 md"""
 #### Accelerated successive substitution [^1]
 """
 
+# ╔═╡ 3cdba133-68cb-4c3e-bf30-e4b235a321a1
+let
+	test = @benchmarkable nlsolve(f!, log10.(K0); store_trace=true, method=:anderson, m=5)
+	run(test, samples=10000)
+end
+
 # ╔═╡ c2fb190a-0b65-4356-bf89-62f776ea7fe8
 md"""
 #### Newton
 """
+
+# ╔═╡ 48d547f4-bb0a-4c85-9ef4-4013bec76752
+let
+	test = @benchmarkable nlsolve(f!, log10.(K0); autodiff=:forward, method=:newton)
+	run(test, samples=10000)
+end
 
 # ╔═╡ 32870a35-1276-4d91-aa55-64f6256b4188
 md"""
@@ -611,212 +790,15 @@ html"<br><br><br><br><br><br><br><br><br><br><br><br>"
 
 # ╔═╡ 5e64af2a-b467-41f7-98f8-83d49e210a32
 md"""
-## Footnotes
+# Footnotes
 [^1]: Here we use [Anderson acceleration](https://en.wikipedia.org/wiki/Anderson_acceleration) to speed up the convergence rate of our fixpoint iteration. This is slightly different to the methods usually used in literature, e.g. by Michelsen. There you could expect to see some form of eigenvalue extrapolation, either dominant eigenvalue method (DEM) or general dominant eigenvalue method (GDEM). Another "accelerated successive substitution" method is described by _Risnes et al_, and is described [here](https://www.e-education.psu.edu/png520/m17_p6.html).
 """
 
-# ╔═╡ b9b2534e-bf13-4146-8b47-949ff0b0052e
-md"## Function library
-
-Just some helper functions used in the notebook."
-
-# ╔═╡ 6e576917-f1c5-4535-b8d4-a9d1c7814e30
-function acentric_factor(pure)
-	Tc,pc,_ = crit_pure(pure)
-	ps = first(saturation_pressure(pure,0.7*Tc))
-	ω = -log10(ps/pc) - 1.0
-	return ω
-end
-
-# ╔═╡ 5fb5e842-b684-47b9-a60e-deedc485914c
-"""
-	Wilson_K_factor(pure_model, p, T)
-
-Returns the K-factor predicted by the Wilson correlation for a pure component at a given pressure and temperature
-"""
-function Wilson_K_factor(pure_model, p, T)
-	Tc, pc, vc = crit_pure(pure_model)
-	ω = acentric_factor(pure_model)
-	
-	# Complete the expression for calculating K-factors
-	K = exp(log(pc/p) + 5.373*(1+ω)*(1-Tc/T))
-	
-	return K
-end
-
-# ╔═╡ cec97051-aec3-4e17-95eb-90d19b947c37
-K0 = Wilson_K_factor.(pure_models, p, T)
-
-# ╔═╡ 90baae39-478b-493c-ac23-4fadca9c3698
-begin
-	try
-		@htl("""
-		<table>
-		  <tr>
-		    <th>Component</th>
-		    <th>K-factor</th>
-		  </tr>
-		  <tr>
-		    <td>$(comps[1])</td>
-		    <td>$(round(K0[1]; digits=4))</td>
-		  </tr>
-		  <tr>
-		    <td>$(comps[2])</td>
-		    <td>$(round(K0[2]; digits=4))</td>
-		  </tr>
-		  <tr>
-		    <td>$(comps[3])</td>
-		    <td>$(round(K0[3]; digits=4))</td>
-		  </tr>
-		</table>
-		""")
-	catch
-		@htl("""
-		<table>
-		  <tr>
-		    <th>Component</th>
-		    <th>K</th>
-		  </tr>
-		  <tr>
-		    <td>$(comps[1])</td>
-		    <td>?</td>
-		  </tr>
-		  <tr>
-		    <td>$(comps[2])</td>
-		    <td>?</td>
-		  </tr>
-		  <tr>
-		    <td>$(comps[3])</td>
-		    <td>?</td>
-		  </tr>
-		</table>
-		""")
-	end
-end
-
-# ╔═╡ 96476f2f-a791-4ea6-9f81-8a17a00d6c1f
-β_flash, x_flash, y_flash = solve_flash(model, p, T, z, K0)
-
-# ╔═╡ 7b4e20ce-815a-46c7-bcc5-7b6531542049
-let
-	try
-		@htl("""
-		<table>
-		  <tr>
-		    <th rowspan="2">Component</th>
-		    <th colspan="2">Mole fraction</th>
-		  </tr>
-		  <tr>
-			<th>Liquid</th>
-			<th>Vapour</th>
-		  </tr>
-		  <tr>
-		    <td>$(comps[1])</td>
-		    <td>$(round(x_flash[1]; digits=4))</td>
-		    <td>$(round(y_flash[1]; digits=4))</td>
-		  </tr>
-		  <tr>
-		    <td>$(comps[2])</td>
-		    <td>$(round(x_flash[2]; digits=4))</td>
-		    <td>$(round(y_flash[2]; digits=4))</td>
-		  </tr>
-		  <tr>
-		    <td>$(comps[3])</td>
-		    <td>$(round(x_flash[3]; digits=4))</td>
-		    <td>$(round(y_flash[3]; digits=4))</td>
-		  </tr>
-		</table>
-		<center>
-		β = $(round(β_flash; digits=4))
-		</center>
-		""")
-	catch
-		@htl("""
-		<table>
-		  <tr>
-		    <th rowspan="2">Component</th>
-		    <th colspan="2">Mole fraction</th>
-		  </tr>
-		  <tr>
-			<th>Liquid</th>
-			<th>Vapour</th>
-		  </tr>
-		  <tr>
-		    <td>$(comps[1])</td>
-		    <td>?</td>
-		    <td>?</td>
-		  </tr>
-		  <tr>
-		    <td>$(comps[2])</td>
-		    <td>?</td>
-		    <td>?</td>
-		  </tr>
-		  <tr>
-		    <td>$(comps[3])</td>
-		    <td>?</td>
-		    <td>?</td>
-		  </tr>
-		</table>
-		<center>
-		β = ?
-		</center>
-		""")
-	end
-end
-
-# ╔═╡ 734dd8c9-cf26-4cf8-baf2-63cf97c34c2b
-begin
-	f!(F, K) = rootfinding_obj_func!(model, F, K, p, T, z, zeros(length(z)), zeros(length(z)))
-	
-	res_vec = []
-
-	res = nlsolve(f!, log10.(K0); store_trace=true, method=:anderson, m=0)
-	push!(res_vec, ["successive substitution", res])
-
-	res = nlsolve(f!, log10.(K0); store_trace=true, method=:anderson, m=5)
-	push!(res_vec, ["accelerated successive substitution", res])
-
-	res = nlsolve(f!, log10.(K0); autodiff=:forward, store_trace=true, method=:newton)
-	push!(res_vec, ["newton", res])
-end; 
-
-# ╔═╡ 457b66ff-7972-49b8-b57a-4b4fc5f0ad06
-let
-	p = plot(title="Convergence characteristics of flash calculations", xlabel="iteration", ylabel="error", framestyle=:box, tick_direction=:out, grid=:off, yaxis=:log, yticks=exp10.(range(-11, 0)), xlim=(0, 25), legendfont=font(10))
-	
-	for (method, res) in res_vec
-		iter = [x.iteration for x in res.trace.states]
-		method == "newton" && map!(x -> x+1, iter, iter)
-		residual = [x.fnorm for x in res.trace.states]
-		plot!(p, iter, residual, linewidth=2, label=string(method))
-	end
-	p
-end
-
-# ╔═╡ 539b985c-2973-41f3-9b8c-9879184d8cf3
-let
-	test = @benchmarkable nlsolve(f!, log10.(K0); store_trace=true, method=:anderson, m=0)
-	run(test, samples=1)
-	run(test, samples=10000)
-end
-
-# ╔═╡ 3cdba133-68cb-4c3e-bf30-e4b235a321a1
-let
-	test = @benchmarkable nlsolve(f!, log10.(K0); store_trace=true, method=:anderson, m=5)
-	run(test, samples=10000)
-end
-
-# ╔═╡ 48d547f4-bb0a-4c85-9ef4-4013bec76752
-let
-	test = @benchmarkable nlsolve(f!, log10.(K0); autodiff=:forward, method=:newton)
-	run(test, samples=10000)
-end
-
 # ╔═╡ d0b2f6bb-7539-4dda-adc9-acc2ce9cca4a
-hint(text) = Markdown.MD(Markdown.Admonition("hint", "Hint", [text]))
+hint(text) = Markdown.MD(Markdown.Admonition("hint", "Hint", [text]));
 
 # ╔═╡ 7b75b351-6490-4c33-ab77-f42f6e1453d9
-hint(title, text) = Markdown.MD(Markdown.Admonition("hint", title, [text]))
+hint(title, text) = Markdown.MD(Markdown.Admonition("hint", title, [text]));
 
 # ╔═╡ d6778a9d-2455-434d-b459-27195ac7a59f
 hint(md"""
@@ -833,22 +815,16 @@ You can write ′ by typing \prime then pressing tab.
 """)
 
 # ╔═╡ 8fe83aab-d193-4a28-a763-6420abcbb176
-almost(text) = Markdown.MD(Markdown.Admonition("warning", "Almost there!", [text]))
+almost(text) = Markdown.MD(Markdown.Admonition("warning", "Almost there!", [text]));
 
-# ╔═╡ 94caf041-6363-4b38-b2c2-daaf5a6aecf1
-still_missing(text=md"Replace `missing` with your answer.") = Markdown.MD(Markdown.Admonition("warning", "Here we go!", [text]))
+# ╔═╡ 059d43c4-e94a-442a-a89a-20d83d20180b
+correct(text=rand(yays)) = Markdown.MD(Markdown.Admonition("correct", "Got it!", [text]));
 
-# ╔═╡ 217956f7-f5f5-4345-8642-7736dc4321d7
-keep_working(text=md"The answer is not quite right.") = Markdown.MD(Markdown.Admonition("danger", "Keep working on it!", [text]))
+# ╔═╡ 82fbda65-888a-4be5-b515-cf63fe5ca305
+still_missing(text=md"Replace `missing` with your answer.") = Markdown.MD(Markdown.Admonition("warning", "Here we go!", [text]));
 
-# ╔═╡ dbe0cb67-b166-40b6-aeaf-a2e2d6ca4c87
-yays = [md"Fantastic!", md"Splendid!", md"Great!", md"Yay ❤", md"Great! 🎉", md"Well done!", md"Keep it up!", md"Good job!", md"Awesome!", md"You got the right answer!", md"Let's move on to the next section."]
-
-# ╔═╡ f67c10e6-8aa1-4eed-9561-b629fa8ac91b
-correct(text=rand(yays)) = Markdown.MD(Markdown.Admonition("correct", "Got it!", [text]))
-
-# ╔═╡ 970bb661-c959-4f0c-a1d6-50f655b80ef8
-not_defined(variable_name) = Markdown.MD(Markdown.Admonition("danger", "Oopsie!", [md"Make sure that you define **$(Markdown.Code(string(variable_name)))**"]))
+# ╔═╡ 575f4fe6-36dd-4e82-9c32-d84959f66477
+keep_working(text=md"The answer is not quite right.") = Markdown.MD(Markdown.Admonition("danger", "Keep working on it!", [text]));
 
 # ╔═╡ 80732074-1d94-45ed-8e5e-ea92d3985a1c
 if !@isdefined(β_RR)
@@ -869,133 +845,6 @@ else
 			keep_working()
 		end
 	end
-end
-
-# ╔═╡ 1333f8e7-bfdd-4f80-8eaa-124d184b03c6
-function data_table(headers, names, values)
-	app_id = randstring('a':'z')
-	data = JSON2.write(Dict(
-	    "headers" => [Dict("text" => headers[1], "value" => "const"), Dict("text" => headers[2], "value" => "val")],
-	    "states" => [Dict("const" => name, "val" => values[idx]) for (idx, name) in enumerate(names)]
-	))
-	return HTML("""
-		<link href="https://cdn.jsdelivr.net/npm/@mdi/font@5.x/css/materialdesignicons.min.css" rel="stylesheet">
-		<link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
-
-	  <div id=$app_id>
-		<v-app>
-		  <v-data-table
-		  :headers="headers"
-		  :items="states"
-		></v-data-table>
-		</v-app>
-	  </div>
-
-	  <script src="https://cdn.jsdelivr.net/npm/vue@2.x/dist/vue.js"></script>
-	  <script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script>
-	
-	<script>
-		new Vue({
-		  el: $app_id,
-		  vuetify: new Vuetify(),
-		  data () {
-				return $data
-			}
-		})
-	</script>
-	<style>
-		.v-application--wrap {
-			min-height: 10vh;
-		}
-		.v-data-footer__select {
-			display: none;
-		}
-	</style>
-	""")
-end
-
-# ╔═╡ 5b27286b-0a51-49ff-a783-90bf8334e080
-# begin
-# 	headers = ["Variable", "Value"]
-# 	names = ["c₁", "c₂", "c₃"]
-# 	values = ["1.0", "2.0", "3.0"]
-# 	data_table(headers, names, values)
-# end
-
-# ╔═╡ e3a0f37d-dd52-4d00-99a1-37076a474de0
-function latex_table(headers, names, values) # TODO: Make this work on input lists?
-	str1 = join([L"&"*h for h in headers])
-	str2 = join([names[i]*"&"*values[i]*"\\" for i in range(1,length(zip(names, values)))])
-
-	return Markdown.parse(L"$\begin{array}{lc}\hline"*str1*L"\\\hline"*str2*L"\hline\end{array}$")
-	# return md"""
-	# $\begin{array}{lcc}
-	# \hline & \text { Treatment A } & \text { Treatment B } \\
-	# \hline \text { John Smith } & 1 & 2 \\
-	# \text { Jane Doe } & - & 3 \\
-	# \text { Mary Johnson } & 4 & 5 \\
-	# \hline
-	# \end{array}$
-	# """
-end
-
-# ╔═╡ 808c11cb-f930-4fd6-b827-320e845a47a7
-function reduce_complex(Zvec)
-	Zvec = Vector{Union{Float64, ComplexF64}}(Zvec)
-	Zvec[abs.(imag.(Zvec)) .< eps()] .= real(Zvec[abs.(imag.(Zvec)) .< eps()])
-end
-
-# ╔═╡ 73912a13-87ce-4a0c-ab1b-b0bfd703e99e
-function mean(x)
-	return sum(x)/length(x)
-end
-
-# ╔═╡ fc8f7b89-e79c-437a-9a4a-f6be9290075e
-function chemical_stability_analysis2(model, p, T, z; converge_min=true)
-    Kʷ = Clapeyron.wilson_k_values(model, p, T)
-    z = z ./ sum(z)
-    # Generate initial guesses
-    w_vap = normalize(z ./ Kʷ, 1) # vapour-like root
-    w_liq = normalize(Kʷ .* z, 1) # liquid-like root
-    w0_vec = [w_liq, w_vap]
-
-    # Objective function - Unconstrained formulation in mole numbers
-    φ(x) = fugacity_coefficient(model, p, T, x)
-    d(x) = log.(x) .+ log.(φ(x))
-    d_z = d(z)
-
-    tm(W) = 1.0 + sum(W .* (d(W) .- d_z .- 1.0))# * exp(1e-3 / norm(normalize(W, 2) .- z))
-    f(W, _) = tm(exp10.(W))
-
-    if converge_min
-        f_callback = (x, _) -> false
-    else
-        f_callback = (x, _) -> f(x, 0.0) < -eps()
-    end
-
-    optf = OptimizationFunction(f, Optimization.AutoForwardDiff())
-    prob(w0) = OptimizationProblem(optf, log10.(w0))
-
-    sol(w0) = solve(prob(w0), BFGS(); callback=f_callback)
-    # sol(w0) = solve(prob(w0), BFGS())
-    sol_vec = sol.(w0_vec)
-    tm_min_vec = [s.minimum for s in sol_vec]
-    tm_xmin_vec = normalize.([exp10.(s.u) for s in sol_vec], 1)
-    return tm_xmin_vec, tm_min_vec
-end
-
-# ╔═╡ bff44c81-cfbc-4017-8fba-d778a9d9935a
-function check_chemical_stability(model, p, T, z)
-    tm_xmin_vec, tm_min_vec = chemical_stability_analysis2(model, p, T, z; converge_min=false)
-    # tm_min, idx = findmin(tm_min_vec)
-    # xmin = tm_xmin_vec[idx]
-
-    if minimum(tm_min_vec) < 0.0
-        stable = false
-    else
-        stable = true
-    end
-    return stable, tm_xmin_vec[tm_min_vec.<0]
 end
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
@@ -2352,7 +2201,7 @@ version = "0.9.1+5"
 """
 
 # ╔═╡ Cell order:
-# ╠═23962934-2638-4788-9677-ae42245801ec
+# ╟─23962934-2638-4788-9677-ae42245801ec
 # ╟─30f48408-f16e-11ec-3d6b-650f1bf7f435
 # ╟─09dae921-9730-48a0-94b0-dd825d0ed919
 # ╟─f20d5217-cbe7-4878-ad45-f1f90881384b
@@ -2398,22 +2247,11 @@ version = "0.9.1+5"
 # ╟─ea5bbbc9-6d08-4f31-b657-dfb884f181c1
 # ╟─4acb1393-030f-4cab-a765-f8de5a75893b
 # ╟─5e64af2a-b467-41f7-98f8-83d49e210a32
-# ╟─b9b2534e-bf13-4146-8b47-949ff0b0052e
-# ╟─6e576917-f1c5-4535-b8d4-a9d1c7814e30
 # ╟─d0b2f6bb-7539-4dda-adc9-acc2ce9cca4a
 # ╟─7b75b351-6490-4c33-ab77-f42f6e1453d9
 # ╟─8fe83aab-d193-4a28-a763-6420abcbb176
-# ╟─94caf041-6363-4b38-b2c2-daaf5a6aecf1
-# ╟─217956f7-f5f5-4345-8642-7736dc4321d7
-# ╟─dbe0cb67-b166-40b6-aeaf-a2e2d6ca4c87
-# ╟─f67c10e6-8aa1-4eed-9561-b629fa8ac91b
-# ╟─970bb661-c959-4f0c-a1d6-50f655b80ef8
-# ╟─1333f8e7-bfdd-4f80-8eaa-124d184b03c6
-# ╟─5b27286b-0a51-49ff-a783-90bf8334e080
-# ╟─e3a0f37d-dd52-4d00-99a1-37076a474de0
-# ╟─808c11cb-f930-4fd6-b827-320e845a47a7
-# ╟─73912a13-87ce-4a0c-ab1b-b0bfd703e99e
-# ╠═bff44c81-cfbc-4017-8fba-d778a9d9935a
-# ╠═fc8f7b89-e79c-437a-9a4a-f6be9290075e
+# ╟─059d43c4-e94a-442a-a89a-20d83d20180b
+# ╟─82fbda65-888a-4be5-b515-cf63fe5ca305
+# ╟─575f4fe6-36dd-4e82-9c32-d84959f66477
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
