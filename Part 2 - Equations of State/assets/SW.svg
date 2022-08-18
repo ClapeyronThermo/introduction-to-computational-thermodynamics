@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="540pt" height="540pt" viewBox="0 0 540 540">
+<g enable-background="new">
+<clipPath id="cp0">
+<path transform="matrix(1,0,0,-1,0,540)" d="M 0 .00001206994 L 540 .00001206994 L 540 540 L 0 540 Z "/>
+</clipPath>
+<g clip-path="url(#cp0)">
+<path transform="matrix(1,0,0,-1,0,540)" d="M 0 540 L 540 540 L 540 .00001206994 L 0 .00001206994 Z " fill="#ffffff"/>
+</g>
+<path transform="matrix(1,0,0,-1,0,540)" d="M 0 540 L 540 540 L 540 .0000140816 L 0 .0000140816 Z " fill="#ffffff"/>
+<path transform="matrix(1,0,0,-1,0,540)" d="M 209.2226 445.2498 L 209.2226 106.033 L 206.9726 106.033 L 206.9726 445.2498 Z M 204.7226 444.1246 L 208.0976 450.8746 L 211.4726 444.1246 Z " fill="#ff0000"/>
+<path transform="matrix(1,0,0,-1,0,540)" d="M 319.1483 194.6892 C 319.1483 218.5479 338.4896 237.8892 362.3483 237.8892 C 386.207 237.8892 405.5483 218.5479 405.5483 194.6892 C 405.5483 170.8305 386.207 151.4892 362.3483 151.4892 C 338.4896 151.4892 319.1483 170.8305 319.1483 194.6892 Z " fill="#00b0f0" fill-opacity=".6431" fill-rule="evenodd"/>
+<path transform="matrix(1,0,0,-1,0,540)" d="M 104.0697 189.4019 C 104.0697 213.2606 123.411 232.6019 147.2697 232.6019 C 171.1284 232.6019 190.4697 213.2606 190.4697 189.4019 C 190.4697 165.5432 171.1284 146.2019 147.2697 146.2019 C 123.411 146.2019 104.0697 165.5432 104.0697 189.4019 Z " fill="#00b0f0" fill-opacity=".6431" fill-rule="evenodd"/>
+<path transform="matrix(1,0,0,-1,0,540)" d="M 148.7697 75.22246 L 148.7698 443.3744 L 145.7698 443.3744 L 145.7697 75.22246 Z M 151.7698 441.8747 L 147.2698 450.8747 L 142.7698 441.8747 Z "/>
+<path transform="matrix(1,0,0,-1,0,540)" d="M 126.9219 192.0268 L 440.2915 192.0268 L 440.2915 189.0268 L 126.9219 189.0268 Z M 438.7914 195.0268 L 447.7914 190.5268 L 438.7914 186.0268 Z "/>
+<text xml:space="preserve" transform="matrix(.24 0 -0 .24 450.5264 912.48)" font-size="100" font-family="CambriaMath"><tspan y="-2250" x="0">&#x1d45f;</tspan></text>
+<text xml:space="preserve" transform="matrix(.24 0 -0 .24 152.9238 912.48)" font-size="100" font-family="CambriaMath"><tspan y="-2250" x="0">0</tspan></text>
+<text xml:space="preserve" transform="matrix(.24 0 -0 .24 109.5095 984)" font-size="100" font-family="CambriaMath"><tspan y="-2250" x="0">&#x2212;</tspan></text>
+<text xml:space="preserve" transform="matrix(.24 0 -0 .24 127.3845 984)" font-size="100" font-family="CambriaMath"><tspan y="-2250" x="0">&#x1d716;</tspan></text>
+<path transform="matrix(.00007874016,0,0,.00007874016,207.2195,434.392)" stroke-width="28575" stroke-linecap="butt" stroke-miterlimit="8" stroke-linejoin="miter" fill="none" stroke="#ff0000" d="M 0 0 L 797312 1 "/>
+<path transform="matrix(.00007874016,0,0,.00007874016,270.8811,350.59809)" stroke-width="28575" stroke-linecap="butt" stroke-miterlimit="8" stroke-linejoin="miter" fill="none" stroke="#ff0000" d="M 0 0 L 1 1078470 "/>
+<text xml:space="preserve" transform="matrix(.24 0 -0 .24 35.78157 665.28)" font-size="100" font-family="CambriaMath"><tspan y="-2250" x="0">&#x1d719;</tspan></text>
+<text xml:space="preserve" transform="matrix(.24 0 -0 .24 52.15657 670.32)" font-size="75" font-family="CambriaMath"><tspan y="-2250" x="0 41.145006">!"</tspan></text>
+<path transform="matrix(1,0,0,-1,0,540)" d="M 103.5233 432.6072 C 105.8045 432.0056 107.5565 430.7068 108.7791 428.7107 C 110.0018 426.7146 110.6131 424.3064 110.6131 421.4861 C 110.6131 418.658 110.0038 416.2498 108.785 414.2615 C 107.5663 412.2732 105.8124 410.9783 103.5233 410.3767 L 103.242 411.2791 C 105.0467 411.8806 106.3885 413.0681 107.2674 414.8416 C 108.1463 416.615 108.5858 418.8689 108.5858 421.6033 C 108.5858 424.2439 108.1483 426.4373 107.2733 428.1833 C 106.3983 429.9294 105.0428 431.1033 103.2069 431.7048 Z M 90.10079 432.6072 L 90.41719 431.7048 C 88.58907 431.1033 87.23555 429.9294 86.35665 428.1833 C 85.47774 426.4373 85.03829 424.2439 85.03829 421.6033 C 85.03829 418.8689 85.47774 416.615 86.35665 414.8416 C 87.23555 413.0681 88.57735 411.8806 90.38204 411.2791 L 90.10079 410.3767 C 87.81172 410.9783 86.05782 412.2732 84.83907 414.2615 C 83.62032 416.2498 83.01094 418.658 83.01094 421.4861 C 83.01094 424.3064 83.62227 426.7146 84.84493 428.7107 C 86.06758 430.7068 87.81954 432.0056 90.10079 432.6072 Z " fill-rule="evenodd"/>
+<text xml:space="preserve" transform="matrix(.24 0 -0 .24 90.86158 665.28)" font-size="100" font-family="CambriaMath"><tspan y="-2250" x="0">&#x1d45f;</tspan></text>
+<text xml:space="preserve" transform="matrix(.24 0 -0 .24 202.0635 881.52)" font-size="100" font-family="CambriaMath"><tspan y="-2250" x="0">&#x1d70e;</tspan></text>
+<text xml:space="preserve" transform="matrix(.24 0 -0 .24 256.5047 881.28)" font-size="100" font-family="CambriaMath"><tspan y="-2250" x="0 51.56">&#x1d706;&#x1d70e;</tspan></text>
+</g>
+</svg>
