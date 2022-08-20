@@ -16,7 +16,7 @@ end
 
 # ╔═╡ 23962934-2638-4788-9677-ae42245801ec
 begin
-	using Clapeyron: VT_isothermal_compressibility, VT_chemical_potential, R̄, ABCubicModel, SAFTModel
+	using Clapeyron: VT_isothermal_compressibility, VT_chemical_potential, R̄, ABCubicModel, SAFTModel, N_A 
 	const R = R̄
 	using Clapeyron, ForwardDiff, Roots, Optim, LinearAlgebra, PolynomialRoots # Numerical packages
 	using LaTeXStrings, Plots, ShortCodes, Printf # Display and plotting
@@ -32,11 +32,11 @@ md"""
 
 Now we know how to choose an equation of state for different situations, we need to investigate how to obtain the fluid properties at a specified state. To start with, we will look at how to solve for the volume at a given pressure, temperature, and phase for a pure fluid. From there, we will see how this changes when the phase is not known beforehand, and when dealing with a multicomponent mixture.
 
-Mathematically, this problem can be written as solving
+Usually, we specify pressure and temperature (_pT_), which when solving for the volume corresponds to solving the equation
 
-$$p(v,T_0,\vec{z}) = p_0$$
+$$p(v,T_0) = p_0$$
 
-for all values of $v$.
+for all values of $v$. These are considered the **volume roots** for our equation of state.
 
 ## Cubic EoS
 
@@ -176,7 +176,7 @@ let
 	
 	plot!([Vlsat1, Vvsat1], [psat1, psat1]/1e6,
 		 linewidth=2, color=:black, linestyle=:dash,
-		label="maxwell construction"
+		label="pressure construction"
 	)
 	
 	Vroots = real.(cubic_volume(model, psat1, T1))
@@ -185,27 +185,30 @@ end
 
 # ╔═╡ 8ef607ea-4c80-4da6-a209-ce34cf6fb55f
 md"""
-Under saturated conditions, the middle root never has physical meaning. Let's now solve the van der Waals equation for Z and see if our answers make sense. Complete the expressions for A and B in the code below:
+Under saturated conditions, the middle root never has physical meaning. Note also the line marked **pressure construction**. For a pure saturated fluid, an isotherm has **constant temperature**. This is not typically captured by an equation of state, so when designing software, care should be taken that calculations of pressure are physical and correct.
+
+Let's now solve the van der Waals equation for the volume roots and see if our answers make sense.
 """
 
 # ╔═╡ 49abc7bd-89b9-4926-9f6e-c2d1dd09a3e0
 """
 	cubic_volume(model::ABCubicModel, p, T)
 
-Solves a cubic equation of state for all volume roots, real or complex. Returns a vector ```Vector{ComplexF64}``` of three roots.
+Solves a cubic equation of state for all volume roots, real or complex. Returns a vector of all three roots.
 """
 function cubic_volume(model::ABCubicModel, p, T)
 	Tc, pc, _ = crit_pure(model)
 
-	a = 27/64 * (R*Tc)^2/pc
-	b = 1/8 * (R*Tc)/pc
-	
+	a = 27/64 * (R*Tc)^2/pc # a parameter
+	b = 1/8 * (R*Tc)/pc # b parameter
+
+	# Rearranged cubic parameters
 	A = a*p/(R*T)^2
 	B = b*p/(R*T)
-	
-	poly = [-A*B, A, -(1+B), 1.0]
-	Zvec = roots(poly)
-	Vvec = Zvec.*(R*T/p)
+
+	poly = [-A*B, A, -(1+B), 1.0] # Polynomial coefficients
+	Zvec = roots(poly) # Solve polynomial for Z
+	Vvec = Zvec.*(R*T/p) # Transform to volume
 	return Vvec
 end
 
@@ -214,16 +217,14 @@ begin
 	cubic_model = vdW(["carbon dioxide"])
 	p = 50e5
 	T = 273.15
-end;
-
-# ╔═╡ 9aa9b5bf-f938-4e96-9ed1-bed5c53ff93c
-Vvec = cubic_volume(cubic_model, p, T)
+	Vvec = cubic_volume(cubic_model, p, T)
+end
 
 # ╔═╡ 78ac6273-5029-4aa0-9e44-caacab4e40ef
 md"""
 Now we have that working, we can see we have 3 real roots. How do we know which one to choose? We know that the smallest root is _liquidlike_, the largest root is _vapourlike_, and that the middle root has no physical meaning. From our physical knowledge of hydrogen sulfide, we can tell that it should be a gas and so we should take the vapourlike root, but this isn't something we can apply rigorously or put into our code.
 
-In some situations the cubic equation will have imaginary roots which can obviously be discarded, but most of the time a decision between roots has to be made. To do this, we will introduce the **gibbs free energy**, as we know that the phase with the lowest gibbs free energy (or chemical potential) will exist at the given conditions.
+In many situations the cubic equation will have imaginary roots, which are always unphysical and should be discarded. However, most of the time a decision between real roots has to be made. To do this, we will introduce the **gibbs free energy**, as we know that the phase with the lowest gibbs free energy (or chemical potential) will by the stable phase at the given conditions.
 
 To evaluate the chemical potential, we can use
 
@@ -275,7 +276,7 @@ As this is already implemented in Clapeyron, all we need to know to use these eq
 
 $$a^\mathrm{res} = f(V,T)~.$$
 
-One way to obtain an expression we could solve for the volume at a specified pressure adn temperature would be to take the partial derivative of $a$ to express this as a nonlinear equation
+One way to obtain an expression we could solve for the volume at a specified pressure and temperature would be to take the partial derivative of $a$ to express this as a nonlinear equation
 
 $$\left(\frac{\partial a^\mathrm{res}}{\partial V}\right)_T = -p~.$$
 
@@ -313,12 +314,15 @@ In practice, equation (2) converges faster than directly solving equation (1). [
 
 # ╔═╡ 8ecab7d3-be38-4733-b02f-9b00d5e75bd1
 md"""
-We now have a recurrence relation that will converge to a volume root of our equation, but how do we go about generating initial guesses?
+We now have a relation that will converge to a volume root of our equation via **successive substitution**, but how do we go about generating initial guesses?
+
+### Initial  guesses
 
 To generate liquid-like initial guesses for SAFT equations, we're going to use a method based off of the packing fraction. This is defined as
 
 $$V_0^\mathrm{liq} = \frac{\pi}{6}\cdot N_A \cdot \sigma^3$$
 
+where $\sigma$ is the segment size and $N_A$ is Avogadro's number.
 """
 
 # ╔═╡ 7cfbb284-72ae-4d7f-ad5a-c98dd4ad2f97
@@ -340,8 +344,6 @@ but this isn't necessary for now, as the sequence defined by equation (2) genera
 # ╔═╡ 68cad9ec-8f72-41f1-8665-3b0fb87147de
 let
 	model = PCSAFT(["carbon dioxide"])
-	
-	p_raw(v, T) = pressure(model, v, T)
 	
 	Tcrit, pcrit, vcrit = crit_pure(model)
 	Tsat = LinRange(200.0, 0.9999Tcrit, 500)
@@ -380,7 +382,7 @@ let
 	psat1, Vlsat1, Vvsat1 = saturation_pressure(model, T1)
 	
 	plot!(
-		v -> p_raw(v, T1)/1e6,
+		v -> pressure(model, v, T1)/1e6,
 		10 .^ range(log10(minimum(Vlsat)), log10(maximum(Vvsat)), 1000),
 		linewidth=2.5, color=7, linestyle=:dashdot,
 		label="PCSAFT isotherm at $T1 K"
@@ -394,15 +396,19 @@ let
 	# scatter!(Vroots, repeat([psat1], 3)/1e6, label="volume roots", markersize=5.5, markershape=:diamond, color=4)
 end
 
-# ╔═╡ 0c4d1e42-f778-4679-a9be-1ba814de43c0
+# ╔═╡ 87867c7c-101c-4534-b6e7-d3ebc8b81a47
 md"""
-The functions we'll need for this are 
+### Implementation
+
+To implement this, the functions we'll need are
 
 ```julia
 β = VT_isothermal_compressibility(model, V, T)
 p = pressure(model, V, T)
  
 ```
+
+The ```volume_guess``` function for the liquid phase directly indexes the model object to obtain the sigma and segment values. Because only SAFT type models have these parameters, it is important we restrict our function to only accept the correct types. We do this with the ```::SAFTModel``` syntax in our function definition.
 """
 
 # ╔═╡ dbb341dd-e535-470f-b43a-b28ed13a7af9
@@ -413,7 +419,7 @@ Generates initial guessses for the a volume solver. The liquid phase initial gue
 """
 function volume_guess(model::SAFTModel, p, T, phase)
 	if phase == :liquid
-		N_A = 6.022e23
+		# Extract parameters 
 		σ = model.params.sigma.diagvalues[1]
 		seg = model.params.segment.values[1]
 		V0 = 1.25 * π/6 * N_A * σ^3 * seg
@@ -425,13 +431,28 @@ function volume_guess(model::SAFTModel, p, T, phase)
 	return V0
 end
 
+# ╔═╡ ad443d16-38d5-4a39-b9a8-28576e40d52e
+md"""
+In this implementation of ```SAFT_volume```, ```abstol``` and ```maxiters``` are **keyword arguments**. These are optional when calling the function, and have given default values. For example, you could either call
+
+```
+SAFT_volume(model, p, T, phase)
+```
+or for higher precision
+```
+SAFT_volume(model, p, T, phase; abstol=1e-10)
+```
+
+you can read more about keyword arguments [here](https://docs.julialang.org/en/v1/manual/functions/#Keyword-Arguments).
+"""
+
 # ╔═╡ 27ac6272-6d1e-4c8d-8660-5d7c049d0285
 """
-	SAFT_volume(model, p, T, phase; abstol=1e-12, maxiters=100)
+	SAFT_volume(model, p, T, phase; abstol=1e-9, maxiters=100)
 
 Solves an equation of state for a volume root. The root converged to is chosen by the initial guess, which is specified by the phase argument. The phase can either be liquid, ```:liquid```, or vapour, ```:vapour```.
 """
-function SAFT_volume(model, p, T, phase; abstol=1e-12, maxiters=100)
+function SAFT_volume(model, p, T, phase; abstol=1e-9, maxiters=100)
 	β(V) = VT_isothermal_compressibility(model, V, T)
 	p₁(V) = pressure(model, V, T)
 
@@ -456,6 +477,11 @@ function SAFT_volume(model, p, T, phase; abstol=1e-12, maxiters=100)
 	return V
 end
 
+# ╔═╡ 04299697-4527-4fc7-a8bc-0d1c1a10bea5
+md"""
+Now our functions have been defined we can define our model, then call the function defined above to calculate the volume for a given phase.
+"""
+
 # ╔═╡ 8da908bb-13b6-48e0-9023-506c9bf2a1ee
 begin
 	SAFT_model = PCSAFT(["carbon dioxide"])
@@ -472,6 +498,11 @@ md"""
 and we see that we've converged to the same answer!
 """
 
+# ╔═╡ 123c84a4-f363-4569-ba96-408a376fd4cf
+md"""
+Note that if we don't know _a-priori_ which phase we should solve for, it's once again necessary to solve for both the liquid and vapour roots and evaluate the chemical potential to determine which is more stable.
+"""
+
 # ╔═╡ 1957e1dc-37b4-4a7e-b42c-f376b14beb3e
 md"""
 ## Helmholtz-Explicit (e.g. GERG, IAPWS)
@@ -486,42 +517,27 @@ html"<br><br><br><br><br><br><br><br><br><br><br><br>"
 
 # ╔═╡ d9835e4a-e64e-4b3a-8c3c-f9d3766b23b9
 md"""
-## Footnotes
+# Footnotes
 [^1]: The recurrence relation formed by equation (2) turns out to be a Newton step towards the solution of equation (1).
 """
 
-# ╔═╡ b9b2534e-bf13-4146-8b47-949ff0b0052e
-md"## Function library
-
-Just some helper functions used in the notebook."
-
-# ╔═╡ 332ab61e-91d2-4dd7-9a59-699d8f6a4de1
-md"""
-###### Specific
-"""
-
-# ╔═╡ d6ae4c8a-ab5b-413f-88df-b5f4fc678ff9
-md"""
-###### Generic
-"""
-
 # ╔═╡ d0b2f6bb-7539-4dda-adc9-acc2ce9cca4a
-hint(text) = Markdown.MD(Markdown.Admonition("hint", "Hint", [text]))
+hint(text) = Markdown.MD(Markdown.Admonition("hint", "Hint", [text]));
 
 # ╔═╡ 8fe83aab-d193-4a28-a763-6420abcbb176
-almost(text) = Markdown.MD(Markdown.Admonition("warning", "Almost there!", [text]))
+almost(text) = Markdown.MD(Markdown.Admonition("warning", "Almost there!", [text]));
 
 # ╔═╡ 94caf041-6363-4b38-b2c2-daaf5a6aecf1
-still_missing(text=md"Replace `missing` with your answer.") = Markdown.MD(Markdown.Admonition("warning", "Here we go!", [text]))
+still_missing(text=md"Replace `missing` with your answer.") = Markdown.MD(Markdown.Admonition("warning", "Here we go!", [text]));
 
 # ╔═╡ 217956f7-f5f5-4345-8642-7736dc4321d7
-keep_working(text=md"The answer is not quite right.") = Markdown.MD(Markdown.Admonition("danger", "Keep working on it!", [text]))
+keep_working(text=md"The answer is not quite right.") = Markdown.MD(Markdown.Admonition("danger", "Keep working on it!", [text]));
 
 # ╔═╡ dbe0cb67-b166-40b6-aeaf-a2e2d6ca4c87
-yays = [md"Fantastic!", md"Splendid!", md"Great!", md"Yay ❤", md"Great! 🎉", md"Well done!", md"Keep it up!", md"Good job!", md"Awesome!", md"You got the right answer!", md"Let's move on to the next section."]
+yays = [md"Fantastic!", md"Splendid!", md"Great!", md"Yay ❤", md"Great! 🎉", md"Well done!", md"Keep it up!", md"Good job!", md"Awesome!", md"You got the right answer!", md"Let's move on to the next section."];
 
 # ╔═╡ f67c10e6-8aa1-4eed-9561-b629fa8ac91b
-correct(text=rand(yays)) = Markdown.MD(Markdown.Admonition("correct", "Got it!", [text]))
+correct(text=rand(yays)) = Markdown.MD(Markdown.Admonition("correct", "Got it!", [text]));
 
 # ╔═╡ 54de307b-64c3-4bed-9c91-d8ab7d3ad815
 if V_cubic ≈ volume(cubic_model, p, T)
@@ -538,29 +554,14 @@ else
 end
 
 # ╔═╡ 970bb661-c959-4f0c-a1d6-50f655b80ef8
-not_defined(variable_name) = Markdown.MD(Markdown.Admonition("danger", "Oopsie!", [md"Make sure that you define a variable called **$(Markdown.Code(string(variable_name)))**"]))
+not_defined(variable_name) = Markdown.MD(Markdown.Admonition("danger", "Oopsie!", [md"Make sure that you define a variable called **$(Markdown.Code(string(variable_name)))**"]));
 
 # ╔═╡ 156674ce-b49e-44b6-8182-7f8da0a394af
 if !@isdefined(Vvec)
 	not_defined(:Vvec)
 else
-	let
+	if Vvec[findmin(μ_show)[2]] ≈ volume(cubic_model, p, T)
 		correct()
-		# Asol = a*p/(R*T)^2
-		# Bsol = b*p/(R*T)
-		# if (A==Asol) && (B==Bsol)
-		# 	if (Zvec == roots([-A*B, A, -(1+B), 1.0]))
-		# 		correct()
-		# 	else
-		# 		almost(md"Make sure `poly` and `Zvec` are defined correctly")
-		# 	end
-		# elseif (A==Asol)
-		# 	still_missing(md"Make sure `B` is defined correctly")
-		# elseif (B==Bsol)
-		# 	still_missing(md"Make sure `A` is defined correctly")
-		# else
-		# 	keep_working(md"Make sure you've defined `A` and `B` carefully")
-		# end
 	end
 end
 
@@ -571,7 +572,7 @@ function reduce_complex(x)
 	map!(x -> round(x; sigdigits=3), x2, x2)
 	# x[abs.(imag.(x)) .< eps()] .= real(x[abs.(imag.(x)) .< eps()])
 	return x2
-end
+end;
 
 # ╔═╡ 90baae39-478b-493c-ac23-4fadca9c3698
 begin
@@ -1990,7 +1991,6 @@ version = "0.9.1+5"
 # ╟─8ef607ea-4c80-4da6-a209-ce34cf6fb55f
 # ╠═49abc7bd-89b9-4926-9f6e-c2d1dd09a3e0
 # ╠═94bbc71e-c79b-416c-a059-3e804d4fc107
-# ╠═9aa9b5bf-f938-4e96-9ed1-bed5c53ff93c
 # ╟─90baae39-478b-493c-ac23-4fadca9c3698
 # ╟─156674ce-b49e-44b6-8182-7f8da0a394af
 # ╟─78ac6273-5029-4aa0-9e44-caacab4e40ef
@@ -1998,34 +1998,34 @@ version = "0.9.1+5"
 # ╟─0c03142f-dd0f-4769-9757-a03b72049bf3
 # ╟─6a497f80-2d63-497b-a273-82df3ca84c47
 # ╠═48deaba2-758b-4658-8c7b-2e07add0d2d6
-# ╟─7ad14533-d7e6-4b44-9764-30dbdbac19f9
+# ╠═7ad14533-d7e6-4b44-9764-30dbdbac19f9
 # ╟─54de307b-64c3-4bed-9c91-d8ab7d3ad815
 # ╟─f4ab1c61-1f6d-4a4c-8b0b-cf7c14f3d096
 # ╟─11bd73c1-c745-4d30-adc0-19209e0c0c82
 # ╟─d0cfc031-3153-4ac5-9b50-1fba2729e9f4
-# ╠═8ecab7d3-be38-4733-b02f-9b00d5e75bd1
+# ╟─8ecab7d3-be38-4733-b02f-9b00d5e75bd1
 # ╟─7cfbb284-72ae-4d7f-ad5a-c98dd4ad2f97
 # ╟─d7a60eae-0393-4b11-b1e1-faec368d324b
 # ╟─68cad9ec-8f72-41f1-8665-3b0fb87147de
-# ╟─0c4d1e42-f778-4679-a9be-1ba814de43c0
+# ╟─87867c7c-101c-4534-b6e7-d3ebc8b81a47
 # ╠═dbb341dd-e535-470f-b43a-b28ed13a7af9
+# ╟─ad443d16-38d5-4a39-b9a8-28576e40d52e
 # ╠═27ac6272-6d1e-4c8d-8660-5d7c049d0285
+# ╟─04299697-4527-4fc7-a8bc-0d1c1a10bea5
 # ╠═8da908bb-13b6-48e0-9023-506c9bf2a1ee
 # ╟─fea36d6d-572d-4421-8616-ea59820c225e
 # ╟─2d740e80-c450-46c2-9086-75f4ce23ce26
 # ╟─fc58d8f6-9647-4331-bebd-624ba7d75e7f
+# ╟─123c84a4-f363-4569-ba96-408a376fd4cf
 # ╟─1957e1dc-37b4-4a7e-b42c-f376b14beb3e
 # ╟─4acb1393-030f-4cab-a765-f8de5a75893b
 # ╟─d9835e4a-e64e-4b3a-8c3c-f9d3766b23b9
-# ╟─b9b2534e-bf13-4146-8b47-949ff0b0052e
-# ╟─332ab61e-91d2-4dd7-9a59-699d8f6a4de1
-# ╟─d6ae4c8a-ab5b-413f-88df-b5f4fc678ff9
 # ╟─d0b2f6bb-7539-4dda-adc9-acc2ce9cca4a
 # ╟─8fe83aab-d193-4a28-a763-6420abcbb176
 # ╟─94caf041-6363-4b38-b2c2-daaf5a6aecf1
 # ╟─217956f7-f5f5-4345-8642-7736dc4321d7
 # ╟─dbe0cb67-b166-40b6-aeaf-a2e2d6ca4c87
-# ╠═f67c10e6-8aa1-4eed-9561-b629fa8ac91b
+# ╟─f67c10e6-8aa1-4eed-9561-b629fa8ac91b
 # ╟─970bb661-c959-4f0c-a1d6-50f655b80ef8
 # ╟─808c11cb-f930-4fd6-b827-320e845a47a7
 # ╟─00000000-0000-0000-0000-000000000001

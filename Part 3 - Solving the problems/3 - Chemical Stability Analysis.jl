@@ -275,12 +275,12 @@ On top of this, if we plot the minimum point we see it's incredibly close to the
 
 # ╔═╡ ebeff010-8e3e-4ab6-8215-d4b9d80288d2
 md"""
-In certain cases, this can provide incredibly good initial guesses. This is, unfortunately, not the norm.
+In certain cases, this can provide incredibly good initial guesses
 """
 
 # ╔═╡ c8cdbae6-118d-4636-8205-47fde2a72e01
 md"""
-Otherwise, we often obtain pretty good initial guesses, though not perfect.
+Though this is, unfortunately, not the norm. Otherwise, we often obtain pretty good initial guesses, though not perfect. For example, with an octane + ethane mixture
 """
 
 # ╔═╡ 0b018495-b1ad-46b0-af2a-dde532cf3442
@@ -364,7 +364,7 @@ let
 	gr()
 
 	fig9 = plot(title="Gibbs free energy of mixing in a\noctane + ethane mixture\n",
-        ylabel=L"Δg^{\mathrm{mix}}/RT", xlabel=L"x~(octane)", yguidefontsize=16, xguidefontsize=16, legendfont=font(10), framestyle=:box, tick_direction=:out, grid=:off, xlim=(0.0, 1.0), ylim = (-0.5, 0.30),
+        ylabel=L"Δg^{\mathrm{mix}}/RT", xlabel="x (octane)", yguidefontsize=16, xguidefontsize=16, legendfont=font(10), framestyle=:box, tick_direction=:out, grid=:off, xlim=(0.0, 1.0), ylim = (-0.5, 0.30),
 		legend=:topleft
     )
 
@@ -2146,7 +2146,7 @@ version = "0.9.1+5"
 # ╟─51f6e633-e954-4542-badc-5ddb178509d1
 # ╟─217bbc70-3db5-4368-8819-0fabb9071637
 # ╟─3dafafd0-99ea-4f36-82ae-4a28d090c866
-# ╠═9d0d9c0d-5964-4507-b71a-4802915f4bb8
+# ╟─9d0d9c0d-5964-4507-b71a-4802915f4bb8
 # ╟─bfc93f97-258b-482f-bd4f-3781e7fd548f
 # ╟─30692b0e-6029-40a2-98a5-d8803304ff7e
 # ╟─ece3c292-448b-445b-8eea-f94a6b9ffbaf

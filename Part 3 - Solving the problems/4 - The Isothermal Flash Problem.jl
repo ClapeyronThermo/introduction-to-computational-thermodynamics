@@ -6,7 +6,7 @@ using InteractiveUtils
 
 # ╔═╡ 23962934-2638-4788-9677-ae42245801ec
 begin
-	using Clapeyron: acentric_factor
+	using Clapeyron: acentric_factor, p_scale, T_scale, VT_chemical_potential
 	using Clapeyron, ForwardDiff, LinearAlgebra, NLsolve,  Optimization, OptimizationOptimJL # Numerical packages
 	using LaTeXStrings, Plots # Display and plotting
 	using HypertextLiteral
@@ -366,8 +366,8 @@ md"""
 ### Flowchart
 """
 
-# ╔═╡ 2385cc43-e041-4b49-bd52-6426216bf7a5
-Resource("https://i.imgur.com/yN2voJp.jpeg", :height => 600)
+# ╔═╡ d296a240-d07b-4139-8e0f-0f132bd9b21d
+@htl("""<center><img src="https://raw.githubusercontent.com/lucpaoli/introduction-to-computational-thermodynamics/main/Part%203%20-%20Solving%20the%20problems/assets/RachfordRice.drawio.png" height="600"></center>""")
 
 # ╔═╡ e870a839-4c93-4693-8f1c-7b370082beec
 md"""
@@ -391,22 +391,21 @@ end;
 """
 	Wilson_K_factor(pure_model, p, T)
 
-Returns the K-factor predicted by the Wilson correlation for a pure component at a given pressure and temperature
+returns a vector of K-factors predicted by the Wilson correlation for a pure component at a given pressure and temperature.
 """
 function Wilson_K_factor(pure_model, p, T)
 	Tc, pc, vc = crit_pure(pure_model)
 	ω = acentric_factor(pure_model)
 	
-	# Complete the expression for calculating K-factors
+	# Calculate K-factors
 	K = exp(log(pc/p) + 5.373*(1+ω)*(1-Tc/T))
-	
 	return K
 end
 
 # ╔═╡ 8fdc31ec-178a-4ffd-b029-5590f192332f
 """
 	update_K_factors(model, p, T, x, y)
-returns a vector of K-factors
+For use in VLE flash calculations. Updates the K-factor vector using fugacity coefficients. Returns the new vector of K-factors.
 """
 function update_K_factors(model, p, T, x, y)
 	φᴸ = fugacity_coefficient(model, p, T, x; phase=:liquid)
@@ -466,7 +465,10 @@ begin
 end
 
 # ╔═╡ 1453647c-213c-4627-a5b1-ffc1f95204a1
-function solve_flash(model, p, T, z, K0; maxiters=100, abstol=1e-7)
+"""
+	solve_flash(model, p, T, z, K0; maxiters=100, abstol=1e-9)
+"""
+function solve_flash(model, p, T, z, K0; maxiters=100, abstol=1e-9)
 	iters = 0
 	K_norm = 1.0
 	K = K0
@@ -559,6 +561,19 @@ let
 		</center>
 		""")
 	end
+end
+
+# ╔═╡ 28882992-ffb1-4b98-ab01-be17db9f3ba4
+md"""
+### TODO: INTERACTIVE GRAPH
+"""
+
+# ╔═╡ cb876b38-1688-47d4-9b73-4e181f8c17d7
+let
+	T = 255.0
+	
+	bubble_pressure()
+	dew_pressure()
 end
 
 # ╔═╡ 001c511c-34b9-4a25-b901-1b98a3eaea9b
@@ -801,12 +816,12 @@ hint(text) = Markdown.MD(Markdown.Admonition("hint", "Hint", [text]));
 hint(title, text) = Markdown.MD(Markdown.Admonition("hint", title, [text]));
 
 # ╔═╡ d6778a9d-2455-434d-b459-27195ac7a59f
-hint(md"""
+hint("Hint 1", md"""
 Consider using the broadcasting macro @. to simplify your expression in rachford_rice
 """)
 
 # ╔═╡ c2e866df-a46b-4ca0-8b3f-e7fa2e7b4143
-hint("Hint 1", md"""
+hint("Hint 2", md"""
 Calculate your Newton step using 
 
 $$d = \frac{f}{f^′}$$
@@ -816,6 +831,9 @@ You can write ′ by typing \prime then pressing tab.
 
 # ╔═╡ 8fe83aab-d193-4a28-a763-6420abcbb176
 almost(text) = Markdown.MD(Markdown.Admonition("warning", "Almost there!", [text]));
+
+# ╔═╡ 0e3f6296-df65-4b9e-8fdb-0f1f670ab117
+yays = [md"Fantastic!", md"Splendid!", md"Great!", md"Yay ❤", md"Great! 🎉", md"Well done!", md"Keep it up!", md"Good job!", md"Awesome!", md"You got the right answer!", md"Let's move on to the next section."];
 
 # ╔═╡ 059d43c4-e94a-442a-a89a-20d83d20180b
 correct(text=rand(yays)) = Markdown.MD(Markdown.Admonition("correct", "Got it!", [text]));
@@ -2209,10 +2227,10 @@ version = "0.9.1+5"
 # ╟─4964a590-ef0e-4e2c-a90a-fe238d5766cf
 # ╠═ad558065-7d69-411d-a033-da3d9047547c
 # ╟─d6778a9d-2455-434d-b459-27195ac7a59f
+# ╟─c2e866df-a46b-4ca0-8b3f-e7fa2e7b4143
 # ╠═4ae44687-2b39-4e92-93a3-e40b74415231
 # ╠═fc3805e2-5293-4cd0-ac25-48c520efb654
 # ╟─80732074-1d94-45ed-8e5e-ea92d3985a1c
-# ╟─c2e866df-a46b-4ca0-8b3f-e7fa2e7b4143
 # ╟─00ebf34a-dd75-48d4-834e-f6e0560df38d
 # ╟─33d28a0e-31f8-40f4-9060-a35a4fe3ecf6
 # ╟─aaac38e8-1d06-46ed-9607-a8e2fe1752e9
@@ -2222,7 +2240,7 @@ version = "0.9.1+5"
 # ╟─6f088d8b-a987-4fbd-a8d8-58c0acbf8aa0
 # ╟─24b7f6f7-8204-4a31-aef9-c1d64b754fc3
 # ╟─30226c89-7c84-439b-9ed5-be6ca2d7aecf
-# ╟─2385cc43-e041-4b49-bd52-6426216bf7a5
+# ╟─d296a240-d07b-4139-8e0f-0f132bd9b21d
 # ╟─e870a839-4c93-4693-8f1c-7b370082beec
 # ╠═c07e1d8b-113a-4382-af00-16332569fc8e
 # ╠═5fb5e842-b684-47b9-a60e-deedc485914c
@@ -2231,6 +2249,8 @@ version = "0.9.1+5"
 # ╠═1453647c-213c-4627-a5b1-ffc1f95204a1
 # ╠═96476f2f-a791-4ea6-9f81-8a17a00d6c1f
 # ╟─7b4e20ce-815a-46c7-bcc5-7b6531542049
+# ╟─28882992-ffb1-4b98-ab01-be17db9f3ba4
+# ╠═cb876b38-1688-47d4-9b73-4e181f8c17d7
 # ╟─001c511c-34b9-4a25-b901-1b98a3eaea9b
 # ╟─b04743cd-bdc8-46a7-be77-8b0e116fae3a
 # ╟─734dd8c9-cf26-4cf8-baf2-63cf97c34c2b
@@ -2251,6 +2271,7 @@ version = "0.9.1+5"
 # ╟─7b75b351-6490-4c33-ab77-f42f6e1453d9
 # ╟─8fe83aab-d193-4a28-a763-6420abcbb176
 # ╟─059d43c4-e94a-442a-a89a-20d83d20180b
+# ╟─0e3f6296-df65-4b9e-8fdb-0f1f670ab117
 # ╟─82fbda65-888a-4be5-b515-cf63fe5ca305
 # ╟─575f4fe6-36dd-4e82-9c32-d84959f66477
 # ╟─00000000-0000-0000-0000-000000000001

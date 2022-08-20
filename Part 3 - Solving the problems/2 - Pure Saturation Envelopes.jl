@@ -6,7 +6,7 @@ using InteractiveUtils
 
 # ╔═╡ 58b0aaa8-f47a-11ec-1113-9933151340be
 begin
-	using Clapeyron: VT_chemical_potential, ABCubicModel, SAFTModel, p_scale, T_scale, R̄
+	using Clapeyron: VT_chemical_potential, ABCubicModel, SAFTModel, p_scale, T_scale, R̄, N_A
 	const R = R̄;
 	
 	using Clapeyron, ForwardDiff, Roots, NLsolve, LinearAlgebra # Numerical packages
@@ -23,7 +23,7 @@ md"""
 
 According to the Gibbs phase rule, we only have 1 degree of freedom along the saturation curves for a pure substance. This means that we should be able to specify either pressure or temperature and determine the corresponding saturated point.
 
-This can be solved in 2 ways, either as an optimisation problem formulated in just pressure or chemical potential, or a rootfinding problem using both equations. Generally root finding problems are easier to solve numerically, so that formulation is definitely preferable.
+This can be solved in 2 ways, either as an optimisation problem formulated in just pressure or chemical potential, or a root-finding problem using both equations. Generally root-finding problems are easier to solve numerically, so that formulation is generally preferable.
 
 ## Specification of equilibrium
 
@@ -35,13 +35,7 @@ p^\mathrm{vap} &= p^\mathrm{liq}\tag{2}\\
 \mu^\mathrm{vap} &= \mu^\mathrm{liq}~.\tag{3}
 \end{align}$$
 
-As we are iterating using two variables, we need to select two of the three equations to "complete" our problem. While any two could be used, solving for temperature is far more expensive than solving for pressure and chemical potential. This is because equations of state are generally non-linear functions of temperature, meaning they would require an additional inner loop to solve for this. Therefore we solve for equilibrium using equations (1) and (3)
-
-
-"""
-
-# ╔═╡ 61c34a9b-1e5f-45ab-bbfd-c4e8b21c7320
-md"""
+As we are iterating using two variables, we need to select two of the three equations to "complete" our problem. While any two could be used, solving for temperature is far more expensive than solving for pressure and chemical potential. This is because equations of state are generally not analytically solvable for temperature, meaning they would require an additional inner loop to solve for this. Therefore we solve for equilibrium using equations (1) and (3).
 
 This is a root-finding problem in $\mathbb R^2$, with an objective function $F$ defined as
 
@@ -56,21 +50,77 @@ V^\mathrm{vap}
 T^\mathrm{liq} - T^\mathrm{vap} = 0\\
 \mu^\mathrm{liq} - \mu^\mathrm{vap} = 0
 \end{split}\right]~.$$
+"""
+
+# ╔═╡ 2f60da7d-a5aa-424e-921b-dc6377423d50
+md"""
+## Scaling factors
+When solving our problem, properly scaling our equations is very important. Part of this is due to [conditioning](https://en.wikipedia.org/wiki/Condition_number) [^1], and part due to how we define convergence. In a root-finding problem, convergence is usually declared when the magnitude of the function falls below a specified value, written as
+
+$$|f(x)| < ϵ$$
+
+where ϵ is a **user-defined tolerance**. By using these scaling factors, our variables are similarly-sized, and the system of equations is better behaved. The typical scaling factors for the thermodynamic variables are given by the table below.
+"""
+
+# ╔═╡ d6f55d1e-a9c4-49c5-9ec3-14d51d0781e8
+@htl("""
+		<table>
+		<caption>Typical scaling factors for thermodynamic variables</caption>
+		  <tr>
+		    <td></td>
+		    <th>Cubic</th>
+		    <th>SAFT</th>
+		  </tr>
+		  <tr>
+		    <th>Pressure</th>
+		    <td>P<sub>C</sub></td>
+		    <td>R⋅ϵ/(N<sub>A</sub>⋅σ³)</td>
+		  </tr>
+		  <tr>
+		    <th>Temperature</th>
+		    <td>T<sub>C</sub></td>
+		    <td>ϵ</td>
+		  </tr>
+		  <tr>
+			<th>Molar Energies (e.g. μ, g, a)</th>
+		    <td>R⋅T</td>
+			<td>R⋅T</td>
+		  </tr>
+		</table>
+		""")
+
+# ╔═╡ 103b01a4-971a-44b1-be08-b3e59d952dcb
+md"""
+using Clapeyron, we can access the pressure and temperature scaling factors using 
+
+```julia
+ps = p_scale(model)
+Ts = T_scale(model)
+```
+"""
+
+# ╔═╡ b7b778eb-6f77-4183-8c67-76cb2aa3c25c
+md"""
+Another technique often used is using logs to scale variables scanning multiple orders of magnitude. This frequently comes up with volumes, with liquid and vapour volumes varying by up to 1000x.
+"""
+
+# ╔═╡ 61c34a9b-1e5f-45ab-bbfd-c4e8b21c7320
+md"""
 
 ## Initial guesses
 
-As with all numerical methods, good initial guesses are quite important. To obtain these, we can leverage the fact that the van der Waals equation of state has analytical solutions for the VLE curve. This is given by
+As with all numerical methods, good initial guesses are quite important. To obtain these, we can leverage the theory of corresponding states. This states that "all fluids, when compared at the same reduced temperature and reduced pressure, have approximately the same compressibility factor and all deviate from ideal gas behavior to about the same degree" [^1]. This allows us to express the solution to the van der Waals EoS saturation curve in terms of **reduced variables**. We use a highly-accurate numerical approximation for this, with saturated volumes given by
 
 $$\begin{gather}
-v^\mathrm{liq} = 3b/c^\mathrm{liq}\\
-v^\mathrm{vap} = 3b/c^\mathrm{vap}
+v^\textrm{sat. liq} = 3b/c^\textrm{sat. liq}\\
+v^\textrm{sat. vap} = 3b/c^\textrm{sat. vap}
 \end{gather}$$
 
 where $c$ is given by 
 
-$$c^\mathrm{liq} = 1 + 2(1-T_\mathrm{r})^{1/2} + \frac25(1-T_\mathrm{r}) - \frac{13}{25}(1-T_\mathrm{r})^{3/2} + 0.115(1-T_\mathrm{r})^2$$
+$$c^\textrm{sat. liq} = 1 + 2(1-T_\mathrm{r})^{1/2} + \frac25(1-T_\mathrm{r}) - \frac{13}{25}(1-T_\mathrm{r})^{3/2} + 0.115(1-T_\mathrm{r})^2$$
 
-$$c^\mathrm{vap} = \begin{cases} 2(1+\frac25(1-T_\mathrm{r}) + 0.161(1-T_\mathrm{r})^2) - c^\mathrm{liq}\quad 0.25 < T_\mathrm{r} \leq 1\\ 2(\frac32 - \frac49T_\mathrm{r}-0.15T_\mathrm{r}^2)-c^\mathrm{liq}\quad0\leq T_\mathrm{r} < 0.64\end{cases}$$
+$$c^\textrm{sat. vap} = \begin{cases} 2(1+\frac25(1-T_\mathrm{r}) + 0.161(1-T_\mathrm{r})^2) - c^\textrm{sat. liq}\quad 0.25 < T_\mathrm{r} \leq 1\\ 2(\frac32 - \frac49T_\mathrm{r}-0.15T_\mathrm{r}^2)-c^\textrm{sat. liq}\quad0\leq T_\mathrm{r} < 0.64\end{cases}$$
 
 When using this for an initial guess we take one final step by moving the initial guesses away from the van der Waals saturation curve. I chose to use a factor of 0.5 for the liquid volume and 2 for the vapour volume respectively. This is done to avoid the guesses falling _inside_ the saturation curve of the fluid we're solving for, as that can lead to numerical instability and convergence issues. By choosing guesses that bracket, but don't lie too far from, the saturation curve, convergence is far more reliable.
 
@@ -145,7 +195,9 @@ When building this, remember that the triple point is not represented by typical
 
 # ╔═╡ 65a528b6-eebb-422c-9221-f2bd9df0d2d2
 md"""
-## Points of interest
+## Critical point solver
+
+### Formulation
 
 Above, we traced the pure saturation envelope between two user-decided points. If one of these falls above the critical point, the saturation solver will either fail or converge to a trivial solution. If we want to determine the end point of our saturation curve before beginning calculation, how should we go about that?
 
@@ -159,6 +211,31 @@ f_2(v, T) = \left(\frac{\partial^2 p(v,T)}{\partial v^2}\right)_{T} = 0\\
 \end{gather}$$
 
 This would usually require analytical derivatives, as calculation with finite differences are both inaccurate and expensive, especially for higher order derivatives. However, automatic differentiation allows us to easily determine the exact derivatives in the objective function, as well as the higher order derivatives needed to solve this with Newton's method. Note that although solver methods that do not rely on derivatives exist, it is faster to use derivative information if it is available.
+"""
+
+# ╔═╡ 1e01206f-e565-4d90-83f8-f7c038b5e961
+md"""
+### Initial guesses
+The final issue we must resolve is the generation of **initial guesses**. Luckily, a critical point solver isn't too sensitive to initial guesses.
+
+The volume guess is an empirically chosen packing fraction of $0.3$. This corresponds to 
+
+$$V_0^\mathrm{liq} = \frac{1}{0.3}\cdot\frac{\pi}{6}\cdot N_A \cdot \sigma^3$$
+
+as defined in Section 3.1.
+
+The temperature guess corresponds to
+
+$$T_0 = 2\cdot T^\mathrm{scale}$$
+
+where for SAFT,
+
+$T^\mathrm{scale} = ϵ~.$
+"""
+
+# ╔═╡ ea2d00b5-0d10-4109-aec1-631a4575fc06
+md"""
+### Implementation
 
 Rather than write the entire solver by hand, we will now rely on Newton's method exported by the NLsolve library. The format of this function is:
 
@@ -168,9 +245,6 @@ nlsolve(f!, initial_x, autodiff = :forward, method = :newton)
 
 Note that ``!`` signifies an [in-place function](https://en.wikipedia.org/wiki/In-place_algorithm). This means that rather than returning a value, it updates the first value passed to the new values.
 """
-
-# ╔═╡ d706be97-702f-49ad-aa22-1132ec257a0f
-model_SAFT = PCSAFT(["water"])
 
 # ╔═╡ c53316bd-ecbd-43b0-b016-99a1985fc6e3
 """
@@ -187,23 +261,53 @@ function critical_objective!(model, F, x)
 	F .= [f1(V), f2(V)]
 end
 
-# ╔═╡ 6d67868c-4457-4820-800d-3a61f57f81a0
-begin
-	V03 = 1.5e-5
-	T03 = 500.0
-	x0 = [V03, T03]
+# ╔═╡ 7ef032f6-a68f-43d5-9152-bcf64c336e80
+"""
+	critical_point_guess(model::SAFTModel)
 
-	res1 = nlsolve((F, x) -> critical_objective!(model_SAFT, F, x), x0, autodiff = :forward, xtol=1e-9, method=:newton)
-	Vc, Tc = res1.zero
+Generates initial guesses for the critical point of a fluid. Scales the limit of the packing fraction and temperature scale factor using empirical factors.
+"""
+function critical_point_guess(model::SAFTModel)
+	σ = model.params.sigma.diagvalues[1]
+	seg = model.params.segment.values[1]
+	# η = 0.3
+	V0 = 1/0.3 * 1.25 * π/6 * N_A * σ^3 * seg
+	return [log10(V0), 2.0]
+end
+
+# ╔═╡ 6dbba706-0e29-4e9b-8525-2d581706499d
+"""
+	solve_critical_point(model)
+
+Directly solves for the critical point of an equation of state using automatic differentiation and Newton's method.
+"""
+function solve_critical_point(model)
+	Ts = T_scale(model)
+	# Generate initial guesses
+	x0 = critical_point_guess(model)
+
+	# Solve system for critical point
+	res = nlsolve((F, x) -> critical_objective!(model, F, [exp10(x[1]), Ts*x[2]]), x0, autodiff = :forward, xtol=1e-9, method=:newton)
+	
+	# Extract answer
+	Vc = exp10(res.zero[1])
+	Tc = Ts*res.zero[2]
+	# Calculate pressure
+	pc = pressure(model, Vc, Tc)
+	# Return values
+	return (pc, Tc, Vc)
 end
 
 # ╔═╡ a59304ac-2480-4529-97aa-80d472e540cf
 md"""
-Now, lets calculate the critical pressure
+We can now use our function to calculate the critical point
 """
 
 # ╔═╡ 5f5b5e95-f47e-4dc4-97cc-53b774df3638
-pc = pressure(model_SAFT, Vc, Tc)
+begin
+	model_SAFT = PCSAFT(["water"])
+	pc, Tc, Vc = solve_critical_point(model_SAFT)
+end
 
 # ╔═╡ a9eb545c-10dd-4e4e-ab41-f6e14ffdcede
 begin
@@ -279,33 +383,31 @@ html"<br><br><br><br><br><br><br><br><br><br><br><br>"
 # ╔═╡ 58b76139-6976-4624-8d71-347b50e1b494
 md"""
 # Footnotes
-[^1]: The essence of automatic differentiation is tracing the elementary operations, like addition and subtraction, that happen to a given variable through some code. This can then be differentiated directly and combined using the chain rule. There are two main "modes" of automatic differentiation. Forward-mode and Reverse-mode. To learn more about these, I recommend taking a look at the [wikipedia page](https://en.wikipedia.org/wiki/Automatic_differentiation) as well as the relevant notes from the course 18.337 at MIT; [forward-mode notes](https://book.sciml.ai/notes/08/) and [reverse-mode notes](https://book.sciml.ai/notes/10/).
+[^1]: Equation conditioning generally refers to the sensitivity of the output to small pertubations in the input. Often in numerical methods, a highly sensitive (i.e. poorly conditioned) problem can result in the loss of precision. The condition number is often discussed for both matrices and for functions.
 
 [^2]: If you are using a model with volume translation, you should also account for that in your initial guess.
 """
 
-# ╔═╡ 83ba059f-cecf-4ff5-9e7e-fa6d384bccc3
-md"""
-# Function Library
-"""
+# ╔═╡ 1d24ec62-7457-4b75-b2b6-740711df3e49
+#The essence of automatic differentiation is tracing the elementary operations, like addition and subtraction, that happen to a given variable through some code. This can then be differentiated directly and combined using the chain rule. There are two main "modes" of automatic differentiation. Forward-mode and Reverse-mode. To learn more about these, I recommend taking a look at the [wikipedia page](https://en.wikipedia.org/wiki/Automatic_differentiation) as well as the relevant notes from the course 18.337 at MIT; [forward-mode notes](https://book.sciml.ai/notes/08/) and [reverse-mode notes](https://book.sciml.ai/notes/10/).
 
 # ╔═╡ 33ed3f41-3107-4497-85e0-aa7de6686612
-hint(text) = Markdown.MD(Markdown.Admonition("hint", "Hint", [text]))
+hint(text) = Markdown.MD(Markdown.Admonition("hint", "Hint", [text]));
 
 # ╔═╡ bb419121-16b9-4344-b245-3e19f8d4830a
-almost(text) = Markdown.MD(Markdown.Admonition("warning", "Almost there!", [text]))
+almost(text) = Markdown.MD(Markdown.Admonition("warning", "Almost there!", [text]));
 
 # ╔═╡ bb4b3b1b-702b-4462-967d-2d25bfe3f226
-still_missing(text=md"Replace `missing` with your answer.") = Markdown.MD(Markdown.Admonition("warning", "Here we go!", [text]))
+still_missing(text=md"Replace `missing` with your answer.") = Markdown.MD(Markdown.Admonition("warning", "Here we go!", [text]));
 
 # ╔═╡ 7c415b6a-cb43-4d7e-8a5f-76a0e510cabd
-keep_working(text=md"The answer is not quite right.") = Markdown.MD(Markdown.Admonition("danger", "Keep working on it!", [text]))
+keep_working(text=md"The answer is not quite right.") = Markdown.MD(Markdown.Admonition("danger", "Keep working on it!", [text]));
 
 # ╔═╡ f7066d86-00f8-441f-868b-7c94037b36ac
-yays = [md"Fantastic!", md"Splendid!", md"Great!", md"Yay ❤", md"Great! 🎉", md"Well done!", md"Keep it up!", md"Good job!", md"Awesome!", md"You got the right answer!", md"Let's move on to the next section."]
+yays = [md"Fantastic!", md"Splendid!", md"Great!", md"Yay ❤", md"Great! 🎉", md"Well done!", md"Keep it up!", md"Good job!", md"Awesome!", md"You got the right answer!", md"Let's move on to the next section."];
 
 # ╔═╡ 02759a14-8161-4332-b960-3d3a5f052d19
-correct(text=rand(yays)) = Markdown.MD(Markdown.Admonition("correct", "Got it!", [text]))
+correct(text=rand(yays)) = Markdown.MD(Markdown.Admonition("correct", "Got it!", [text]));
 
 # ╔═╡ 704cb182-fa73-4cd8-bad4-16118a8f8219
 if Tc ≈ Tc_Clapeyron
@@ -315,12 +417,17 @@ else
 end
 
 # ╔═╡ a676acf4-e167-425c-b63e-9c9fb8c24d13
-not_defined(variable_name) = Markdown.MD(Markdown.Admonition("danger", "Oopsie!", [md"Make sure that you define **$(Markdown.Code(string(variable_name)))**"]))
+not_defined(variable_name) = Markdown.MD(Markdown.Admonition("danger", "Oopsie!", [md"Make sure that you define **$(Markdown.Code(string(variable_name)))**"]));
 
 # ╔═╡ 2755df96-8731-440d-8b5e-4e4dd787f55c
-vdW_b(pc, Tc) = 1/8 * (R*Tc)/pc
+vdW_b(pc, Tc) = 1/8 * (R*Tc)/pc;
 
 # ╔═╡ fe3ecf69-f3db-492f-a0ae-bc0622256071
+"""
+	vdW_saturation_volume(model, T)
+
+Returns the saturation curve for a van der Waals with an equivalent critical point for ```model```. Uses a derivation from 10.1007/s10910-007-9272-4 for the approximate solution to the saturation curve.
+"""
 function vdW_saturation_volume(model, T)
 	Tc, pc, vc = crit_pure(model)
 	Tr = T/Tc
@@ -345,35 +452,35 @@ end
 
 # ╔═╡ fe3c0403-5447-4171-a536-5996cc11c77d
 """
-	solve_sat_p(model, T; V0 = vdW_saturation_volume(model, T), itersmax=100, tol=1e-10)
+	solve_sat_p(model, T; V0 = vdW_saturation_volume(model, T), itersmax=100, abstol=1e-10)
 
 Solves an equation of state for the saturation pressure at a given temperature using Newton's method. By default uses the solution to the van der Waals equation for initial guesses. Returns (psat, V_liq, V_vap)
 """
-function solve_sat_p(model, T; V0 = vdW_saturation_volume(model, T), itersmax=100, tol=1e-10)
+function solve_sat_p(model, T; V0 = vdW_saturation_volume(model, T), itersmax=100, abstol=1e-10)
 	# Objective function accepting a vector of volumes, R²→R² 
-	f(V) = sat_p_objective(model, T, V)
+	f(logV) = sat_p_objective(model, T, exp10.(logV))
 	# function returning the Jacobian of our solution, R²→R²ˣ²
-	Jf(V) = ForwardDiff.jacobian(f, V)
+	Jf(logV) = ForwardDiff.jacobian(f, logV)
 
-	Vold = 0.0
-	V = V0
-	fV = 1.0
-	fV0 = f(V0)
-	rel_norm = norm(f(V))
+	logV0 = log10.(V0)
+	logVold = 0.0
+	logV = logV0
+	fx = 1.0
+	fx0 = f(logV0)
 	iters = 0
 	# Iterate until converged or the loop has reached the maximum number of iterations
-	while (iters < itersmax && all(abs.(fV) .> tol) && all(abs.(Vold .- V) .> tol))
-		JfV = Jf(V) # Calculate the jacobian
-		fV = f(V) # Calculate the value of f at V
-		d = -JfV\fV # Calculate the newton step
-		Vold = V
-		V = V .+ d # Take newton step
+	while (iters < itersmax && all(abs.(fx) .> abstol))
+		Jfx = Jf(logV) # Calculate the jacobian
+		fx = f(logV) # Calculate the value of f at V
+		d = -Jfx\fx # Calculate the newton step
+		logVold = logV # Store current iteration
+		logV = logV .+ d # Take newton step
 		iters += 1 # Increment our iteration counter
 	end
-
 	# Show a warning if the solver did not converge (uses short circuit evaluation rather than if statement)
-	iters == itersmax && @warn "solver did not converge in $(iters) iterations\nfV=$(fV)"
-
+	iters == itersmax && @warn "solver did not converge in $(iters) iterations\nfV=$(fx)"
+	
+	V = exp10.(logV)
 	p_sat = pressure(model, V[1], T)
 	return (p_sat, V[1], V[2])
 end
@@ -450,12 +557,11 @@ psat_Clapeyron, Vlsat_Clapeyron, Vvsat_Clapeyron = saturation_pressure(cubic_mod
 # ╔═╡ 00722d62-afed-4dbb-951d-9de89cba8df0
 p_sat ≈ psat_Clapeyron
 
-# ╔═╡ bdd0973b-2491-4ad7-a6e0-3bec21e206cd
-if p_sat ≈ psat_Clapeyron
-	correct()
-else
-	almost(md"Not quite there, you're off by δ = $(p_sat - psat_Clapeyron)")
-end
+# ╔═╡ 78d8727b-e04d-4244-8e0a-c650cf3d11cd
+V_liq ≈ Vlsat_Clapeyron
+
+# ╔═╡ 9038ceda-a8b3-45ee-bdc0-e9052563f727
+V_vap ≈ Vvsat_Clapeyron
 
 # ╔═╡ 59927acf-9a17-4117-870c-5cc19169311d
 let
@@ -478,26 +584,32 @@ let
 	plot!(repeat(satp./1e6, 2), repeat(Ts2, 2), log10.(vcat(Vlsat, Vvsat)), width=5, color=1, label="saturation envelope")
 end
 
+# ╔═╡ bdd0973b-2491-4ad7-a6e0-3bec21e206cd
+if all(solve_sat_p(cubic_model, T) .≈ saturation_pressure(cubic_model, T))
+	correct()
+else
+	almost(md"Not quite there, you're off by δ = $(p_sat - psat_Clapeyron)")
+end
+
 # ╔═╡ c5109b81-887a-46e6-92da-10bda0397380
 begin
 	# The vector of temperature values
-	crit_temp, _... = crit_pure(cubic_model)
+	crit_temp, _, _ = crit_pure(cubic_model)
 	T_vec = range(285.0, 0.9999crit_temp, length=1000)
 	# Preallocate our pressure and volume vectors
 	p_vec = zeros(length(T_vec))
 	Vl_vec = zeros(length(T_vec))
 	Vv_vec = zeros(length(T_vec))
-	
-	# V02 = [2.26747e-5, 0.0320168]
-	V02 = vdW_saturation_volume(cubic_model, T)
+
+	# Create initial guess
+	V0 = vdW_saturation_volume(cubic_model, T)
 	for (i, T) in enumerate(T_vec)
 		try
-			# V02 = vdW_saturation_volume(model, T)
-			sat = solve_sat_p(cubic_model, T; V0=V02, tol=1e-10)
+			sat = solve_sat_p(cubic_model, T; V0=V0)
 			
 			if ~any(isnan.(sat))
 				(p_vec[i], Vl_vec[i], Vv_vec[i]) = sat
-				V02 = [Vl_vec[i], Vv_vec[i]]
+				V0 = [Vl_vec[i], Vv_vec[i]] # Store previous iteration for new guess
 			end
 		catch
 			continue
@@ -1928,6 +2040,10 @@ version = "1.4.1+0"
 # ╔═╡ Cell order:
 # ╟─58b0aaa8-f47a-11ec-1113-9933151340be
 # ╟─c4b5bc07-7f17-47d2-a3e6-945813e29b35
+# ╟─2f60da7d-a5aa-424e-921b-dc6377423d50
+# ╟─d6f55d1e-a9c4-49c5-9ec3-14d51d0781e8
+# ╟─103b01a4-971a-44b1-be08-b3e59d952dcb
+# ╟─b7b778eb-6f77-4183-8c67-76cb2aa3c25c
 # ╟─61c34a9b-1e5f-45ab-bbfd-c4e8b21c7320
 # ╟─80662d56-e97c-4ea5-9ba7-0d2ad827740d
 # ╠═fe3ecf69-f3db-492f-a0ae-bc0622256071
@@ -1940,16 +2056,20 @@ version = "1.4.1+0"
 # ╟─584406e0-f41c-4043-b207-ed5a39ef9d88
 # ╠═61207fa8-b9cb-43dc-9130-1a8bbf7cf640
 # ╠═00722d62-afed-4dbb-951d-9de89cba8df0
+# ╠═78d8727b-e04d-4244-8e0a-c650cf3d11cd
+# ╠═9038ceda-a8b3-45ee-bdc0-e9052563f727
 # ╟─bdd0973b-2491-4ad7-a6e0-3bec21e206cd
 # ╟─2ffa15ba-9c9c-4d9e-b154-08bb251d0749
 # ╠═c5109b81-887a-46e6-92da-10bda0397380
 # ╟─1f218041-692c-4d1c-b873-39bdf7c45ccd
 # ╟─4981857e-e33a-43fa-b4f3-d32db350a4e2
-# ╠═59927acf-9a17-4117-870c-5cc19169311d
+# ╟─59927acf-9a17-4117-870c-5cc19169311d
 # ╟─65a528b6-eebb-422c-9221-f2bd9df0d2d2
-# ╠═d706be97-702f-49ad-aa22-1132ec257a0f
+# ╟─1e01206f-e565-4d90-83f8-f7c038b5e961
+# ╟─ea2d00b5-0d10-4109-aec1-631a4575fc06
 # ╠═c53316bd-ecbd-43b0-b016-99a1985fc6e3
-# ╠═6d67868c-4457-4820-800d-3a61f57f81a0
+# ╠═7ef032f6-a68f-43d5-9152-bcf64c336e80
+# ╠═6dbba706-0e29-4e9b-8525-2d581706499d
 # ╟─a59304ac-2480-4529-97aa-80d472e540cf
 # ╠═5f5b5e95-f47e-4dc4-97cc-53b774df3638
 # ╟─a9eb545c-10dd-4e4e-ab41-f6e14ffdcede
@@ -1962,7 +2082,7 @@ version = "1.4.1+0"
 # ╟─f87fb61e-2f63-4df8-8d31-e397966f840f
 # ╟─18f53692-50ab-4d2d-80dd-00d169fae340
 # ╟─58b76139-6976-4624-8d71-347b50e1b494
-# ╟─83ba059f-cecf-4ff5-9e7e-fa6d384bccc3
+# ╟─1d24ec62-7457-4b75-b2b6-740711df3e49
 # ╟─33ed3f41-3107-4497-85e0-aa7de6686612
 # ╟─bb419121-16b9-4344-b245-3e19f8d4830a
 # ╟─bb4b3b1b-702b-4462-967d-2d25bfe3f226
