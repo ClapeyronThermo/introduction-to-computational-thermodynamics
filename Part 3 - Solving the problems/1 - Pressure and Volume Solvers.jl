@@ -320,9 +320,28 @@ We now have a relation that will converge to a volume root of our equation via *
 
 To generate liquid-like initial guesses for SAFT equations, we're going to use a method based off of the packing fraction. This is defined as
 
-$$V_0^\mathrm{liq} = \frac{\pi}{6}\cdot N_A \cdot \sigma^3$$
+$$\eta = \frac{\frac{3\pi}{3}\cdot \left(\frac{\sigma}{2}\right)^3\cdot N_A}{V}$$
 
 where $\sigma$ is the segment size and $N_A$ is Avogadro's number.
+"""
+
+# ╔═╡ 2c4e32b3-0eee-427b-bace-e723952d2e5b
+md"""
+The packing fraction can visually be seen as the point at which all space in a given volume is taken up by fluid molecules:
+"""
+
+# ╔═╡ 5b8815a8-a079-4b8f-a618-2d48269812b8
+@htl("""<center><img src="https://raw.githubusercontent.com/lucpaoli/introduction-to-computational-thermodynamics/main/Part%203%20-%20Solving%20the%20problems/assets/packing_fraction.png" height="190"></center>""")
+
+# ╔═╡ aa58fba4-9450-4aa2-8679-5dc953ff730e
+md"""
+As we take the limit of the packing fraction to one, 
+
+$$1 = \frac{\frac{\pi}{6}\cdot N_A\cdot \sigma^3}{V}$$
+
+Giving us the expression for our volume guess as
+
+$$V_0^\mathrm{liq} = \frac{\pi}{6}\cdot N_A \cdot \sigma^3~.$$
 """
 
 # ╔═╡ 7cfbb284-72ae-4d7f-ad5a-c98dd4ad2f97
@@ -2004,6 +2023,9 @@ version = "0.9.1+5"
 # ╟─11bd73c1-c745-4d30-adc0-19209e0c0c82
 # ╟─d0cfc031-3153-4ac5-9b50-1fba2729e9f4
 # ╟─8ecab7d3-be38-4733-b02f-9b00d5e75bd1
+# ╟─2c4e32b3-0eee-427b-bace-e723952d2e5b
+# ╟─5b8815a8-a079-4b8f-a618-2d48269812b8
+# ╟─aa58fba4-9450-4aa2-8679-5dc953ff730e
 # ╟─7cfbb284-72ae-4d7f-ad5a-c98dd4ad2f97
 # ╟─d7a60eae-0393-4b11-b1e1-faec368d324b
 # ╟─68cad9ec-8f72-41f1-8665-3b0fb87147de
