@@ -9,7 +9,7 @@ begin
 	using Clapeyron, ForwardDiff, Roots, Optim, LinearAlgebra, PolynomialRoots # Numerical packages
 	using LaTeXStrings, Plots, ShortCodes, Printf # Display and plotting
 	using HypertextLiteral, PlutoUI
-	PlutoUI.TableOfContents()
+	# using JSON2, Tables,Random # Data handling
 end
 
 # ╔═╡ 1e30be5e-6fdc-46b8-99df-b0bd3ea473dc
@@ -34,8 +34,10 @@ As a common starting ground, let us examine an equation of state most of us will
 $$pV=Nk_\mathrm{B}T$$
 
 where $k_\mathrm{B}$ is the Boltzmann constant and $N$ is the total number of particles. The ideal gas equation models species as infinitesmally small particles with perfectly elastic collisions. Visually:
-
 """
+
+# ╔═╡ 9f25ace7-8c2d-4f1c-aefd-9f00eb7a3e15
+@htl("""<center><img src="https://github.com/lucpaoli/introduction-to-computational-thermodynamics/raw/main/Part%202%20-%20Equations%20of%20State/assets/IdealGas.svg" height="400"></center>""")
 
 # ╔═╡ 51ba374f-e192-4914-b73f-0ef29cd899f6
 md"""
@@ -113,6 +115,9 @@ $$C_p = a+bT+cT^2+dT^3$$
 
 where the parameters $a$, $b$, $c$ and $d$ are all species-specific. This generally means that the values obtained for the ideal heat capacity should be quite accurate. However, if we start dealing with unconventional species, where species-specific parameters are not available, then we will have to resort to a group contribution method. In a group-contribution method, species are split into fragments (known as groups). An example is shown below:
 """
+
+# ╔═╡ f9d94898-197c-4c52-93ec-7d281f7920c0
+@htl("""<center><img src="https://github.com/lucpaoli/introduction-to-computational-thermodynamics/raw/main/Part%202%20-%20Equations%20of%20State/assets/GC.svg" height="400"></center>""")
 
 # ╔═╡ 7a4755d3-81e6-43eb-84a1-2188099b4bc5
 begin
@@ -1462,15 +1467,17 @@ version = "0.9.1+5"
 """
 
 # ╔═╡ Cell order:
-# ╠═144b3d2e-07f8-11ed-18ef-e32853c37d51
+# ╟─144b3d2e-07f8-11ed-18ef-e32853c37d51
 # ╟─1e30be5e-6fdc-46b8-99df-b0bd3ea473dc
+# ╟─9f25ace7-8c2d-4f1c-aefd-9f00eb7a3e15
 # ╟─51ba374f-e192-4914-b73f-0ef29cd899f6
 # ╟─95d72b2d-17eb-4766-a81b-e2102fac9d79
 # ╠═718b0dba-5596-41a9-935a-7e13fdbc1c71
 # ╟─f7a185a4-32c6-404d-a590-982ea50ca79c
 # ╟─57db5c20-4cf0-459c-9023-09c140f10ff9
 # ╟─da8dfd20-5c83-4174-9f53-19f9a84cc8b4
-# ╠═7a4755d3-81e6-43eb-84a1-2188099b4bc5
+# ╟─f9d94898-197c-4c52-93ec-7d281f7920c0
+# ╟─7a4755d3-81e6-43eb-84a1-2188099b4bc5
 # ╟─7f7461e5-9c7f-4378-950c-79c865639354
 # ╠═d0db39f5-77b6-4de4-904c-bc484173e314
 # ╟─96f5f6b6-038f-41e2-963c-00abf4d055c8

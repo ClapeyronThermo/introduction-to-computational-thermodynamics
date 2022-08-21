@@ -33,17 +33,36 @@ $$A_\mathrm{res.} = A_\mathrm{HS}+A_1+\frac{A_2}{Nk_\mathrm{B}T}+...$$
 
 In such approaches, species are no longer characterised by the parameters $a$ and $b$, we now use the diameter of our species ($\sigma$) and the dispersive energy parameter ($\epsilon$). Visually:
 
+"""
+
+# ╔═╡ 9496586f-63f2-4cb8-9ece-7d571dd68d4e
+@htl("""<center><img src="https://github.com/lucpaoli/introduction-to-computational-thermodynamics/raw/main/Part%202%20-%20Equations%20of%20State/assets/vdW.svg" height="300"></center>""")
+
+# ╔═╡ 5e449695-f7b2-452c-82b2-af193e776280
+md"""
 Despite these improvements, it doesn't change the fact that we are just modelling spherical systems with dispersion interactions more accurate; most species will not fit this description. For decades after van der Waals' derived his equation, researchers have developed new approaches to more accurately model a larger range of species. In 1989, Chapman _et al._ published the Statistical Associating Fluid Theory (SAFT) where they first grouped the hard-sphere and perturbation contributions into a single term (the segment term, $A_\mathrm{seg.}$) and introduced two new terms:
 
 $$A_\mathrm{res.} = A_\mathrm{seg.}+A_\mathrm{chain}+A_\mathrm{assoc.}$$
 ### Chain term
 The first new term is the chain term. Here, we account for the formation of a chain made up of $m$ segments (thus introducing one new parameter). This term allows us to better model chain-like species (anything from alkanes to polymers):
+"""
 
+# ╔═╡ ae398071-8969-4b6d-ba6c-12122c2c5b94
+@htl("""<center><img src="https://github.com/lucpaoli/introduction-to-computational-thermodynamics/raw/main/Part%202%20-%20Equations%20of%20State/assets/Chain.svg" height="400"></center>""")
+
+# ╔═╡ 762c0786-9152-429f-906f-728056200a9a
+md"""
 One thing to bear in mind is that this new $m$ parameter, the number of segments doesn't necessarily represent the number of monomers (e.g., number of CH$_2$ groups in alkanes) and doesn't even have to be an integer (in this case, a non-integer value can be imagined as a 'merging' of spheres). This $m$ is just a 'best-fit' for the number of hard spheres to represent a molecule.
 
 ### Association term
 The second term introduced by Chapman _et al._ is the association term. Here, species are modelled as having small, tangential sites which can overlap with the sites from other species to form a dimer:
+"""
 
+# ╔═╡ 2609eb20-7f6c-455b-a1b3-f4cb99d1e50c
+@htl("""<center><img src="https://github.com/lucpaoli/introduction-to-computational-thermodynamics/raw/main/Part%202%20-%20Equations%20of%20State/assets/Assoc.svg" height="400"></center>""")
+
+# ╔═╡ 25437516-b88b-478c-b6ab-be0a293305de
+md"""
 The idea here is that this approach can be used to mimic hydrogen bonding in systems like water. This interaction is characterised by an association energy parameter ($\epsilon^\mathrm{assoc.}_{ij,ab}$) and a bonding 'volume' (either dimensionless, $\kappa_{ij,ab}$ or non-dimensionless, $K_{ij,ab}$).
 
 Whilst the segment and chain terms are tedious, but explicit equations which simply take a lot of time to code, the association term introduces one additional level of complexity. At the core of the association term is the association fraction of a site $a$ on species $i$, $X_{i,a}$, which is given by:
@@ -162,6 +181,9 @@ md"""
 Just to wrap this section up, the physical picture in SAFT equations is, effectively, a system made up of attracting hard spheres in a chain with association sites to mimic hydrogen bonding. Visually:
 """
 
+# ╔═╡ da387b61-a0f2-496f-be79-eccf3d9394cc
+@htl("""<center><img src="https://github.com/lucpaoli/introduction-to-computational-thermodynamics/raw/main/Part%202%20-%20Equations%20of%20State/assets/SAFT.svg" height="500"></center>""")
+
 # ╔═╡ c1a79228-e556-4d6e-9f1d-d88efc1747ed
 md"""
 As one can imagine, in contrast to the van der Waals equation, the range of molecules which can be modelled with SAFT equations is far more extensive. The only difficulty is the parameters which, to recap, are:
@@ -189,7 +211,13 @@ Possibly the most-popular variant of the SAFT equation, Perturbed-Chain SAFT (PC
 $$A_\mathrm{res.} = A_\mathrm{HC}+A_\mathrm{disp.}+A_\mathrm{assoc.}$$
 
 Here, we start with a hard-chain (HC) reference system. All this is, really, is the hard-sphere term and standard chain term summed in a single term ($A_\mathrm{HC}=A_\mathrm{HS}+A_\mathrm{chain}$). The big change comes from the fact that, rather than perturbing the hard-sphere system and then forming the chain, in PC-SAFT, the chain is formed first and then this system is perturbed to account for dispersive interactions ($A_\mathrm{disp.}$). This difference is quite subtle, but, it does result in a more-physically sound model. The association term is unchanged from the original formulation. Visually:
+"""
 
+# ╔═╡ 19f044fc-c181-44d8-bf4f-3609eade334c
+@htl("""<center><img src="https://github.com/lucpaoli/introduction-to-computational-thermodynamics/raw/main/Part%202%20-%20Equations%20of%20State/assets/PCSAFT.svg" height="500"></center>""")
+
+# ╔═╡ 76959b4f-ae28-4b9a-b24e-572fccced269
+md"""
 The primary reasons behind PC-SAFT's popularity are three-fold. For one, the code for PC-SAFT is available open-source from publication. Secondly, there is an abundance of parameters available (over 250 species), including binary interactions parameters. Finally, many variants of the PC-SAFT equation have been developed. This last point, unfortunately, is actually one of the downsides of PC-SAFT: one has to be very careful which version of PC-SAFT is being used. Just to name a few:
 * Polar PC-SAFT (PPC-SAFT): An additional term is added to the PC-SAFT equation to account for dipole interactions. With it, we introduce a new parameter: the dipole moment of a segment ($\mu_i$). The overall equation is:
 $$A_\mathrm{res.} = A_\mathrm{HC}+A_\mathrm{disp.}+A_\mathrm{assoc.}+A_\mathrm{polar}$$
@@ -231,9 +259,21 @@ md"""
 # ╔═╡ b13b2c8c-6366-43e9-936b-6deb67be6db1
 md"""
 The Variable-Range SAFT (SAFT-VR) framework was originally developed by Gil-Villegas _et al._ where, previously, most previous SAFT equations assumed the dispersive interactions behaved like a Lennard-Jones potential. In SAFT-VR, a new potential shape parameter ($\lambda$) was introduced which measured the range of the dispersive interactions (for a square-well potential):
+"""
 
+# ╔═╡ 44256338-ce74-448a-a5e2-5bca38e3c2e0
+@htl("""<center><img src="https://github.com/lucpaoli/introduction-to-computational-thermodynamics/raw/main/Part%202%20-%20Equations%20of%20State/assets/SW.svg" height="500"></center>""")
+
+# ╔═╡ c8de4d65-190b-4f36-b9ea-82bfebf9c632
+md"""
 However, this did not really improve the modelling of species much. It wasn't until Lafitte _et al._ extended this concept of a variable-range potential to a Mie potential. This introduced two new potential shape parameters, $\lambda_\mathrm{a}$ (characterising the attractive part) and $\lambda_\mathrm{r}$ (characterising the repulsive part): 
+"""
 
+# ╔═╡ c0eb6b68-29b1-413f-a38e-c6781f9c4552
+@htl("""<center><img src="https://github.com/lucpaoli/introduction-to-computational-thermodynamics/raw/main/Part%202%20-%20Equations%20of%20State/assets/Mie.svg" height="500"></center>""")
+
+# ╔═╡ 716676d5-b6f5-4932-b5c7-b166a2f8faa3
+md"""
 This led to the development of the SAFT-VR Mie equation of state. At the surface, the formulation is generally the same as the standard SAFT equation:
 
 $$A_\mathrm{res.} = A_\mathrm{seg.}+A_\mathrm{chain}+A_\mathrm{assoc.}$$
@@ -254,6 +294,9 @@ md"""
 md"""
 To be more-widely applicable, rather than fit many parameters in SAFT-VR Mie, the developers decided to instead focus on developing a group contribution method, known as SAFT-$\gamma$ Mie. However, another modification was made to SAFT-$\gamma$ Mie that further improved its ability to model a wider range of species. In both PC-SAFT and SAFT-VR Mie, it is assumed that the segments in a chain for a given molecule all have the same size. As the chains in SAFT-$\gamma$ Mie are assembled of groups which can have different sizes, this limitation does not apply to SAFT-$\gamma$ Mie. This is why it can often be though of as a heterosegmented version of SAFT-VR Mie. Visually:
 """
+
+# ╔═╡ dc05c788-96f9-4c4f-b7bb-5e007e6fd9ee
+@htl("""<center><img src="https://github.com/lucpaoli/introduction-to-computational-thermodynamics/raw/main/Part%202%20-%20Equations%20of%20State/assets/SAFTMie.svg" height="500"></center>""")
 
 # ╔═╡ 9b3e9913-7109-4cdc-901f-74191a3aa1b2
 md"""
@@ -1850,6 +1893,12 @@ version = "0.9.1+5"
 # ╔═╡ Cell order:
 # ╟─061fb273-ec2a-4e89-ba73-c4d3c4a76176
 # ╟─f9c5a11e-0e45-11ed-2b32-153050d16a4a
+# ╟─9496586f-63f2-4cb8-9ece-7d571dd68d4e
+# ╟─5e449695-f7b2-452c-82b2-af193e776280
+# ╟─ae398071-8969-4b6d-ba6c-12122c2c5b94
+# ╟─762c0786-9152-429f-906f-728056200a9a
+# ╟─2609eb20-7f6c-455b-a1b3-f4cb99d1e50c
+# ╟─25437516-b88b-478c-b6ab-be0a293305de
 # ╠═0b3545ea-ab28-4de3-9be2-91d3a6cccea8
 # ╟─fe094bfb-65a7-4549-9db9-d27ece7c79a5
 # ╟─704ed6c5-6730-42a9-bdbc-6b04e4b666b7
@@ -1859,15 +1908,23 @@ version = "0.9.1+5"
 # ╟─1aed05c7-68e9-466c-a449-3ad6c3fdebb9
 # ╟─d2dedb47-6d78-40a7-8b47-85d86ae2fa7a
 # ╟─9a2ed4e6-a39a-4e92-b075-cfc6b62b3795
+# ╟─da387b61-a0f2-496f-be79-eccf3d9394cc
 # ╟─c1a79228-e556-4d6e-9f1d-d88efc1747ed
 # ╟─303fba91-9844-4649-82be-e169d6f52a9c
 # ╟─89ff71b7-130d-4642-9558-e49efa51247e
+# ╟─19f044fc-c181-44d8-bf4f-3609eade334c
+# ╟─76959b4f-ae28-4b9a-b24e-572fccced269
 # ╟─909b14ac-5b9d-40d9-959b-9b6c171d1b3a
 # ╟─cb1b6005-39c0-4247-b824-65a25b79dc33
 # ╟─76790f3f-b101-48d8-b6b0-fc1df6e14e0f
 # ╟─b13b2c8c-6366-43e9-936b-6deb67be6db1
+# ╟─44256338-ce74-448a-a5e2-5bca38e3c2e0
+# ╟─c8de4d65-190b-4f36-b9ea-82bfebf9c632
+# ╟─c0eb6b68-29b1-413f-a38e-c6781f9c4552
+# ╟─716676d5-b6f5-4932-b5c7-b166a2f8faa3
 # ╟─a1dad25b-453c-4689-b04c-39a51d1c90b8
 # ╟─0ba8192f-5e63-4fb7-990e-272031e99d21
+# ╟─dc05c788-96f9-4c4f-b7bb-5e007e6fd9ee
 # ╟─9b3e9913-7109-4cdc-901f-74191a3aa1b2
 # ╟─d0d9ed02-b51c-4d6f-8bd2-4c89041a3b50
 # ╟─66ebf47c-aecc-42d6-b67d-8837d5086a44
