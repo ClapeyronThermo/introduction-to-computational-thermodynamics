@@ -10,7 +10,7 @@ begin
 	using LaTeXStrings, Plots, ShortCodes, Printf # Display and plotting
 	using HypertextLiteral
 	# using JSON2, Tables,Random # Data handling
-	using BenchmarkTools
+	using BenchmarkTools, PlutoUI
 end
 
 # ╔═╡ e164fd79-5644-4011-b07d-b55d9dc642a4
@@ -40,7 +40,14 @@ This gives:
 $$k_\mathrm{cond.}p_\mathrm{sat} = k_\mathrm{evap.}n$$
 
 Let us now consider a mixture of fluids A and B at their bubble point:
+"""
 
+
+# ╔═╡ d9c277b9-f5e7-4ace-90fe-3582890ad2da
+@htl("""<center><img src="https://github.com/lucpaoli/introduction-to-computational-thermodynamics/raw/main/Part%202%20-%20Equations%20of%20State/assets/IdealSolution.svg" height="400"></center>""")
+
+# ╔═╡ 91eb9e25-9fb2-4f8d-861d-7873b521111d
+md"""
 If we assume everything about them is the same except for the saturation pressure, then, for fluid A, the rate of evaporation is:
 
 $$R_\mathrm{A,evap.} = k_\mathrm{A,evap.}nx_A$$
@@ -125,6 +132,9 @@ $$\ln{\gamma_2} = A_{21}x_1^2$$
 
 This approach is limited to just binary mixtures (without the introduction of a ternary parameter). Furthermore, the coefficients $A_{ij}$ don't really carry much physical meaning. It wasn't until Wilson presented his equation in 1964 that activity coefficient approach start becoming useable. The insight Wilson gave was that the composition of a species $i$ around itself was not equal to the composition of the bulk (these approaches are also known as local composition models). Visually:
 """
+
+# ╔═╡ 1ec2b9ce-104c-4779-a502-1cd13d9cc29b
+@htl("""<center><img src="https://github.com/lucpaoli/introduction-to-computational-thermodynamics/raw/main/Part%202%20-%20Equations%20of%20State/assets/LocalComposotion.svg" height="300"></center>""")
 
 # ╔═╡ 99e9a503-a5d2-462d-8a35-51734ba206f1
 md"""
@@ -444,6 +454,7 @@ LaTeXStrings = "b964fa9f-0449-5b57-a5c2-d3ea65f4040f"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 Optim = "429524aa-4258-5aef-a3af-852621145aeb"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
+PlutoUI = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
 PolynomialRoots = "3a141323-8675-5d76-9d11-e1df1406c778"
 Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
 Roots = "f2b01f46-fcfa-551c-844a-d8ac1e96c665"
@@ -457,6 +468,7 @@ HypertextLiteral = "~0.9.4"
 LaTeXStrings = "~1.3.0"
 Optim = "~1.7.1"
 Plots = "~1.31.5"
+PlutoUI = "~0.7.39"
 PolynomialRoots = "~1.0.0"
 Roots = "~2.0.2"
 ShortCodes = "~0.3.3"
@@ -468,6 +480,12 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.7.3"
 manifest_format = "2.0"
+
+[[deps.AbstractPlutoDingetjes]]
+deps = ["Pkg"]
+git-tree-sha1 = "8eaf9f1b4921132a4cff3f36a1d9ba923b14a481"
+uuid = "6e696c72-6542-2067-7265-42206c756150"
+version = "1.1.4"
 
 [[deps.Adapt]]
 deps = ["LinearAlgebra"]
@@ -829,11 +847,23 @@ git-tree-sha1 = "709d864e3ed6e3545230601f94e11ebc65994641"
 uuid = "34004b35-14d8-5ef3-9330-4cdb6864b03a"
 version = "0.3.11"
 
+[[deps.Hyperscript]]
+deps = ["Test"]
+git-tree-sha1 = "8d511d5b81240fc8e6802386302675bdf47737b9"
+uuid = "47d2ed2b-36de-50cf-bf87-49c2cf4b8b91"
+version = "0.0.4"
+
 [[deps.HypertextLiteral]]
 deps = ["Tricks"]
 git-tree-sha1 = "c47c5fa4c5308f27ccaac35504858d8914e102f9"
 uuid = "ac1192a8-f4b3-4bfe-ba22-af5b92cd3ab2"
 version = "0.9.4"
+
+[[deps.IOCapture]]
+deps = ["Logging", "Random"]
+git-tree-sha1 = "f7be53659ab06ddc986428d3a9dcc95f6fa6705a"
+uuid = "b5f81e59-6552-4d32-b1f0-c071b021bf89"
+version = "0.2.2"
 
 [[deps.IniFile]]
 git-tree-sha1 = "f550e6e32074c939295eb5ea6de31849ac2c9625"
@@ -1178,6 +1208,12 @@ deps = ["Base64", "Contour", "Dates", "Downloads", "FFMPEG", "FixedPointNumbers"
 git-tree-sha1 = "05873db92e703f134649d88b8a164f3b7acb4d73"
 uuid = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 version = "1.31.5"
+
+[[deps.PlutoUI]]
+deps = ["AbstractPlutoDingetjes", "Base64", "ColorTypes", "Dates", "Hyperscript", "HypertextLiteral", "IOCapture", "InteractiveUtils", "JSON", "Logging", "Markdown", "Random", "Reexport", "UUIDs"]
+git-tree-sha1 = "8d1f54886b9037091edf146b517989fc4a09efec"
+uuid = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
+version = "0.7.39"
 
 [[deps.PolynomialRoots]]
 git-tree-sha1 = "5f807b5345093487f733e520a1b7395ee9324825"
@@ -1700,10 +1736,13 @@ version = "0.9.1+5"
 # ╔═╡ Cell order:
 # ╟─eb1f5eac-12bb-11ed-1b98-11b00b994072
 # ╟─e164fd79-5644-4011-b07d-b55d9dc642a4
+# ╟─d9c277b9-f5e7-4ace-90fe-3582890ad2da
+# ╟─91eb9e25-9fb2-4f8d-861d-7873b521111d
 # ╟─b0d545c3-9b77-467c-a99c-039577246d6d
 # ╠═9e1eede8-4b86-41e6-b2ab-aa79ca0dacb3
 # ╟─169851f9-588b-4a8a-993a-c1bb2e43f043
 # ╟─7906a069-824c-45f6-b3ff-15f8fc5bb738
+# ╟─1ec2b9ce-104c-4779-a502-1cd13d9cc29b
 # ╟─99e9a503-a5d2-462d-8a35-51734ba206f1
 # ╠═0b40e2d9-da7a-47c3-915c-124ba57c3434
 # ╟─675876ef-6dd5-4dfb-bd95-4a9dbb726bfd

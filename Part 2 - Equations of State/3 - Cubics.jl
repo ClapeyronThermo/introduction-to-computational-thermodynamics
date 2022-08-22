@@ -47,7 +47,13 @@ More commonly written out in molar form as:
 $$p = \frac{RT}{v_m-b} - \frac{a}{v^2_m}$$
 
 This was a very high-level description of the van der Waals equation; it is possible to derive it using statistical mechanics although, it is worth pointing out, van der Waals himself did not derive it this way. The equation was only ever meant to be empirical! Nevertheless, the first term can be thought of as the repulsive contribution and the second term can be thought of as the attractive contribution.
+"""
 
+# ╔═╡ 0a86eeb1-b8a5-48f0-aaaa-4719e18a3a32
+@htl("""<center><img src="https://github.com/lucpaoli/introduction-to-computational-thermodynamics/raw/main/Part%202%20-%20Equations%20of%20State/assets/vdW.svg" height="300"></center>""")
+
+# ╔═╡ 51306a06-e837-4e83-a892-a6de8617374d
+md"""
 The parameters $a_m$ and $b_m$ can be obtained by constraining the equation such that it must pass through the critical point of a given species:
 
 $$a = \frac{27}{64} \frac{(RT_c)^2}{p_c}$$
@@ -57,6 +63,7 @@ where the subscripts $c$ denote the critical properties of a species.
 
 Despite its significant contributions towards the development of equations of state, the van der Waals equation is not suitable for practical applications in the liquid phase as it heavily under-estimates the saturated liquid densities:
 """
+
 
 # ╔═╡ 75207913-c5ef-40bd-932d-c6955803ef1e
 species="methane";
@@ -807,7 +814,13 @@ md"""
 # ╔═╡ c9cc4916-a0c4-498b-bbd3-5d2605f1b382
 md"""
 Now that we have established all the tools needed to model pure systems using cubics, we now need to consider extending them to model mixtures. Typically, we want a set of $a$ and $b$ parameters that characterise the mixture (we will denote this `one-fluid mixture' parameters as $\bar{a}$ and $\bar{b}$). How can we do this? The critical points for the mixtures are generally not known, thus, using the usual definition for $a$ and $b$ is not an option. 
+"""
 
+# ╔═╡ c971e885-6887-4f38-a907-e7cdb1e52032
+@htl("""<center><img src="https://github.com/lucpaoli/introduction-to-computational-thermodynamics/raw/main/Part%202%20-%20Equations%20of%20State/assets/Mixing.svg" height="400"></center>""")
+
+# ╔═╡ d71826d0-1b95-4b21-9c5b-125e0c10f9b0
+md"""
 ### Van der Waals one-fluid mixing rule
 The simplest and most-widely used approximation for obtaining $\bar{a}$ and $\bar{b}$ is the van der Waals one-fluid mixing rule:
 
@@ -2304,6 +2317,8 @@ version = "0.9.1+5"
 # ╔═╡ Cell order:
 # ╟─8c7b3b94-07fa-11ed-3b01-b16ab0f77e08
 # ╟─2119146e-cb56-4cb2-a4ba-7a359f05ca8d
+# ╟─0a86eeb1-b8a5-48f0-aaaa-4719e18a3a32
+# ╟─51306a06-e837-4e83-a892-a6de8617374d
 # ╠═75207913-c5ef-40bd-932d-c6955803ef1e
 # ╟─25b201de-3358-44a1-bf70-904047404872
 # ╟─1d8a4153-dfb0-49a4-8a10-e550e162ac47
@@ -2348,6 +2363,8 @@ version = "0.9.1+5"
 # ╟─e0593d86-a7d8-41cb-a879-90a9720591a9
 # ╟─ab519b39-d547-4bd8-aead-050bdf5a5c9d
 # ╟─c9cc4916-a0c4-498b-bbd3-5d2605f1b382
+# ╟─c971e885-6887-4f38-a907-e7cdb1e52032
+# ╟─d71826d0-1b95-4b21-9c5b-125e0c10f9b0
 # ╟─22e47090-60de-4ca5-844c-fb45558636a1
 # ╟─bdcba181-1905-4583-bd2c-444e76933db3
 # ╟─a4b3d1ca-4251-4f24-aed2-f3c82680918e
