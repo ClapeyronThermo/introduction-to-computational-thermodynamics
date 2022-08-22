@@ -303,14 +303,13 @@ md"""
 Techniques for more robust stability analysis include:
 - Multistart - here we start from a vapour-like and a liquid-like initial guess, but it would be possible to generate many more starting points through permutations to our initial guess or randomly generated points.
 - Stochastic methods - evolutionary algorithms are typically quite good at finding global minima, but come with considerable expense.
-- Tunnelling - Tunnelling algorithms have found considerable use in stability analysis, notably used in the HELD algorithm [^HELD]. A discussion of their use for this purpose can be found in [^PAPER_CITATION]
+- Tunnelling - Tunnelling algorithms have found considerable use in stability analysis, notably used in the HELD algorithm [^2]
 """
 
 # ╔═╡ bfc93f97-258b-482f-bd4f-3781e7fd548f
 md"""
 # Footnotes
-[^1]: 
-	The original paper detailing this is:
+[^1]:
 """
 
 # ╔═╡ 30692b0e-6029-40a2-98a5-d8803304ff7e
@@ -318,16 +317,11 @@ DOI("10.1016/0378-3812(82)85001-2")
 
 # ╔═╡ ece3c292-448b-445b-8eea-f94a6b9ffbaf
 md"""
-[^HELD]:
+[^2]:
 """
 
 # ╔═╡ f2fb8ddd-dc73-4998-801f-8b0b890d6107
 DOI("10.1016/j.compchemeng.2011.07.009")
-
-# ╔═╡ fa4c8733-6992-4c44-982e-3ad43f5ad794
-md"""
-[^PAPER_CITATION]:
-"""
 
 # ╔═╡ 86e10ead-c665-4cb1-9956-b700968bee7f
 tangent_line(f, x₀) = (x -> f(x₀) + ForwardDiff.derivative(f, x₀) * (x - x₀));
@@ -2151,7 +2145,6 @@ version = "0.9.1+5"
 # ╟─30692b0e-6029-40a2-98a5-d8803304ff7e
 # ╟─ece3c292-448b-445b-8eea-f94a6b9ffbaf
 # ╟─f2fb8ddd-dc73-4998-801f-8b0b890d6107
-# ╟─fa4c8733-6992-4c44-982e-3ad43f5ad794
 # ╟─86e10ead-c665-4cb1-9956-b700968bee7f
 # ╟─a0b8bd11-282c-4bc6-9458-668bd9b007eb
 # ╟─06e8ef01-5d9f-4683-a2a6-46f531009253

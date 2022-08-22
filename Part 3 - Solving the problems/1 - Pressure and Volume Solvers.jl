@@ -357,6 +357,11 @@ $$Z^\mathrm{vap} = 1 + \frac{B(T)}{V}$$
 but this isn't necessary for now, as the sequence defined by equation (2) generally converges very quickly.
 """
 
+# ╔═╡ 07c9b193-3ca8-47e7-91ad-0492e2dddf2c
+md"""
+T =
+"""
+
 # ╔═╡ d7a60eae-0393-4b11-b1e1-faec368d324b
 @bind T_plt2 PlutoUI.Slider(250u"K":1u"K":325u"K", show_value=true, default=295u"K")
 
@@ -520,15 +525,6 @@ and we see that we've converged to the same answer!
 # ╔═╡ 123c84a4-f363-4569-ba96-408a376fd4cf
 md"""
 Note that if we don't know _a-priori_ which phase we should solve for, it's once again necessary to solve for both the liquid and vapour roots and evaluate the chemical potential to determine which is more stable.
-"""
-
-# ╔═╡ 1957e1dc-37b4-4a7e-b42c-f376b14beb3e
-md"""
-## Helmholtz-Explicit (e.g. GERG, IAPWS)
-
-Because the volume solver we developed for SAFT is a non-linear solver making no assumptions about the form of the equation of state other than that it can be expressed explicitly in terms of the Helmholtz free energy, we can actually use that solver directly with any other equation of state!
-
-The only issue encountered with this is we need to re-think our initial guess for the liquid volume. This is generally dependent on the model used in question.
 """
 
 # ╔═╡ 4acb1393-030f-4cab-a765-f8de5a75893b
@@ -2027,6 +2023,7 @@ version = "0.9.1+5"
 # ╟─5b8815a8-a079-4b8f-a618-2d48269812b8
 # ╟─aa58fba4-9450-4aa2-8679-5dc953ff730e
 # ╟─7cfbb284-72ae-4d7f-ad5a-c98dd4ad2f97
+# ╟─07c9b193-3ca8-47e7-91ad-0492e2dddf2c
 # ╟─d7a60eae-0393-4b11-b1e1-faec368d324b
 # ╟─68cad9ec-8f72-41f1-8665-3b0fb87147de
 # ╟─87867c7c-101c-4534-b6e7-d3ebc8b81a47
@@ -2039,7 +2036,6 @@ version = "0.9.1+5"
 # ╟─2d740e80-c450-46c2-9086-75f4ce23ce26
 # ╟─fc58d8f6-9647-4331-bebd-624ba7d75e7f
 # ╟─123c84a4-f363-4569-ba96-408a376fd4cf
-# ╟─1957e1dc-37b4-4a7e-b42c-f376b14beb3e
 # ╟─4acb1393-030f-4cab-a765-f8de5a75893b
 # ╟─d9835e4a-e64e-4b3a-8c3c-f9d3766b23b9
 # ╟─d0b2f6bb-7539-4dda-adc9-acc2ce9cca4a
