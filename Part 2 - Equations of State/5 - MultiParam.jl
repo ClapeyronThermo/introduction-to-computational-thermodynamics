@@ -136,7 +136,7 @@ begin
 	vvw2 = [satw2[i][3] for i ∈ 1:N]
 
 	plot(1e-3./vlw1,Tw1,color=:blue,ylim=(270,700),
-		title="Vapour-liquid envelope of methanol",
+		title="Vapour-liquid envelope of water",
 		label="SAFT-VR Mie",
 		yguidefontsize=16, xguidefontsize=16,
 		legendfont=font(10), framestyle=:box, 
