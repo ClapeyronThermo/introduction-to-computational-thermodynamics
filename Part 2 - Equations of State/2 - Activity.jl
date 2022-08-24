@@ -48,11 +48,11 @@ Let us now consider a mixture of fluids A and B at their bubble point:
 
 # ╔═╡ 91eb9e25-9fb2-4f8d-861d-7873b521111d
 md"""
-If we assume everything about them is the same except for the saturation pressure, then, for fluid A, the rate of evaporation is:
+If we assume everything about them is the same (size, interactions, etc.) except for the saturation pressure, then, for fluid A, the rate of evaporation is:
 
 $$R_\mathrm{A,evap.} = k_\mathrm{A,evap.}nx_A$$
 
-And the rate of condensation is (the gas obeys Raoult's law):
+And the rate of condensation is (the gas obeys Dalton's law):
 
 $$R_\mathrm{A,cond.} = k_\mathrm{A,cond.}py_A$$
 
@@ -98,7 +98,7 @@ md"""
 ### Pros and Cons of Activity Coefficient Models
 The objective of activity coefficient models is to obtained as a function of composition and temperature:
 
-$$\gamma_i(\mathbf{x},T) = f(\mathbf{x},T)$$
+$$\gamma_i = f(\mathbf{x},T)$$
 
 The elimination of the volume dependence simplifies calculations immensely. Furthermore, the fact that we can obtain activity coefficients directly means we can solve for complex properties quite easily. For example, the bubble pressure at a certain temperature and composition can simply be obtained using:
 
@@ -108,9 +108,9 @@ A similar operation can be performed for the dew pressure. The bubble temperatur
 
 $$p = \sum_ix_i\gamma_i(\mathbf{x},T_\mathrm{bub.})p_{\mathrm{sat},i}(T_\mathrm{bub.})$$
 
-Nevertheless, as will be shown in the third part of this course, this is by far one of the easiest (and computationally cheaper) method to obtain equilibrium properties. However, the above equations hint at one limitation. Firstly, as we rely on Raoult's law, we need to have a function for the saturation pressure at a given temperature. This limits us to sub-critical properties only. For example, we could not model a carbon dioxide+water system at temperatures above the critical temperature of carbon dioxide (304 K). This heavily limits the number of systems we can model. 
+Nevertheless, as will be shown in the third part of this course, this is by far one of the easiest (and computationally cheaper) methods to obtain equilibrium properties. However, the above equations hint at one limitation. Firstly, as we rely on Raoult's law, we need to have a function for the saturation pressure at a given temperature. This limits us to sub-critical properties only. For example, we could not model a carbon dioxide+water system at temperatures above the critical temperature of carbon dioxide (304 K). This heavily limits the number of systems we can model. 
 
-Furthermore, as activity coefficient models can only obtain (unsurprisingly) activity coefficients, we can't obtain the saturation pressure or any other pure-component property. Inherently, activity coefficient models cannot be used on their own. Typically, they are combined with other equations of state (such as cubics), for example: 
+Furthermore, as activity coefficient models can only obtain (unsurprisingly) activity coefficients; we can't obtain the saturation pressure or any other pure-component property. Inherently, activity coefficient models cannot be used on their own. Typically, they are combined with other equations of state (such as cubics), for example: 
 """
 
 # ╔═╡ 9e1eede8-4b86-41e6-b2ab-aa79ca0dacb3
@@ -208,6 +208,8 @@ begin
 		label="")
 	scatter!(Exp_h2o_etoh[:,3],Exp_h2o_etoh[:,1],label="Experimental",color=:white,edgecolor=:blue)
 	scatter!(Exp_h2o_etoh[:,4],Exp_h2o_etoh[:,1],label="",color=:white,edgecolor=:blue)
+	annotate!(0.02, 352., text("p=1 bar", :black, :left, 14))
+
 end
 
 # ╔═╡ 8ca4cb6e-5d75-4cc8-a556-a4b8ac1fb732
@@ -223,7 +225,7 @@ Taking a similar approach to the Wilson equation, the non-random two-liquid mode
 
 $$\frac{x_{ji}}{x_{ii}}=\frac{x_j}{x_i}\exp{(-\alpha_{ij}\Delta g_{ij}/(RT))}$$
 
-where a new parameter, $\alpha_{ij}$ is introduced, named the non-randomness factor. Unlike $\Delta g_{ij}$ (which is the Gibbs free energy change for moving a species $i$ from a pure system to being surrounded by species $j$), this parameter is symmetric ($\alpha_{ij}=\alpha_{ji}$) and is meant to account for 'order' in the fluid. 
+where a new parameter, $\alpha_{ij}$ is introduced, named the non-randomness factor. Unlike $\Delta g_{ij}$ (which is the Gibbs free energy change for moving a species $i$ from a pure system to being surrounded by species $j$), this parameter is symmetric ($\alpha_{ij}=\alpha_{ji}$) and is meant to account for 'order' in the fluid ($\alpha_{ij}=0$ is equivalent to a completely random fluid). 
 
 Rather than using the approach used by Wilson, in NRTL, the excess Gibbs free energy is given by:
 
@@ -308,7 +310,8 @@ begin
 
 	scatter!(1 .-Exp[:,2],Exp[:,1],label="Experimental",color=:white,edgecolor=:blue)
 	scatter!(Exp[:,3],Exp[:,1],label="",color=:white,edgecolor=:blue)
-	
+		    annotate!(0.02, 326., text("p=1 bar", :black, :left, 14))
+
 end
 
 # ╔═╡ a2a7fc71-4e92-4ed8-ad1d-5628866d93f2
@@ -319,7 +322,7 @@ md"""
 
 # ╔═╡ e454c3e6-22aa-4e08-ab15-ff7dcfa61496
 md"""
-While the NRTL model is able to model a greater range of equilibria, Abrams and Prausnitz returned to the approach used by Wilson where, instead of using the volumes of the species to determine the local composition, the surface area is used instead:
+While NRTL is able to model a greater range of equilibria, Abrams and Prausnitz returned to the approach used by Wilson where, instead of using the volumes of the species to determine the local composition, the surface area is used instead:
 
 $$\Lambda_{ij}=\frac{q_i}{q_j}\exp{(-a_{ij}/(RT))}$$
 
@@ -339,7 +342,7 @@ where $\tau_{ij}$ is:
 
 $$\tau_{ij}=\exp{(-a_{ij}/(RT))}$$
 
-This results in the UNIQUAC approach and, unlike the NRTL approach, UNIQUAC requires both species-specific and binary interaction parameters. 
+This results in the UNIQUAC approach and, unlike the NRTL approach, UNIQUAC requires both species-specific and binary interaction parameters (parameters that involve two species). 
 
 The Wilson equation, NRTL and UNIQUAC represent the industry standards for activity coefficient models and, whilst the Wilson equation is limited to just vapour-liquid equilibrium, they all have very similar performance:
 """
@@ -359,7 +362,7 @@ md"""
 md"""
 The last activity coefficient model we will consider is an extension of UNIQUAC. One of the limitations of the Wilson equation, NRTL and UNIQUAC is that they are species-specific approaches meaning they cannot be extended to new systems without fitting additional parameters. 
 
-As we showed with the ideal equations, one way to work around this is through group-contribution methods where species are split into smaller groups which can be re-assembled into new species. The UNIQUAC Functiona-group Activity Coefficients model (UNIFAC) is one such approach. The equations used to define UNIQUAC are essentially unchanged where, the only thing that has changed is that, rather than discussion interactions between species or the local composition around species, this is done from the point of view of the groups. 
+As we showed with the ideal equations, one way to work around this is through group-contribution methods where species are split into smaller groups which can be re-assembled into new species. The UNIQUAC Functional-group Activity Coefficients model (UNIFAC) is one such approach. The equations used to define UNIQUAC are essentially unchanged where, the only thing that has changed is that, rather than discussion interactions between species or the local composition around species, this is done from the point of view of the groups. 
 
 While this approach grants users a great deal of flexibility, unfortunately, as it was for the ideal equations, it is bound to be slightly less accurate than the species-specific approaches:
 """
@@ -407,38 +410,48 @@ begin
 	end
 
 	plot(y[1],p[1]./1e6,color=:blue,xlim=(0,1),
-		title="pxy diagram of benzene+methanol",
+		title="pxy diagram of ethanol+water",
 		label="Wilson",
 		yguidefontsize=16, xguidefontsize=16,
 		legendfont=font(10), framestyle=:box, 
 		tick_direction=:out, grid=:off,foreground_color_legend = nothing,background_color_legend = nothing,legend=:bottomleft,
-		ylabel=L"p / \mathrm{MPa}", xlabel=L"x(\mathrm{benzene}),y(\mathrm{benzene})")
+		ylabel=L"p / \mathrm{MPa}", xlabel=L"x(\mathrm{ethanol}),y(\mathrm{ethanol})")
 	plot!(y[2],p[2]./1e6,color=:red,
 		label="NRTL")
 	plot!(y[3],p[3]./1e6,color=:green,
 		label="UNIQUAC")
 	scatter!(1 .-Exp2[:,2],Exp2[:,1]./1e6,label="Experimental",color=:white,edgecolor=:blue)
 	scatter!(1 .-Exp2[:,3],Exp2[:,1]./1e6,label="",color=:white,edgecolor=:blue)
+	    annotate!(0.75, 1., text("T=423.15 K", :black, :left, 14))
+
 end
 
 # ╔═╡ 231560d5-292c-42ae-980c-01dbe659ad64
 begin
 	plot(y[3],p[3]./1e6,color=:green,xlim=(0,1),
-		title="pxy diagram of benzene+methanol",
+		title="pxy diagram of ethanol+water",
 		label="UNIQUAC",
 		yguidefontsize=16, xguidefontsize=16,
 		legendfont=font(10), framestyle=:box, 
 		tick_direction=:out, grid=:off,foreground_color_legend = nothing,background_color_legend = nothing,legend=:bottomleft,
-		ylabel=L"p / \mathrm{MPa}", xlabel=L"x(\mathrm{benzene}),y(\mathrm{benzene})")
+		ylabel=L"p / \mathrm{MPa}", xlabel=L"x(\mathrm{ethanol}),y(\mathrm{ethanol})")
 	plot!(y[4],p[4]./1e6,color=:purple,
 		label="UNIFAC")
 	scatter!(1 .-Exp2[:,2],Exp2[:,1]./1e6,label="Experimental",color=:white,edgecolor=:blue)
 	scatter!(1 .-Exp2[:,3],Exp2[:,1]./1e6,label="",color=:white,edgecolor=:blue)
+		    annotate!(0.75, 1., text("T=423.15 K", :black, :left, 14))
+
 end
 
 # ╔═╡ 7026c8c3-caaa-44ef-978a-705caeb21110
 md"""
-One important thing to bear in mind when using UNIFAC, particularly when looking at literature, is that many variants do exist. As a matter of fact, when people refer to UNIFAC, they usually are not referring to the original version published in 1979. They usually mean the Dortmund modification in 1987 (used above) which improved over many of the original failings of UNIFAC where, as shown above, it can perform better than even a species-specific approach. The latter UNIFAC model also has many more groups (over 200), meaning it is by far the most-extensible version available. Unfortunately, there are also versions of UNIFAC designed for specific applications (e.g. UNIFAC-FV for polymer systems) which need to be used carefully.
+One important thing to bear in mind when using UNIFAC, particularly when looking at literature, is that many variants do exist. As a matter of fact, when people refer to UNIFAC, they usually are not referring to the original version published in 1979. They usually mean the Dortmund modification in 1987 (used above) which improved over many of the original failings of UNIFAC where, as shown above, it can perform better than even a species-specific approach. One of these improvements came from replacing the $a_{ij}$ parameter in the expression for $\tau_{ij}$ with a temperature-dependent correlation:
+
+$$a_{kl}=A_{kl}+B_{kl}T+C_{kl}T^2$$
+
+where we've changed the indices from $ij$ to $kl$ to denote the switch from species-specific parameters to group-specific parameters.
+
+This UNIFAC model also has many more groups (over 200), meaning it is by far the most-extensible version available. Unfortunately, there are also versions of UNIFAC designed for specific applications (e.g. UNIFAC-FV for polymer systems) which need to be used carefully.
 
 Nevertheless, UNIFAC represents the industry standard for group-contribution based approaches for mixture systems.
 """
@@ -478,8 +491,9 @@ ShortCodes = "~0.3.3"
 PLUTO_MANIFEST_TOML_CONTENTS = """
 # This file is machine-generated - editing it directly is not advised
 
-julia_version = "1.7.3"
+julia_version = "1.8.0"
 manifest_format = "2.0"
+project_hash = "0d3fed309bd93bfcd0645c881b38ff8e5f77b9f2"
 
 [[deps.AbstractPlutoDingetjes]]
 deps = ["Pkg"]
@@ -495,6 +509,7 @@ version = "3.4.0"
 
 [[deps.ArgTools]]
 uuid = "0dad84c5-d112-42e6-8d28-ef12dabb789f"
+version = "1.1.1"
 
 [[deps.ArrayInterfaceCore]]
 deps = ["LinearAlgebra", "SparseArrays", "SuiteSparse"]
@@ -617,6 +632,7 @@ version = "3.45.0"
 [[deps.CompilerSupportLibraries_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "e66e0078-7015-5450-92f7-15fbd957f2ae"
+version = "0.5.2+0"
 
 [[deps.ConstructionBase]]
 deps = ["LinearAlgebra"]
@@ -690,6 +706,7 @@ version = "0.9.1"
 [[deps.Downloads]]
 deps = ["ArgTools", "FileWatching", "LibCURL", "NetworkOptions"]
 uuid = "f43a241f-c20a-4ad4-852c-f6b1247861c6"
+version = "1.6.0"
 
 [[deps.DualNumbers]]
 deps = ["Calculus", "NaNMath", "SpecialFunctions"]
@@ -963,10 +980,12 @@ version = "0.15.16"
 [[deps.LibCURL]]
 deps = ["LibCURL_jll", "MozillaCACerts_jll"]
 uuid = "b27032c2-a3e7-50c8-80cd-2d36dbcbfd21"
+version = "0.6.3"
 
 [[deps.LibCURL_jll]]
 deps = ["Artifacts", "LibSSH2_jll", "Libdl", "MbedTLS_jll", "Zlib_jll", "nghttp2_jll"]
 uuid = "deac9b47-8bc7-5906-a0fe-35ac56dc84c0"
+version = "7.84.0+0"
 
 [[deps.LibGit2]]
 deps = ["Base64", "NetworkOptions", "Printf", "SHA"]
@@ -975,6 +994,7 @@ uuid = "76f85450-5226-5b5a-8eaa-529ad045b433"
 [[deps.LibSSH2_jll]]
 deps = ["Artifacts", "Libdl", "MbedTLS_jll"]
 uuid = "29816b5a-b9ab-546f-933c-edad1886dfa8"
+version = "1.10.2+0"
 
 [[deps.Libdl]]
 uuid = "8f399da3-3557-5675-b5ff-fb832c97cbdb"
@@ -1065,6 +1085,7 @@ version = "1.1.2"
 [[deps.MbedTLS_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "c8ffd9c3-330d-5841-b78e-0817d7145fa1"
+version = "2.28.0+0"
 
 [[deps.Measures]]
 git-tree-sha1 = "e498ddeee6f9fdb4551ce855a46f54dbd900245f"
@@ -1088,6 +1109,7 @@ uuid = "a63ad114-7e13-5084-954f-fe012c677804"
 
 [[deps.MozillaCACerts_jll]]
 uuid = "14a3606d-f60d-562e-9121-12d972cd8159"
+version = "2022.2.1"
 
 [[deps.NLSolvers]]
 deps = ["IterativeSolvers", "LinearAlgebra", "PositiveFactorizations", "Printf", "Statistics"]
@@ -1108,6 +1130,7 @@ version = "0.3.7"
 
 [[deps.NetworkOptions]]
 uuid = "ca575930-c2e3-43a9-ace4-1e988b2c1908"
+version = "1.2.0"
 
 [[deps.Ogg_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -1118,10 +1141,12 @@ version = "1.3.5+1"
 [[deps.OpenBLAS_jll]]
 deps = ["Artifacts", "CompilerSupportLibraries_jll", "Libdl"]
 uuid = "4536629a-c528-5b80-bd46-f80d51c5b363"
+version = "0.3.20+0"
 
 [[deps.OpenLibm_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "05823500-19ac-5b8b-9628-191a04bc5112"
+version = "0.8.1+0"
 
 [[deps.OpenSSL_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -1190,6 +1215,7 @@ version = "0.40.1+0"
 [[deps.Pkg]]
 deps = ["Artifacts", "Dates", "Downloads", "LibGit2", "Libdl", "Logging", "Markdown", "Printf", "REPL", "Random", "SHA", "Serialization", "TOML", "Tar", "UUIDs", "p7zip_jll"]
 uuid = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
+version = "1.8.0"
 
 [[deps.PlotThemes]]
 deps = ["PlotUtils", "Statistics"]
@@ -1314,6 +1340,7 @@ version = "2.0.2"
 
 [[deps.SHA]]
 uuid = "ea8e919c-243c-51af-8825-aaa63cd721ce"
+version = "0.7.0"
 
 [[deps.Scratch]]
 deps = ["Dates"]
@@ -1428,6 +1455,7 @@ uuid = "4607b0f0-06f3-5cda-b6b1-a6196a1729e9"
 [[deps.TOML]]
 deps = ["Dates"]
 uuid = "fa267f1f-6049-4f14-aa54-33bafae1ed76"
+version = "1.0.0"
 
 [[deps.TableTraits]]
 deps = ["IteratorInterfaceExtensions"]
@@ -1444,6 +1472,7 @@ version = "1.7.0"
 [[deps.Tar]]
 deps = ["ArgTools", "SHA"]
 uuid = "a4e569a6-e804-4fa4-b0f3-eef7a1d5b13e"
+version = "1.10.0"
 
 [[deps.TensorCore]]
 deps = ["LinearAlgebra"]
@@ -1665,6 +1694,7 @@ version = "1.4.0+3"
 [[deps.Zlib_jll]]
 deps = ["Libdl"]
 uuid = "83775a58-1f1d-513f-b197-d71354ab007a"
+version = "1.2.12+3"
 
 [[deps.Zstd_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -1687,6 +1717,7 @@ version = "0.15.1+0"
 [[deps.libblastrampoline_jll]]
 deps = ["Artifacts", "Libdl", "OpenBLAS_jll"]
 uuid = "8e850b90-86db-534c-a0d3-1478176c7d93"
+version = "5.1.1+0"
 
 [[deps.libfdk_aac_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -1709,10 +1740,12 @@ version = "1.3.7+1"
 [[deps.nghttp2_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "8e850ede-7688-5339-a07c-302acd2aaf8d"
+version = "1.48.0+0"
 
 [[deps.p7zip_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
+version = "17.4.0+0"
 
 [[deps.x264_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -1745,7 +1778,7 @@ version = "0.9.1+5"
 # ╟─1ec2b9ce-104c-4779-a502-1cd13d9cc29b
 # ╟─99e9a503-a5d2-462d-8a35-51734ba206f1
 # ╠═0b40e2d9-da7a-47c3-915c-124ba57c3434
-# ╟─675876ef-6dd5-4dfb-bd95-4a9dbb726bfd
+# ╠═675876ef-6dd5-4dfb-bd95-4a9dbb726bfd
 # ╟─07849f32-b99b-4564-8f75-aee6061eaa33
 # ╟─8ca4cb6e-5d75-4cc8-a556-a4b8ac1fb732
 # ╟─9bbc8f4c-298d-45d4-994b-b2a333265bdf

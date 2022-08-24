@@ -16,7 +16,7 @@ end
 md"""
 ### Section 2
 # Equations of State
-Now that we have reviewed our understanding of thermodynamics and the tools we can use to analyse our systems, we now require a surrogate model to mimic our systems. These models are referred to as equations of state. These equations are simply functions, $f$, which take in our conditions ($\mathbf{x}$) and give us a thermodynamic property, $Y$:
+Now that we have reviewed our understanding of thermodynamics and the tools we can use to analyse our systems, we now require a surrogate model to mimic these systems. These models are referred to as equations of state. These equations are simply functions, $f$, which take in our conditions ($\mathbf{x}$) and give us a thermodynamic property, $Y$:
 
 $$Y=f(\mathbf{x})$$
 
@@ -41,7 +41,7 @@ where $k_\mathrm{B}$ is the Boltzmann constant and $N$ is the total number of pa
 
 # ╔═╡ 51ba374f-e192-4914-b73f-0ef29cd899f6
 md"""
-One might think that, because of its simple nature, the ideal gas is not suitable for most practical applications. However, as shown above, not only do simple spherical species (such as noble gases and methane) agree well with it, even typically complex species, such as water, eventually begin to behave ideally. This is, of course, limited to the gas phase at low pressures. For certain applications, this may be sufficient.
+One might think that, because of its simple nature, the ideal gas is not suitable for most practical applications. However, not only do simple spherical species (such as noble gases and methane) agree well with it, even typically complex species, such as water, eventually begin to behave ideally. This is, of course, limited to the gas phase at low pressures. For certain applications, this may be sufficient.
 
 However, in expressing the ideal gas equation in terms of the pressure, we are not considering the full picture of an ideal gas. Let us consider the Helmholtz free energy, which can be obtained by integrating the pressure in terms of the volume:
 
@@ -50,7 +50,7 @@ $$A = -\int p dV =-Nk_\mathrm{B}T\int \frac{1}{V} dV = -Nk_\mathrm{B}T\ln{V}+c(N
 
 # ╔═╡ 95d72b2d-17eb-4766-a81b-e2102fac9d79
 md"""
-Indeed, as shown above, there is an additional constant present in the above expression which could depend on the composition and temperature of our system. If derived from statistical mechanics, one will find that this constant is related to the rotational and vibration contributions present within a molecule. In most engineering applications, to account for these contributions, rather than use the complex expression obtained from statistical mechanics, ideal isobaric heat capacity correlations are typically used. A standard functional form for these correlations is a simple cubic:
+Indeed, as shown above, there is an additional constant present in the above expression which could depend on the composition and temperature of our system. If derived from statistical mechanics, one will find that this constant is related to the rotational and vibrational contributions present within a molecule. In most engineering applications, to account for these contributions, rather than use the complex expression obtained from statistical mechanics, ideal isobaric heat capacity correlations are typically used. A standard functional form for these correlations is a simple cubic:
 
 $$C_p = a + bT+cT^2+dT^3$$
 
@@ -67,7 +67,7 @@ One should then be able to obtain an expression for $A$ in terms of integrals of
 
 $$\frac{A}{Nk_\mathrm{B}T} = \ln{\frac{V_0}{V}} + \frac{1}{Nk_\mathrm{B}T} \int_{T_0}^T \!\!C_{p} dT + \frac{H_{0}}{Nk_\mathrm{B}T}- \frac{1}{Nk_{B}}\!\!\int_{T_0}^T \frac{C_{p}}{T} dT -\ln{\frac{T}{T_0}}-\frac{S_{0}}{Nk_\mathrm{B}} - 1$$
 
-where $H_0$ and $S_0$ are the enthalpy and entropy of formation, typically neglected as these do not contribute for most properties of interest. $V_0$ and $T_0$ are the conditions of the reference states which are also typically neglected. One simple test to make sure our expression for the ideal term is correct is to verify the high-temperature limit for the isobaric heat capacity where, for linear molecules, we expect:
+where $H_0$ and $S_0$ are the enthalpy and entropy of formation, typically neglected as these do not contribute for most properties of interest. $V_0$ and $T_0$ are the conditions of the reference states which are also typically neglected. One simple test to make sure our expression for the ideal term is correct is to verify the high-temperature limit for the molar ideal isobaric heat capacity where, for linear molecules, we expect:
 
 $$C_{p,\mathrm{lim}}=\frac{7}{2}R+(3N_\mathrm{atoms}-5)R$$
 
@@ -87,6 +87,7 @@ begin
 	
 	Cp1 = isobaric_heat_capacity.(model1,1e5,T)
 	Cp2 = isobaric_heat_capacity.(model2,1e5,T);
+	
 end
 
 # ╔═╡ f7a185a4-32c6-404d-a590-982ea50ca79c
@@ -97,7 +98,7 @@ begin
 		yguidefontsize=16, xguidefontsize=16,
 		legendfont=font(10), framestyle=:box, 
 		tick_direction=:out, grid=:off,legend=:topleft,foreground_color_legend = nothing,
-		ylabel=L"C_p / R", xlabel=L"T / K")
+		ylabel=L"c_p / R", xlabel=L"T / K")
 	plot!(T,Cp2/8.314,label="ReidIdeal")
 	plot!(T,13*ones(length(T)),label="13R limit")
 end
@@ -109,20 +110,23 @@ In the above, we use the theoretically-rigorous approach by Walker and Haslam (W
 
 # ╔═╡ da8dfd20-5c83-4174-9f53-19f9a84cc8b4
 md"""
-In terms of ideal gas models, there are many to choose from but generally fall into two categories: 1. Species-specific and 2. Group contribution. As previously mentioned, Reid polynomials, a species-specific equation, obtain the ideal heat capacity as:
+In terms of ideal gas models, there are many to choose from but generally fall into two categories: 1. Species-specific and 2. Group contribution. As previously mentioned, Reid polynomials, a species-specific equation, obtain the molar ideal heat capacity as:
 
-$$C_p = a+bT+cT^2+dT^3$$
+$$c_p = a+bT+cT^2+dT^3$$
 
-where the parameters $a$, $b$, $c$ and $d$ are all species-specific. This generally means that the values obtained for the ideal heat capacity should be quite accurate. However, if we start dealing with unconventional species, where species-specific parameters are not available, then we will have to resort to a group contribution method. In a group-contribution method, species are split into fragments (known as groups). An example is shown below:
+where the parameters $a$, $b$, $c$ and $d$ are all species-specific. This generally means that the values obtained for the ideal heat capacity should be quite accurate. However, if we start dealing with unconventional species, where species-specific parameters are not available, then we will have to resort to a group contribution method. In a group-contribution method, species are split into fragments (known as groups) which can be re-assembled to make new species. An example is shown below:
 """
 
 # ╔═╡ f9d94898-197c-4c52-93ec-7d281f7920c0
 @htl("""<center><img src="https://github.com/lucpaoli/introduction-to-computational-thermodynamics/raw/main/Part%202%20-%20Equations%20of%20State/assets/GC.svg" height="400"></center>""")
 
+# ╔═╡ 43cff1c0-35c4-4720-b147-456a27a58f5e
+md"""
+Typically, the groups and their occurence (or multiplicity) can be specified within a group-contribution based model:
+"""
+
 # ╔═╡ 7a4755d3-81e6-43eb-84a1-2188099b4bc5
-begin
-	model = JobackIdeal([("propanol",["-CH3"=>1,"-CH2-"=>2,"-OH (alcohol)"=>1])]);
-end
+model = JobackIdeal([("propanol",["-CH3"=>1,"-CH2-"=>2,"-OH (alcohol)"=>1])])
 
 # ╔═╡ 7f7461e5-9c7f-4378-950c-79c865639354
 md"""
@@ -134,9 +138,9 @@ where $a_k$, $b_k$, $c_k$ and $d_k$ are all group-specific parameters and $n_k$ 
 
 Whilst this method is quite simple, one of the failings of group contribution is, given we are now trying to fit a larger dataset with fewer parameters, the accuracy will inevitably be reduced, in comparison to species-specific correlations. However, the accuracy of the method can generally be improved based on how the groups are selected; if a group covers a larger set of atoms, we can expect that it will provide a better estimate of the ideal heat capacity. For example, when modelling ethanol, using CH $_3$ and CH $_2$ OH groups instead of CH $_3$, CH $_2$, and OH groups would most likely result in more accurate estimates of the heat capacity. This argument holds true for any group contribution methodology.
 
-_Note: with the advent of machine learning, many ideal heat capacity correlations that leverage these tools have also been developed. However, as these can only really be treated as a black box, for the purposes of this course, we have choosen to omit these_
+_Note: with the advent of machine learning, many ideal heat capacity correlations that leverage these tools have also been developed. However, as these can only really be treated as a black box, for the purposes of this course, we have choosen to omit these._
 
-As a general rule, if a species-specific approach is available for your system of interest, implementation aside, the values obtained can be trusted. When using a group contribution approach, it is recommended to spend some time verifying that the values obtained are releastic (for example, does the high-temperature limit match what we would expect if we count up the number of rotations and vibrations?).
+As a general rule, if a species-specific approach is available for your system of interest, implementation aside, the values obtained can be trusted. When using a group contribution approach, it is recommended to spend some time verifying that the values obtained are realistic (for example, does the high-temperature limit match what we would expect if we count up the number of rotations and vibrations?).
 
 Commonly-used species-specific ideal gas models:
 * Reid polynomials: A 3rd order polynomial
@@ -221,8 +225,9 @@ ShortCodes = "~0.3.3"
 PLUTO_MANIFEST_TOML_CONTENTS = """
 # This file is machine-generated - editing it directly is not advised
 
-julia_version = "1.7.3"
+julia_version = "1.8.0"
 manifest_format = "2.0"
+project_hash = "4d889628daa564316a79b531da1da0a0086168c3"
 
 [[deps.AbstractPlutoDingetjes]]
 deps = ["Pkg"]
@@ -238,6 +243,7 @@ version = "3.3.3"
 
 [[deps.ArgTools]]
 uuid = "0dad84c5-d112-42e6-8d28-ef12dabb789f"
+version = "1.1.1"
 
 [[deps.ArrayInterfaceCore]]
 deps = ["LinearAlgebra", "SparseArrays", "SuiteSparse"]
@@ -354,6 +360,7 @@ version = "3.45.0"
 [[deps.CompilerSupportLibraries_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "e66e0078-7015-5450-92f7-15fbd957f2ae"
+version = "0.5.2+0"
 
 [[deps.ConstructionBase]]
 deps = ["LinearAlgebra"]
@@ -427,6 +434,7 @@ version = "0.8.6"
 [[deps.Downloads]]
 deps = ["ArgTools", "FileWatching", "LibCURL", "NetworkOptions"]
 uuid = "f43a241f-c20a-4ad4-852c-f6b1247861c6"
+version = "1.6.0"
 
 [[deps.DualNumbers]]
 deps = ["Calculus", "NaNMath", "SpecialFunctions"]
@@ -700,10 +708,12 @@ version = "0.15.15"
 [[deps.LibCURL]]
 deps = ["LibCURL_jll", "MozillaCACerts_jll"]
 uuid = "b27032c2-a3e7-50c8-80cd-2d36dbcbfd21"
+version = "0.6.3"
 
 [[deps.LibCURL_jll]]
 deps = ["Artifacts", "LibSSH2_jll", "Libdl", "MbedTLS_jll", "Zlib_jll", "nghttp2_jll"]
 uuid = "deac9b47-8bc7-5906-a0fe-35ac56dc84c0"
+version = "7.84.0+0"
 
 [[deps.LibGit2]]
 deps = ["Base64", "NetworkOptions", "Printf", "SHA"]
@@ -712,6 +722,7 @@ uuid = "76f85450-5226-5b5a-8eaa-529ad045b433"
 [[deps.LibSSH2_jll]]
 deps = ["Artifacts", "Libdl", "MbedTLS_jll"]
 uuid = "29816b5a-b9ab-546f-933c-edad1886dfa8"
+version = "1.10.2+0"
 
 [[deps.Libdl]]
 uuid = "8f399da3-3557-5675-b5ff-fb832c97cbdb"
@@ -802,6 +813,7 @@ version = "1.1.1"
 [[deps.MbedTLS_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "c8ffd9c3-330d-5841-b78e-0817d7145fa1"
+version = "2.28.0+0"
 
 [[deps.Measures]]
 git-tree-sha1 = "e498ddeee6f9fdb4551ce855a46f54dbd900245f"
@@ -825,6 +837,7 @@ uuid = "a63ad114-7e13-5084-954f-fe012c677804"
 
 [[deps.MozillaCACerts_jll]]
 uuid = "14a3606d-f60d-562e-9121-12d972cd8159"
+version = "2022.2.1"
 
 [[deps.NLSolvers]]
 deps = ["IterativeSolvers", "LinearAlgebra", "PositiveFactorizations", "Printf", "Statistics"]
@@ -845,6 +858,7 @@ version = "0.3.7"
 
 [[deps.NetworkOptions]]
 uuid = "ca575930-c2e3-43a9-ace4-1e988b2c1908"
+version = "1.2.0"
 
 [[deps.Ogg_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -855,10 +869,12 @@ version = "1.3.5+1"
 [[deps.OpenBLAS_jll]]
 deps = ["Artifacts", "CompilerSupportLibraries_jll", "Libdl"]
 uuid = "4536629a-c528-5b80-bd46-f80d51c5b363"
+version = "0.3.20+0"
 
 [[deps.OpenLibm_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "05823500-19ac-5b8b-9628-191a04bc5112"
+version = "0.8.1+0"
 
 [[deps.OpenSSL_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -927,6 +943,7 @@ version = "0.40.1+0"
 [[deps.Pkg]]
 deps = ["Artifacts", "Dates", "Downloads", "LibGit2", "Libdl", "Logging", "Markdown", "Printf", "REPL", "Random", "SHA", "Serialization", "TOML", "Tar", "UUIDs", "p7zip_jll"]
 uuid = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
+version = "1.8.0"
 
 [[deps.PlotThemes]]
 deps = ["PlotUtils", "Statistics"]
@@ -1047,6 +1064,7 @@ version = "2.0.2"
 
 [[deps.SHA]]
 uuid = "ea8e919c-243c-51af-8825-aaa63cd721ce"
+version = "0.7.0"
 
 [[deps.Scratch]]
 deps = ["Dates"]
@@ -1161,6 +1179,7 @@ uuid = "4607b0f0-06f3-5cda-b6b1-a6196a1729e9"
 [[deps.TOML]]
 deps = ["Dates"]
 uuid = "fa267f1f-6049-4f14-aa54-33bafae1ed76"
+version = "1.0.0"
 
 [[deps.TableTraits]]
 deps = ["IteratorInterfaceExtensions"]
@@ -1177,6 +1196,7 @@ version = "1.7.0"
 [[deps.Tar]]
 deps = ["ArgTools", "SHA"]
 uuid = "a4e569a6-e804-4fa4-b0f3-eef7a1d5b13e"
+version = "1.10.0"
 
 [[deps.TensorCore]]
 deps = ["LinearAlgebra"]
@@ -1398,6 +1418,7 @@ version = "1.4.0+3"
 [[deps.Zlib_jll]]
 deps = ["Libdl"]
 uuid = "83775a58-1f1d-513f-b197-d71354ab007a"
+version = "1.2.12+3"
 
 [[deps.Zstd_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -1420,6 +1441,7 @@ version = "0.15.1+0"
 [[deps.libblastrampoline_jll]]
 deps = ["Artifacts", "Libdl", "OpenBLAS_jll"]
 uuid = "8e850b90-86db-534c-a0d3-1478176c7d93"
+version = "5.1.1+0"
 
 [[deps.libfdk_aac_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -1442,10 +1464,12 @@ version = "1.3.7+1"
 [[deps.nghttp2_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "8e850ede-7688-5339-a07c-302acd2aaf8d"
+version = "1.48.0+0"
 
 [[deps.p7zip_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
+version = "17.4.0+0"
 
 [[deps.x264_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -1477,7 +1501,8 @@ version = "0.9.1+5"
 # ╟─57db5c20-4cf0-459c-9023-09c140f10ff9
 # ╟─da8dfd20-5c83-4174-9f53-19f9a84cc8b4
 # ╟─f9d94898-197c-4c52-93ec-7d281f7920c0
-# ╟─7a4755d3-81e6-43eb-84a1-2188099b4bc5
+# ╟─43cff1c0-35c4-4720-b147-456a27a58f5e
+# ╠═7a4755d3-81e6-43eb-84a1-2188099b4bc5
 # ╟─7f7461e5-9c7f-4378-950c-79c865639354
 # ╠═d0db39f5-77b6-4de4-904c-bc484173e314
 # ╟─96f5f6b6-038f-41e2-963c-00abf4d055c8

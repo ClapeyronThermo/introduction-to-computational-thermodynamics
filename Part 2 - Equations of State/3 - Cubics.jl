@@ -46,7 +46,7 @@ More commonly written out in molar form as:
 
 $$p = \frac{RT}{v_m-b} - \frac{a}{v^2_m}$$
 
-This was a very high-level description of the van der Waals equation; it is possible to derive it using statistical mechanics although, it is worth pointing out, van der Waals himself did not derive it this way. The equation was only ever meant to be empirical! Nevertheless, the first term can be thought of as the repulsive contribution and the second term can be thought of as the attractive contribution.
+This was a very high-level description of the van der Waals equation; it is possible to derive it using statistical mechanics although, it is worth pointing out, van der Waals himself did not derive it this way. The equation was only ever meant to be empirical! Nevertheless, the first term can be thought of as the repulsive contribution and the second term can be thought of as the attractive contribution. Visually:
 """
 
 # ╔═╡ 0a86eeb1-b8a5-48f0-aaaa-4719e18a3a32
@@ -54,7 +54,7 @@ This was a very high-level description of the van der Waals equation; it is poss
 
 # ╔═╡ 51306a06-e837-4e83-a892-a6de8617374d
 md"""
-The parameters $a_m$ and $b_m$ can be obtained by constraining the equation such that it must pass through the critical point of a given species:
+Interestingly, for all cubics we will discuss, this visual picture does not change singificantly. The parameters $a_m$ and $b_m$ can be obtained by constraining the equation such that it must pass through the critical point of a given species:
 
 $$a = \frac{27}{64} \frac{(RT_c)^2}{p_c}$$
 $$b = \frac{1}{8} \frac{RT_c}{p_c}$$
@@ -66,7 +66,17 @@ Despite its significant contributions towards the development of equations of st
 
 
 # ╔═╡ 75207913-c5ef-40bd-932d-c6955803ef1e
-species="methane";
+begin
+	species="methane"
+	model = vdW([species])
+	
+	Tc,pc,Vc = crit_pure(model)
+	
+	N = 400
+	T = range(0.3*Tc,Tc,length=N)
+
+	sat = saturation_pressure.(model,T);
+end
 
 # ╔═╡ 25b201de-3358-44a1-bf70-904047404872
 Exp_methane = [90.694 0.011696 28.142 0.035534;
@@ -112,16 +122,9 @@ Exp_methane = [90.694 0.011696 28.142 0.035534;
 
 # ╔═╡ 1d8a4153-dfb0-49a4-8a10-e550e162ac47
 begin
-	model = vdW([species])
-	Tc,pc,Vc = crit_pure(model)
-	N = 400
-	T = range(0.3*Tc,Tc,length=N)
-
-	sat1 = saturation_pressure.(model,T)
-	
-	psat1 = [sat1[i][1] for i ∈ 1:N]
-	vl1 = [sat1[i][2] for i ∈ 1:N]
-	vv1 = [sat1[i][3] for i ∈ 1:N]
+	psat1 = [sat[i][1] for i ∈ 1:N]
+	vl1 = [sat[i][2] for i ∈ 1:N]
+	vv1 = [sat[i][3] for i ∈ 1:N]
 
 	plot(1e-3./vl1,T,color=:blue,xlim=(0,30),ylim=(75,200),
 		title="Vapour-liquid envelope of methane",
@@ -671,6 +674,8 @@ begin
 		label="PR+Twu")
 	plot!(y_pr2,p_pr2./1e6,color=:red,
 		label="")
+	annotate!(0.02, 0.0145, text("T=300.15 K", :black, :left, 14))
+
 end
 	
 
@@ -715,11 +720,13 @@ begin
 		label="PR+BM")
 	plot!(y_pr4,p_pr4./1e6,color=:red,
 		label="")
+		annotate!(0.02, 11., text("T=270.15 K", :black, :left, 14))
+
 end
 
 # ╔═╡ a768aeed-693a-4f21-8a31-9101cfd3fe68
 md"""
-The reason for this, and why the Boston-Matthias $\alpha$ function should be used whenever one component is supercritical is that, the default $\alpha$ functions in PR and SRK both behave unphysical at temperature above the critical point ($T>3T_c$) which is a problem when mixtures contain species, like carbon monoxide, which have low critical points.
+The reason for this, and why the Boston-Matthias $\alpha$ function should be used whenever one component is supercritical is that, the default $\alpha$ functions in PR and SRK both behave unphysically at temperature above the critical point ($T>3T_c$) which is a problem when mixtures contain species, like carbon monoxide, which have low critical points.
 
 Overall, when considering which cubic equation of state to use, which $\alpha$ function to use is an important question to ask. For most hydrocarbon systems, the standard SRK and PR equations should be sufficient. However, for more-complex systems, it is worth considering not only the pure saturation curves, but the mixed systems as well. In general, the safest would be to use species-specific $\alpha$ functions like the one developed by Twu _et al._ although the parameters may not be available for every species.
 """
@@ -813,11 +820,16 @@ md"""
 
 # ╔═╡ c9cc4916-a0c4-498b-bbd3-5d2605f1b382
 md"""
-Now that we have established all the tools needed to model pure systems using cubics, we now need to consider extending them to model mixtures. Typically, we want a set of $a$ and $b$ parameters that characterise the mixture (we will denote this `one-fluid mixture' parameters as $\bar{a}$ and $\bar{b}$). How can we do this? The critical points for the mixtures are generally not known, thus, using the usual definition for $a$ and $b$ is not an option. 
+Now that we have established all the tools needed to model pure systems using cubics, we now need to consider extending them to model mixtures. Typically, we want a set of $a$ and $b$ parameters that characterise the mixture (we will denote this `one-fluid mixture' parameters as $\bar{a}$ and $\bar{b}$):
 """
 
 # ╔═╡ c971e885-6887-4f38-a907-e7cdb1e52032
 @htl("""<center><img src="https://github.com/lucpaoli/introduction-to-computational-thermodynamics/raw/main/Part%202%20-%20Equations%20of%20State/assets/Mixing.svg" height="400"></center>""")
+
+# ╔═╡ 93a18e36-7769-441c-abfb-235b33035991
+md"""
+How can we do this? The critical points for the mixtures are generally not known, thus, using the usual definition for $a$ and $b$ is not an option. 
+"""
 
 # ╔═╡ d71826d0-1b95-4b21-9c5b-125e0c10f9b0
 md"""
@@ -882,6 +894,7 @@ begin
 		label="")
 	scatter!(1 .-Exp_MeB[:,1],Exp_MeB[:,3].*0.00689476,label=L"\mathrm{Experimental}",color=:white,edgecolor=:blue)
 	scatter!(1 .-Exp_MeB[:,2],Exp_MeB[:,3].*0.00689476,label="",color=:white,edgecolor=:blue)
+	annotate!(0.02, 0.75, text("T=433.15 K", :black, :left, 14))
 
 end
 
@@ -889,7 +902,7 @@ end
 md"""
 Clearly, this binary interaction parameter can have a profound effect on the predicted equilibria for the mixture. We can see above that the equilibria goes from being almost ideal to having an azeotrope, as well as agreeing more-quantitatively with the experimental data.
 
-There are other mixing rules similar to the van der Waals one-fluid mixing rule (e.g. Kay's rule, Rao's rule, etc.). However, all of these require binary interaction parameters to accurately model mixtures. These binary interactions can usually be found in literature, although tools like ASPEN and gPROMS have large databases available. If these are not available, it is recommended to simply fit these parameters to any available experimental data available. 
+There are other mixing rules similar to the van der Waals one-fluid mixing rule (e.g. Kay's rule, Rao's rule, etc.). However, all of these require binary interaction parameters to accurately model mixtures. These binary interactions can usually be found in literature, although tools like ASPEN and gPROMS have large databases available. If these are not available, it is recommended to simply fit these parameters to any available experimental data. 
 
 Naturally, there comes the limitation that we sometimes need to model systems for which there are no binary interaction parameters or experimental data available in literature.
 """
@@ -897,13 +910,13 @@ Naturally, there comes the limitation that we sometimes need to model systems fo
 # ╔═╡ 967d43b8-deb2-4365-98d3-65d798395e76
 md"""
 ### EoS/$G^E$ mixing rules
-Having now seen the limitations of simple mixing rules in cubics, we now consider another class of mixing rules. In a previous section, we showed how effective activity coefficient-based models were for modelling equilibrium properties of mixture systems, despite being unable to model pure systems and limited to a few properties. What if we could 'borrow' this better modelling from the activity coefficent models, and use it within cubics? 
+Having now seen the limitations of simple mixing rules in cubics, we now consider another class of mixing rules. In the previous section, we showed how effective activity coefficient-based models were for modelling equilibrium properties of mixture systems, despite being unable to model pure systems and limited to a few properties. What if we could 'borrow' this better modelling from the activity coefficent models, and use it within cubics? 
 
 The basic ideal behind $G^E$ mixing rules is we set the excess Gibbs free energy obtained from the cubic equation of state to that obtained from activity models:
 
 $$g^E_\mathrm{cubic}(T,p,z)=g^E_\mathrm{act.}(T,z)$$
 
-The difficulty is that activity coefficient models are pressure-independent. Thus, at which pressure do we set this equality. This depends on which mixing rule we use. The first such mixing rule derived was by Huron and Vidal which took the infinite pressure limit, giving the following mixing rule:
+The difficulty is that activity coefficient models are pressure-independent. Thus, at which pressure do we set this equality? This depends on which mixing rule we use. The first such mixing rule derived was by Huron and Vidal which took the infinite pressure limit, giving the following mixing rule:
 
 $$\frac{\bar{a}}{\bar{b}}=\sum_ix_i\frac{a_i}{b_i}-\frac{G^E}{\lambda}$$
 
@@ -944,6 +957,8 @@ begin
 		label="")
 	scatter!(1 .-Exp_MeB[:,1],Exp_MeB[:,3].*0.00689476,label="Experimental",color=:white,edgecolor=:blue)
 	scatter!(1 .-Exp_MeB[:,2],Exp_MeB[:,3].*0.00689476,label="",color=:white,edgecolor=:blue)
+	annotate!(0.75, 1.8, text("T=433.15 K", :black, :left, 14))
+
 end
 
 # ╔═╡ bf4d6a0f-3c32-4379-8acc-d724923d728e
@@ -1093,8 +1108,9 @@ ShortCodes = "~0.3.3"
 PLUTO_MANIFEST_TOML_CONTENTS = """
 # This file is machine-generated - editing it directly is not advised
 
-julia_version = "1.7.3"
+julia_version = "1.8.0"
 manifest_format = "2.0"
+project_hash = "b86326280b812b4b9c42bf735609317e6b02f964"
 
 [[deps.Adapt]]
 deps = ["LinearAlgebra"]
@@ -1104,6 +1120,7 @@ version = "3.3.3"
 
 [[deps.ArgTools]]
 uuid = "0dad84c5-d112-42e6-8d28-ef12dabb789f"
+version = "1.1.1"
 
 [[deps.ArrayInterfaceCore]]
 deps = ["LinearAlgebra", "SparseArrays", "SuiteSparse"]
@@ -1220,6 +1237,7 @@ version = "3.45.0"
 [[deps.CompilerSupportLibraries_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "e66e0078-7015-5450-92f7-15fbd957f2ae"
+version = "0.5.2+0"
 
 [[deps.ConstructionBase]]
 deps = ["LinearAlgebra"]
@@ -1293,6 +1311,7 @@ version = "0.8.6"
 [[deps.Downloads]]
 deps = ["ArgTools", "FileWatching", "LibCURL", "NetworkOptions"]
 uuid = "f43a241f-c20a-4ad4-852c-f6b1247861c6"
+version = "1.6.0"
 
 [[deps.DualNumbers]]
 deps = ["Calculus", "NaNMath", "SpecialFunctions"]
@@ -1554,10 +1573,12 @@ version = "0.15.15"
 [[deps.LibCURL]]
 deps = ["LibCURL_jll", "MozillaCACerts_jll"]
 uuid = "b27032c2-a3e7-50c8-80cd-2d36dbcbfd21"
+version = "0.6.3"
 
 [[deps.LibCURL_jll]]
 deps = ["Artifacts", "LibSSH2_jll", "Libdl", "MbedTLS_jll", "Zlib_jll", "nghttp2_jll"]
 uuid = "deac9b47-8bc7-5906-a0fe-35ac56dc84c0"
+version = "7.84.0+0"
 
 [[deps.LibGit2]]
 deps = ["Base64", "NetworkOptions", "Printf", "SHA"]
@@ -1566,6 +1587,7 @@ uuid = "76f85450-5226-5b5a-8eaa-529ad045b433"
 [[deps.LibSSH2_jll]]
 deps = ["Artifacts", "Libdl", "MbedTLS_jll"]
 uuid = "29816b5a-b9ab-546f-933c-edad1886dfa8"
+version = "1.10.2+0"
 
 [[deps.Libdl]]
 uuid = "8f399da3-3557-5675-b5ff-fb832c97cbdb"
@@ -1656,6 +1678,7 @@ version = "1.1.1"
 [[deps.MbedTLS_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "c8ffd9c3-330d-5841-b78e-0817d7145fa1"
+version = "2.28.0+0"
 
 [[deps.Measures]]
 git-tree-sha1 = "e498ddeee6f9fdb4551ce855a46f54dbd900245f"
@@ -1679,6 +1702,7 @@ uuid = "a63ad114-7e13-5084-954f-fe012c677804"
 
 [[deps.MozillaCACerts_jll]]
 uuid = "14a3606d-f60d-562e-9121-12d972cd8159"
+version = "2022.2.1"
 
 [[deps.NLSolvers]]
 deps = ["IterativeSolvers", "LinearAlgebra", "PositiveFactorizations", "Printf", "Statistics"]
@@ -1699,6 +1723,7 @@ version = "0.3.7"
 
 [[deps.NetworkOptions]]
 uuid = "ca575930-c2e3-43a9-ace4-1e988b2c1908"
+version = "1.2.0"
 
 [[deps.Ogg_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -1709,10 +1734,12 @@ version = "1.3.5+1"
 [[deps.OpenBLAS_jll]]
 deps = ["Artifacts", "CompilerSupportLibraries_jll", "Libdl"]
 uuid = "4536629a-c528-5b80-bd46-f80d51c5b363"
+version = "0.3.20+0"
 
 [[deps.OpenLibm_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "05823500-19ac-5b8b-9628-191a04bc5112"
+version = "0.8.1+0"
 
 [[deps.OpenSSL_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -1781,6 +1808,7 @@ version = "0.40.1+0"
 [[deps.Pkg]]
 deps = ["Artifacts", "Dates", "Downloads", "LibGit2", "Libdl", "Logging", "Markdown", "Printf", "REPL", "Random", "SHA", "Serialization", "TOML", "Tar", "UUIDs", "p7zip_jll"]
 uuid = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
+version = "1.8.0"
 
 [[deps.PlotThemes]]
 deps = ["PlotUtils", "Statistics"]
@@ -1895,6 +1923,7 @@ version = "2.0.2"
 
 [[deps.SHA]]
 uuid = "ea8e919c-243c-51af-8825-aaa63cd721ce"
+version = "0.7.0"
 
 [[deps.Scratch]]
 deps = ["Dates"]
@@ -2009,6 +2038,7 @@ uuid = "4607b0f0-06f3-5cda-b6b1-a6196a1729e9"
 [[deps.TOML]]
 deps = ["Dates"]
 uuid = "fa267f1f-6049-4f14-aa54-33bafae1ed76"
+version = "1.0.0"
 
 [[deps.TableTraits]]
 deps = ["IteratorInterfaceExtensions"]
@@ -2025,6 +2055,7 @@ version = "1.7.0"
 [[deps.Tar]]
 deps = ["ArgTools", "SHA"]
 uuid = "a4e569a6-e804-4fa4-b0f3-eef7a1d5b13e"
+version = "1.10.0"
 
 [[deps.TensorCore]]
 deps = ["LinearAlgebra"]
@@ -2246,6 +2277,7 @@ version = "1.4.0+3"
 [[deps.Zlib_jll]]
 deps = ["Libdl"]
 uuid = "83775a58-1f1d-513f-b197-d71354ab007a"
+version = "1.2.12+3"
 
 [[deps.Zstd_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -2268,6 +2300,7 @@ version = "0.15.1+0"
 [[deps.libblastrampoline_jll]]
 deps = ["Artifacts", "Libdl", "OpenBLAS_jll"]
 uuid = "8e850b90-86db-534c-a0d3-1478176c7d93"
+version = "5.1.1+0"
 
 [[deps.libfdk_aac_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -2290,10 +2323,12 @@ version = "1.3.7+1"
 [[deps.nghttp2_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "8e850ede-7688-5339-a07c-302acd2aaf8d"
+version = "1.48.0+0"
 
 [[deps.p7zip_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
+version = "17.4.0+0"
 
 [[deps.x264_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -2364,6 +2399,7 @@ version = "0.9.1+5"
 # ╟─ab519b39-d547-4bd8-aead-050bdf5a5c9d
 # ╟─c9cc4916-a0c4-498b-bbd3-5d2605f1b382
 # ╟─c971e885-6887-4f38-a907-e7cdb1e52032
+# ╟─93a18e36-7769-441c-abfb-235b33035991
 # ╟─d71826d0-1b95-4b21-9c5b-125e0c10f9b0
 # ╟─22e47090-60de-4ca5-844c-fb45558636a1
 # ╟─bdcba181-1905-4583-bd2c-444e76933db3
