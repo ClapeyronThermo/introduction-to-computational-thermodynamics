@@ -114,7 +114,7 @@ tm < 0 \iff TPD < 0\\
 \min tm \iff \min TPD
 \end{gather}$$
 
-meaning $tm$ can be used identically to $TPD$ in the context of stability analysis.
+meaning $tm$ can be used nearly identically to $TPD$ in the context of stability analysis. We should also note that a positive value of $tm$, does **not necessarily** imply a positive value of $TPD$. This means that if no negative value of $tm$ is located, we should also check the value of $TPD$ at each minima [^2].
 
 > $$\min tm(p^\mathrm{spec}, T^\mathrm{spec}, \mathbf z^\mathrm{spec}, \mathbf X)$$
 > subject to
@@ -211,7 +211,7 @@ $$\ln K_i = \ln \frac{P_{c,i}}{P_i} + 5.373(1+\omega_i)\left(1-\frac{T_{c,i}}{T}
 
 The Wilson approximation is based on the ideal solution approximation, and is structured to match pure component vapour pressure at $T_r = 0.7$ and $T_r = 1.0$. It relies on the **critical temperature and pressure** as well as the **acentric factor**, all easily obtainable properties of the pure components. While it generally performs quite well, especially for mixtures relevant to the petrochemical industry, it has very poor predictions when used with hydrogen.
 
-To call calculate Wilson K-factors we use the function
+To calculate Wilson K-factors we use the function supplied by Clapeyron:
 ```julia
 wilson_k_values(model, p, T)
 ```
@@ -221,7 +221,7 @@ wilson_k_values(model, p, T)
 md"""
 ### 3. Minimise our objective function
 
-Next we minimise our objective function, making sure we tell our solver to use automatic differentiation for the derivatives. We specify Newton's method in the call to ```solve(problem, method())```.
+Next we minimise our objective function, making sure we tell our solver to use automatic differentiation for the derivatives. We specify Newton's method in the call to ```solve(problem, method())```. Note that we find the minima by unconstrained minimisation of $tm$, but when investigating the actual stability we return the value of $tpd$.
 """
 
 # ╔═╡ ade5b56b-de17-4950-9f92-55c8c134196c
@@ -303,13 +303,13 @@ md"""
 Techniques for more robust stability analysis include:
 - Multistart - here we start from a vapour-like and a liquid-like initial guess, but it would be possible to generate many more starting points through permutations to our initial guess or randomly generated points.
 - Stochastic methods - evolutionary algorithms are typically quite good at finding global minima, but come with considerable expense.
-- Tunnelling - Tunnelling algorithms have found considerable use in stability analysis, notably used in the HELD algorithm [^2]
+- Tunnelling - Tunnelling algorithms have found considerable use in stability analysis, notably used in the HELD algorithm [^3]
 """
 
 # ╔═╡ bfc93f97-258b-482f-bd4f-3781e7fd548f
 md"""
 # Footnotes
-[^1]:
+[^1]: This is described in
 """
 
 # ╔═╡ 30692b0e-6029-40a2-98a5-d8803304ff7e
@@ -317,7 +317,8 @@ DOI("10.1016/0378-3812(82)85001-2")
 
 # ╔═╡ ece3c292-448b-445b-8eea-f94a6b9ffbaf
 md"""
-[^2]:
+[^2]: We do not necessarily have to check the value of $TPD$, as the value of $tm$ can be related to the stability condition, however this requires a few more stages and has a slightly more complicated argument. For the sake of these notes, it is simpler to just check $TPD$!
+[^3]: This is described in
 """
 
 # ╔═╡ f2fb8ddd-dc73-4998-801f-8b0b890d6107
@@ -503,9 +504,6 @@ fig1
 
 # ╔═╡ 8502b61a-c88a-4c7e-9237-1d6315f88534
 fig5
-
-# ╔═╡ 798167c9-79d1-43b2-8902-c372c54a6916
-fig8;
 
 # ╔═╡ 9890eb1e-cc4e-4d9a-a47e-348c624a2934
 fig6
@@ -2120,7 +2118,6 @@ version = "0.9.1+5"
 # ╟─7782e58c-fed7-4920-81dd-02d7800ce8e6
 # ╟─f1c2c57d-0d05-48d4-ae6d-a015001d1888
 # ╟─8502b61a-c88a-4c7e-9237-1d6315f88534
-# ╟─798167c9-79d1-43b2-8902-c372c54a6916
 # ╟─81a77642-52ef-4836-9055-5059332f72d8
 # ╟─64259d11-1310-49b6-aaec-bfe9832847fa
 # ╟─1db67ed3-53cf-42a9-a8a0-be3e2a2dc537

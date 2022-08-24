@@ -145,7 +145,7 @@ let
 	pcrit = pcrit/1e6
 	gr()
 	plt = plot(
-		title="",
+		title="pv diagram for CO₂ using the van der Waals EoS",
 		ylabel="p (MPa)", xlabel="v (m³/mol)",
 		framestyle=:box, tick_direction=:out, grid=:off,
 		xscale=:log,
@@ -357,6 +357,11 @@ $$Z^\mathrm{vap} = 1 + \frac{B(T)}{V}$$
 but this isn't necessary for now, as the sequence defined by equation (2) generally converges very quickly.
 """
 
+# ╔═╡ 852f0913-187a-4a88-b62e-f7597c6663dc
+md"""
+It is typical for PCSAFT to have three roots, though it can have up to five! Five roots can usually only occur in unphysical scenarios, such as the example in [^2] of a decane isotherm at 135 K. Generally, this does not prove too much of an issue, though it emphasises the need for reasonable initial guesses, as convergence to unexpected and unphysical volume roots or critical points does become a possibility.
+"""
+
 # ╔═╡ 07c9b193-3ca8-47e7-91ad-0492e2dddf2c
 md"""
 T =
@@ -383,7 +388,7 @@ let
 	pcrit = pcrit/1e6
 	gr()
 	plt = plot(
-		title="",
+		title="pv diagram for CO₂ using the PCSAFT EoS",
 		ylabel="p (MPa)", xlabel="v (m³/mol)",
 		framestyle=:box, tick_direction=:out, grid=:off,
 		xscale=:log,
@@ -476,23 +481,28 @@ you can read more about keyword arguments [here](https://docs.julialang.org/en/v
 
 Solves an equation of state for a volume root. The root converged to is chosen by the initial guess, which is specified by the phase argument. The phase can either be liquid, ```:liquid```, or vapour, ```:vapour```.
 """
-function SAFT_volume(model, p, T, phase; abstol=1e-9, maxiters=100)
+function SAFT_volume(model, p, T, phase;
+					abstol=1e-9,
+					maxiters=100,
+					V0=volume_guess(model, p, T, phase)
+	)
+	
 	β(V) = VT_isothermal_compressibility(model, V, T)
 	p₁(V) = pressure(model, V, T)
 
-	V = volume_guess(model, p, T, phase)
+	V = V0
 	lnV = log(V)
-	Vtrack = [V]
-	norm = 1.0
+	test_norm = 1.0
 	iters = 0
-	while norm > abstol && iters < maxiters
+	while test_norm > abstol && iters < maxiters
 		d = β(V) * (p₁(V) - p) # Calculate the iterative step
 		lnV = lnV + d # Take the step
 
 		# Copy previous iteration and value
 		Vold = V
 		V = exp(lnV)
-		norm = abs(Vold - V)
+		# Calculate convergence critera
+		test_norm = abs(Vold - V)
 	end
 	
 	if iters == maxiters
@@ -527,6 +537,291 @@ md"""
 Note that if we don't know _a-priori_ which phase we should solve for, it's once again necessary to solve for both the liquid and vapour roots and evaluate the chemical potential to determine which is more stable.
 """
 
+# ╔═╡ c9974fa6-6418-4c4e-bf4e-37bc97a03a40
+md"""
+### Convergence 
+
+We can also look at the convergence of our volume solver method by plotting the performance of our successive substitution relation against the plot of the first objective function we derived.
+"""
+
+# ╔═╡ 5448c537-7ace-42d9-b2b6-addb1bfc8152
+md"""
+$$f(V,T,p) = \left(\frac{\partial a^\mathrm{res}(V,T)}{\partial V}\right)_T + p^\mathrm{spec}$$
+"""
+
+# ╔═╡ 83db06aa-ec89-40dc-b379-b63c8fce93f4
+function SAFT_volume_trace(model, p, T, phase;
+					abstol=1e-9,
+					maxiters=100,
+					V0=volume_guess(model, p, T, phase)
+	)
+	
+	β(V) = VT_isothermal_compressibility(model, V, T)
+	p₁(V) = pressure(model, V, T)
+
+	V = V0
+	lnV = log(V)
+	Vtrack = [V]
+	test_norm = 1.0
+	iters = 0
+	while test_norm > abstol && iters < maxiters
+		d = β(V) * (p₁(V) - p) # Calculate the iterative step
+		lnV = lnV + d # Take the step
+
+		# Copy previous iteration and value
+		Vold = V
+		V = exp(lnV)
+		push!(Vtrack, V)
+		# Calculate convergence critera
+		test_norm = abs(Vold - V)
+	end
+	
+	if iters == maxiters
+		@warn "Volume iteration failed to converge in $maxiters iterations"
+	end
+	return V, Vtrack
+end;
+
+# ╔═╡ 2f97def3-582d-4c83-a5b9-1c4a661a6142
+let
+	model = PCSAFT(["carbon dioxide"])
+	β(V) = VT_isothermal_compressibility(model, V, T)
+	p = 50e5
+	T = 273.15
+	# f_plt(V) = V*(1-exp(β(V)*(p - pressure(model, V, T))))
+	f_plt(V) = (pressure(model, V/1e5, T) - p)/1e10
+
+	V0 = volume_guess(model, p, T, :liquid)
+	V, Vtrack = SAFT_volume_trace(model, p, T, :liquid)
+	Vtrack = Vtrack[1:end-1]
+
+	V0 = V0*1e5
+	V = V*1e5
+	Vtrack = Vtrack*1e5
+	
+	V_range = range(V0, 1.1V, 500)
+	
+	gr()
+	plt = plot(
+		title="",
+		ylabel="f(V) / 10¹⁰", xlabel="v (m³/mol) / 10⁻⁵",
+		framestyle=:box, tick_direction=:out, grid=:on,
+		xlim = (0.95V_range[1], V_range[end]),
+		dpi = 800
+	)
+	
+	hline!([0.0], color=:black, label="")
+	plot!(V_range, f_plt.(V_range),
+		color = 1,
+		linewidth=2,
+		label="volume objective function"
+	)
+	scatter!(Vtrack, f_plt.(Vtrack),
+		color = 2,
+		markersize=4.5,
+		label="iterations"
+	)
+	scatter!([V0], [f_plt(V0)],
+		color = 3,
+		markersize=4.5,
+		label="V₀"
+	)
+	scatter!([V], [f_plt(V)],
+		color = 4,
+		markersize=4.5,
+		label="V"
+	)
+
+	Vtrack = Vtrack[end-4:end]
+	V_range = range(0.982Vtrack[1], 1.025Vtrack[end], 500)
+
+	x1 = V_range[1]
+	x2 = V_range[end]
+	x3 = 3.3455
+	x4 = 5.12
+	y1 = -5e8/1e10
+	y2 = 5e8/1e10
+	y3 = 0.895*5e9/1e10
+
+	plot!([x1, x2], [y1, y1], color=:black, label="")
+	plot!([x1, x2], [y2, y2], color=:black, label="")
+	plot!([x1, x1], [y1, y2], color=:black, label="")
+	plot!([x2, x2], [y1, y2], color=:black, label="")
+	plot!([x1, x3], [y2, y3], color=:black, label="")
+	plot!([x2, x4], [y2, y3], color=:black, label="")
+
+	plot!(subplot=2,
+		title="",
+		framestyle=:box, tick_direction=:out, grid=:on,
+		xticks=(4.4:0.1:4.9),
+		# xlim = (0.95V_range[1], V_range[end]),
+		# yticks=false, xticks=false,
+		xlim = (V_range[1], V_range[end]),
+		inset = (1, bbox(0.03, 0.03, 0.5, 0.5, :center, :right)),
+	)
+	
+	hline!(subplot=2, [0.0], color=:black, label="")
+	plot!(subplot=2, V_range, f_plt.(V_range),
+		color = 1,
+		linewidth=2,
+		label=""
+	)
+	scatter!(subplot=2, Vtrack, f_plt.(Vtrack),
+		color = 2,
+		markersize=4.5,
+		label=""
+	)
+	scatter!(subplot=2, [V], [f_plt(V)],
+		color = 4,
+		markersize=4.5,
+		label=""
+	)
+	
+
+	plt
+end
+
+# ╔═╡ aa6a0a8c-20a2-43bd-8dc7-682ce36b1ab8
+md"""
+We can see fairly rapid convergence, though it does become clear that our initial guess is far from perfect!
+"""
+
+# ╔═╡ 73acffd2-3f5e-4a6b-b135-1e128eac0577
+md"""
+## Helmholtz-Explicit (e.g. GERG, IAPWS-95)
+Because the volume solver we developed for SAFT is a non-linear solver making no assumptions about the form of the equation of state other than that it can be expressed explicitly in terms of the Helmholtz free energy, we can actually use that solver directly with any other equation of state!
+The only issue encountered with this is we need to re-think our initial guesses. This is generally dependent on the model used in question.
+"""
+
+# ╔═╡ b4c2baf6-5433-45e0-b191-b43c38f346ef
+md"""
+Helmholtz-Explicit equations of state now have more than 3 volume roots within the saturated region. This introduces some additional risk when solving for the volume for converging to the incorrect root, but for these equations of state there are usually well-defined methods for generating initial guesses, such as a known solution to the IAPWS-95 saturation curve, or a select reference fluid for the GERG-2004 model.
+"""
+
+# ╔═╡ 8af302d2-371e-457d-a0de-06819d01df92
+@htl("""
+T<sub>1</sub> =
+""")
+
+# ╔═╡ b7369d25-7286-4245-9980-d0d4ce831947
+@bind T_plt3 PlutoUI.Slider(500u"K":5u"K":700u"K", show_value=true, default=630u"K")
+
+# ╔═╡ 7512fa2f-b519-4f7a-8c7e-ca56810db2be
+@htl("""
+T<sub>2</sub> =
+""")
+
+# ╔═╡ 4a5e5154-adb7-4a12-8bdd-39d6ef55b6c1
+@bind T_plt4 PlutoUI.Slider(100u"K":5u"K":200u"K", show_value=true, default=175u"K")
+
+# ╔═╡ b156c581-7828-45e9-a683-4d925216aed1
+let
+	p1 = let
+		model = IAPWS95()
+		
+		Tcrit, pcrit, vcrit = crit_pure(model)
+		Tsat = LinRange(550.0, 0.99999Tcrit, 500)
+	
+		psat = zeros(length(Tsat))
+		Vlsat = zeros(length(Tsat))
+		Vvsat = zeros(length(Tsat))
+		for (i, T) in enumerate(Tsat)
+			(psat[i], Vlsat[i], Vvsat[i]) = saturation_pressure(model, T)
+		end
+	
+		psat = psat./1e6
+		pcrit = pcrit/1e6
+		gr()
+		plt = plot(
+			title="H₂O using IAPWS-95 EoS",
+			ylabel="p (MPa)", xlabel="v (m³/mol)",
+			framestyle=:box, tick_direction=:out, grid=:off,
+			xscale=:log, legend=:bottomleft,
+			ylim = (minimum(psat), 1.1pcrit)
+		)
+		
+		plot!(
+			Vlsat, psat,
+			linewidth=2, color=1, linestyle=:solid,
+			label="saturation curve"
+		)
+		plot!(
+			Vvsat, psat,
+			linewidth=2, color=1, linestyle=:solid,
+			label=""
+		)
+		scatter!([vcrit], [pcrit], label="critical point", markersize=5.5, color=3)
+	
+		T1 = ustrip(T_plt3)
+		psat1, Vlsat1, Vvsat1 = saturation_pressure(model, T1)
+		
+		plot!(
+			v -> pressure(model, v, T1)/1e6,
+			10 .^ range(log10(minimum(Vlsat)), log10(maximum(Vvsat)), 1000),
+			linewidth=2.5, color=7, linestyle=:dashdot,
+			label="isotherm at $T1 K"
+		)
+		
+		plot!([Vlsat1, Vvsat1], [psat1, psat1]/1e6,
+			 linewidth=2, color=:black, linestyle=:dash,
+			label="pressure construction"
+		)
+	end
+	p2 = let
+		model = GERG2008(["methane"])
+		
+		Tcrit, pcrit, vcrit = crit_pure(model)
+		Tsat = LinRange(140.0, 0.99999Tcrit, 500)
+	
+		psat = zeros(length(Tsat))
+		Vlsat = zeros(length(Tsat))
+		Vvsat = zeros(length(Tsat))
+		for (i, T) in enumerate(Tsat)
+			(psat[i], Vlsat[i], Vvsat[i]) = saturation_pressure(model, T)
+		end
+	
+		psat = psat./1e6
+		pcrit = pcrit/1e6
+		gr()
+		plt = plot(
+			title="CH₄ using GERG-2004",
+			ylabel="p (MPa)", xlabel="v (m³/mol)",
+			framestyle=:box, tick_direction=:out, grid=:off,
+			xscale=:log, legend=:bottomleft,
+			ylim = (minimum(psat), 1.1pcrit)
+		)
+		
+		plot!(
+			Vlsat, psat,
+			linewidth=2, color=1, linestyle=:solid,
+			label="saturation curve"
+		)
+		plot!(
+			Vvsat, psat,
+			linewidth=2, color=1, linestyle=:solid,
+			label=""
+		)
+		scatter!([vcrit], [pcrit], label="critical point", markersize=5.5, color=3)
+	
+		T1 = ustrip(T_plt4)
+		psat1, Vlsat1, Vvsat1 = saturation_pressure(model, T1)
+		
+		plot!(
+			v -> pressure(model, v, T1)/1e6,
+			10 .^ range(log10(minimum(Vlsat)), log10(maximum(Vvsat)), 1000),
+			linewidth=2.5, color=7, linestyle=:dashdot,
+			label="isotherm at $T1 K"
+		)
+		
+		plot!([Vlsat1, Vvsat1], [psat1, psat1]/1e6,
+			 linewidth=2, color=:black, linestyle=:dash,
+			label="pressure construction"
+		)
+	end
+
+	plot(p1, p2, layout = @layout [a b])
+end
+
 # ╔═╡ 4acb1393-030f-4cab-a765-f8de5a75893b
 html"<br><br><br><br><br><br><br><br><br><br><br><br>"
 
@@ -534,7 +829,11 @@ html"<br><br><br><br><br><br><br><br><br><br><br><br>"
 md"""
 # Footnotes
 [^1]: The recurrence relation formed by equation (2) turns out to be a Newton step towards the solution of equation (1).
+[^2]: This is shown in Fig. 7 of:
 """
+
+# ╔═╡ 2d294f2c-2b68-4dbb-8f28-1d57e113f674
+DOI("10.1016/j.fluid.2010.03.041")
 
 # ╔═╡ d0b2f6bb-7539-4dda-adc9-acc2ce9cca4a
 hint(text) = Markdown.MD(Markdown.Admonition("hint", "Hint", [text]));
@@ -2023,6 +2322,7 @@ version = "0.9.1+5"
 # ╟─5b8815a8-a079-4b8f-a618-2d48269812b8
 # ╟─aa58fba4-9450-4aa2-8679-5dc953ff730e
 # ╟─7cfbb284-72ae-4d7f-ad5a-c98dd4ad2f97
+# ╟─852f0913-187a-4a88-b62e-f7597c6663dc
 # ╟─07c9b193-3ca8-47e7-91ad-0492e2dddf2c
 # ╟─d7a60eae-0393-4b11-b1e1-faec368d324b
 # ╟─68cad9ec-8f72-41f1-8665-3b0fb87147de
@@ -2036,8 +2336,21 @@ version = "0.9.1+5"
 # ╟─2d740e80-c450-46c2-9086-75f4ce23ce26
 # ╟─fc58d8f6-9647-4331-bebd-624ba7d75e7f
 # ╟─123c84a4-f363-4569-ba96-408a376fd4cf
+# ╟─c9974fa6-6418-4c4e-bf4e-37bc97a03a40
+# ╟─5448c537-7ace-42d9-b2b6-addb1bfc8152
+# ╟─2f97def3-582d-4c83-a5b9-1c4a661a6142
+# ╟─83db06aa-ec89-40dc-b379-b63c8fce93f4
+# ╟─aa6a0a8c-20a2-43bd-8dc7-682ce36b1ab8
+# ╟─73acffd2-3f5e-4a6b-b135-1e128eac0577
+# ╟─b4c2baf6-5433-45e0-b191-b43c38f346ef
+# ╟─8af302d2-371e-457d-a0de-06819d01df92
+# ╟─b7369d25-7286-4245-9980-d0d4ce831947
+# ╟─7512fa2f-b519-4f7a-8c7e-ca56810db2be
+# ╟─4a5e5154-adb7-4a12-8bdd-39d6ef55b6c1
+# ╟─b156c581-7828-45e9-a683-4d925216aed1
 # ╟─4acb1393-030f-4cab-a765-f8de5a75893b
 # ╟─d9835e4a-e64e-4b3a-8c3c-f9d3766b23b9
+# ╟─2d294f2c-2b68-4dbb-8f28-1d57e113f674
 # ╟─d0b2f6bb-7539-4dda-adc9-acc2ce9cca4a
 # ╟─8fe83aab-d193-4a28-a763-6420abcbb176
 # ╟─94caf041-6363-4b38-b2c2-daaf5a6aecf1
