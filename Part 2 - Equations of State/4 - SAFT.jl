@@ -36,11 +36,11 @@ In such approaches, species are no longer characterised by the parameters $a$ an
 """
 
 # ╔═╡ 9496586f-63f2-4cb8-9ece-7d571dd68d4e
-@htl("""<center><img src="https://github.com/lucpaoli/introduction-to-computational-thermodynamics/raw/main/Part%202%20-%20Equations%20of%20State/assets/vdW.svg" height="300"></center>""")
+@htl("""<center><img src="https://github.com/lucpaoli/introduction-to-computational-thermodynamics/raw/main/Part%202%20-%20Equations%20of%20State/assets/Seg.svg" height="300"></center>""")
 
 # ╔═╡ 5e449695-f7b2-452c-82b2-af193e776280
 md"""
-Despite these improvements, it doesn't change the fact that we are just modelling spherical systems with dispersion interactions more accurate; most species will not fit this description. For decades after van der Waals' derived his equation, researchers have developed new approaches to more accurately model a larger range of species. In 1989, Chapman _et al._ published the Statistical Associating Fluid Theory (SAFT) where they first grouped the hard-sphere and perturbation contributions into a single term (the segment term, $A_\mathrm{seg.}$) and introduced two new terms:
+Despite these improvements, it doesn't change the fact that we are just modelling spherical systems with dispersion interactions more accurately; most species will not fit this description. For decades after van der Waals' derived his equation, researchers have developed new approaches to more accurately model a larger range of species. In 1989, Chapman _et al._ published the Statistical Associating Fluid Theory (SAFT) where they first grouped the hard-sphere and perturbation contributions into a single term (the segment term, $A_\mathrm{seg.}$) and introduced two new terms:
 
 $$A_\mathrm{res.} = A_\mathrm{seg.}+A_\mathrm{chain}+A_\mathrm{assoc.}$$
 ### Chain term
@@ -247,7 +247,7 @@ This equation has two key benefits:
 1. We only need to fit parameters for associating species (water, methanol, etc.).
 2. All the tools we developed for cubics (new $\alpha$ functions, volume translation methods, advanced mixing rules, etc.) can be applied to CPA.
 
-This makes CPA a very popular alternative to other SAFT equations because of its close like to cubics. Naturally, because it loses the physical foundation that SAFT equations are based on, it can't model as wide a range of species and properties accurately as standard SAFT equations can.
+This makes CPA a very popular alternative to other SAFT equations because of its close link to cubics. Naturally, because it loses the physical foundation that SAFT equations are based on, it can't model as wide a range of species and properties accurately as standard SAFT equations can.
 """
 
 # ╔═╡ 76790f3f-b101-48d8-b6b0-fc1df6e14e0f
@@ -280,7 +280,7 @@ $$A_\mathrm{res.} = A_\mathrm{seg.}+A_\mathrm{chain}+A_\mathrm{assoc.}$$
 
 However, internally, two big changes were made:
 * The segment term was taken to a higher order perturbation. Up to this point, all SAFT equations only went up to a second order perturbation expansion. In SAFT-VR Mie, it was decided to go up to third order. Physically, this means that many-body interactions in SAFT-VR Mie are better characterised. Practically, it improved the modelling of properties near the critical point and the modelling of bulk properties in general.
-* Learning from PC-SAFT, while we do perturb the hard-sphere system first and then form a chain, in SAFT-VR Mie, a perturbation of the chain is also applied. This is a more-theoretical consistent implementation of the chain term.
+* Similar to PC-SAFT, while we do perturb the hard-sphere system first and then form a chain, in SAFT-VR Mie, a perturbation of the chain is also applied. This is a more-theoretical consistent implementation of the chain term.
 These two modifications have lead to SAFT-VR Mie to become, possibly, the most advanced equation of state to date. Unfortunately, because of the introduction of two additional parameters ($\lambda_a$ and $\lambda_r$), it does mean more parameters need to be fitted (although, generally, it is assumed that $\lambda_a=6$). As it is slightly newer than PC-SAFT, not as many parameters have been fitted for SAFT-VR Mie, limiting its range of applicability. However, a group contribution method for SAFT-VR Mie was also developped, which will be discussed next.
 """
 
@@ -292,7 +292,7 @@ md"""
 
 # ╔═╡ 0ba8192f-5e63-4fb7-990e-272031e99d21
 md"""
-To be more-widely applicable, rather than fit many parameters in SAFT-VR Mie, the developers decided to instead focus on developing a group contribution method, known as SAFT-$\gamma$ Mie. However, another modification was made to SAFT-$\gamma$ Mie that further improved its ability to model a wider range of species. In both PC-SAFT and SAFT-VR Mie, it is assumed that the segments in a chain for a given molecule all have the same size. As the chains in SAFT-$\gamma$ Mie are assembled of groups which can have different sizes, this limitation does not apply to SAFT-$\gamma$ Mie. This is why it can often be though of as a heterosegmented version of SAFT-VR Mie. Visually:
+To be more-widely applicable, rather than fit many parameters in SAFT-VR Mie, the developers decided to instead focus on developing a group contribution method, known as SAFT-$\gamma$ Mie. However, another modification was made to SAFT-$\gamma$ Mie that further improved its ability to model a wider range of species. In both PC-SAFT and SAFT-VR Mie, it is assumed that the segments in a chain for a given molecule all have the same size. As the chains in SAFT-$\gamma$ Mie are assembled of groups which can have different sizes, this limitation does not apply to SAFT-$\gamma$ Mie. This is why it can often be thought of as a heterosegmented version of SAFT-VR Mie. Visually:
 """
 
 # ╔═╡ dc05c788-96f9-4c4f-b7bb-5e007e6fd9ee
@@ -553,7 +553,7 @@ begin
 	Cp4 = isobaric_heat_capacity.(mw4,p,T)
 
 	plot(T,Cp1,xlim=(450,600),ylim=(0,600),
-		title="Isobaric heat capacity with different EoS at p = 12 MPa",
+		title="Isobaric heat capacity of methanol with different EoS",
 		label="PR",
 		yguidefontsize=16, xguidefontsize=16,
 		legendfont=font(10), framestyle=:box, 
@@ -563,6 +563,7 @@ begin
 	plot!(T,Cp3,label="CPA",color=:green)
 	plot!(T,Cp4,label="SAFT-VR Mie",color=:purple)
 	scatter!(Exp_MeOH[:,1],Exp_MeOH[:,2],color=:white,edgecolor=:blue,label="")
+	annotate!(455, 550., text("p=12. MPa", :black, :left, 14))
 
 end
 
@@ -615,6 +616,8 @@ begin
 		label="")
 	scatter!(1 .-Exp_MeB[:,1],Exp_MeB[:,3].*0.00689476,label="Experimental",color=:white,edgecolor=:blue)
 	scatter!(1 .-Exp_MeB[:,2],Exp_MeB[:,3].*0.00689476,label="",color=:white,edgecolor=:blue)
+	annotate!(0.75, 1.82, text("T=433.15 K", :black, :left, 14))
+
 end
 
 # ╔═╡ b330c503-4a05-4cab-9c92-1fc3e621096c
@@ -659,8 +662,9 @@ ShortCodes = "~0.3.3"
 PLUTO_MANIFEST_TOML_CONTENTS = """
 # This file is machine-generated - editing it directly is not advised
 
-julia_version = "1.7.3"
+julia_version = "1.8.0"
 manifest_format = "2.0"
+project_hash = "c4b8046a17338e691c3b702f66bf1225dd76f8a8"
 
 [[deps.Adapt]]
 deps = ["LinearAlgebra"]
@@ -670,6 +674,7 @@ version = "3.3.3"
 
 [[deps.ArgTools]]
 uuid = "0dad84c5-d112-42e6-8d28-ef12dabb789f"
+version = "1.1.1"
 
 [[deps.ArrayInterfaceCore]]
 deps = ["LinearAlgebra", "SparseArrays", "SuiteSparse"]
@@ -792,6 +797,7 @@ version = "3.45.0"
 [[deps.CompilerSupportLibraries_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "e66e0078-7015-5450-92f7-15fbd957f2ae"
+version = "0.5.2+0"
 
 [[deps.ConstructionBase]]
 deps = ["LinearAlgebra"]
@@ -865,6 +871,7 @@ version = "0.9.1"
 [[deps.Downloads]]
 deps = ["ArgTools", "FileWatching", "LibCURL", "NetworkOptions"]
 uuid = "f43a241f-c20a-4ad4-852c-f6b1247861c6"
+version = "1.6.0"
 
 [[deps.DualNumbers]]
 deps = ["Calculus", "NaNMath", "SpecialFunctions"]
@@ -1126,10 +1133,12 @@ version = "0.15.16"
 [[deps.LibCURL]]
 deps = ["LibCURL_jll", "MozillaCACerts_jll"]
 uuid = "b27032c2-a3e7-50c8-80cd-2d36dbcbfd21"
+version = "0.6.3"
 
 [[deps.LibCURL_jll]]
 deps = ["Artifacts", "LibSSH2_jll", "Libdl", "MbedTLS_jll", "Zlib_jll", "nghttp2_jll"]
 uuid = "deac9b47-8bc7-5906-a0fe-35ac56dc84c0"
+version = "7.84.0+0"
 
 [[deps.LibGit2]]
 deps = ["Base64", "NetworkOptions", "Printf", "SHA"]
@@ -1138,6 +1147,7 @@ uuid = "76f85450-5226-5b5a-8eaa-529ad045b433"
 [[deps.LibSSH2_jll]]
 deps = ["Artifacts", "Libdl", "MbedTLS_jll"]
 uuid = "29816b5a-b9ab-546f-933c-edad1886dfa8"
+version = "1.10.2+0"
 
 [[deps.Libdl]]
 uuid = "8f399da3-3557-5675-b5ff-fb832c97cbdb"
@@ -1228,6 +1238,7 @@ version = "1.1.1"
 [[deps.MbedTLS_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "c8ffd9c3-330d-5841-b78e-0817d7145fa1"
+version = "2.28.0+0"
 
 [[deps.Measures]]
 git-tree-sha1 = "e498ddeee6f9fdb4551ce855a46f54dbd900245f"
@@ -1251,6 +1262,7 @@ uuid = "a63ad114-7e13-5084-954f-fe012c677804"
 
 [[deps.MozillaCACerts_jll]]
 uuid = "14a3606d-f60d-562e-9121-12d972cd8159"
+version = "2022.2.1"
 
 [[deps.NLSolvers]]
 deps = ["IterativeSolvers", "LinearAlgebra", "PositiveFactorizations", "Printf", "Statistics"]
@@ -1271,6 +1283,7 @@ version = "0.3.7"
 
 [[deps.NetworkOptions]]
 uuid = "ca575930-c2e3-43a9-ace4-1e988b2c1908"
+version = "1.2.0"
 
 [[deps.Ogg_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -1281,10 +1294,12 @@ version = "1.3.5+1"
 [[deps.OpenBLAS_jll]]
 deps = ["Artifacts", "CompilerSupportLibraries_jll", "Libdl"]
 uuid = "4536629a-c528-5b80-bd46-f80d51c5b363"
+version = "0.3.20+0"
 
 [[deps.OpenLibm_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "05823500-19ac-5b8b-9628-191a04bc5112"
+version = "0.8.1+0"
 
 [[deps.OpenSSL_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -1353,6 +1368,7 @@ version = "0.40.1+0"
 [[deps.Pkg]]
 deps = ["Artifacts", "Dates", "Downloads", "LibGit2", "Libdl", "Logging", "Markdown", "Printf", "REPL", "Random", "SHA", "Serialization", "TOML", "Tar", "UUIDs", "p7zip_jll"]
 uuid = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
+version = "1.8.0"
 
 [[deps.PlotThemes]]
 deps = ["PlotUtils", "Statistics"]
@@ -1471,6 +1487,7 @@ version = "2.0.2"
 
 [[deps.SHA]]
 uuid = "ea8e919c-243c-51af-8825-aaa63cd721ce"
+version = "0.7.0"
 
 [[deps.Scratch]]
 deps = ["Dates"]
@@ -1585,6 +1602,7 @@ uuid = "4607b0f0-06f3-5cda-b6b1-a6196a1729e9"
 [[deps.TOML]]
 deps = ["Dates"]
 uuid = "fa267f1f-6049-4f14-aa54-33bafae1ed76"
+version = "1.0.0"
 
 [[deps.TableTraits]]
 deps = ["IteratorInterfaceExtensions"]
@@ -1601,6 +1619,7 @@ version = "1.7.0"
 [[deps.Tar]]
 deps = ["ArgTools", "SHA"]
 uuid = "a4e569a6-e804-4fa4-b0f3-eef7a1d5b13e"
+version = "1.10.0"
 
 [[deps.TensorCore]]
 deps = ["LinearAlgebra"]
@@ -1822,6 +1841,7 @@ version = "1.4.0+3"
 [[deps.Zlib_jll]]
 deps = ["Libdl"]
 uuid = "83775a58-1f1d-513f-b197-d71354ab007a"
+version = "1.2.12+3"
 
 [[deps.Zstd_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -1844,6 +1864,7 @@ version = "0.15.1+0"
 [[deps.libblastrampoline_jll]]
 deps = ["Artifacts", "Libdl", "OpenBLAS_jll"]
 uuid = "8e850b90-86db-534c-a0d3-1478176c7d93"
+version = "5.1.1+0"
 
 [[deps.libfdk_aac_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -1866,10 +1887,12 @@ version = "1.3.7+1"
 [[deps.nghttp2_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "8e850ede-7688-5339-a07c-302acd2aaf8d"
+version = "1.48.0+0"
 
 [[deps.p7zip_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
+version = "17.4.0+0"
 
 [[deps.x264_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]

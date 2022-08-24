@@ -215,31 +215,35 @@ begin
 	ymix2 = [bub2[i][4][1] for i ∈ 1:N]
 		
 	plot(x,pmix1./1e6,color=:blue,xlim=(0,1),
-		title="pxy diagram of benzene+methanol",
+		title="pxy diagram of hydrogen sulfide+carbon dioxide",
 		label="GERG-2008",
 		yguidefontsize=16, xguidefontsize=16,
 		legendfont=font(10), framestyle=:box, 
 		tick_direction=:out, grid=:off,foreground_color_legend = nothing,background_color_legend = nothing,legend=:bottomleft,
-		ylabel=L"p / \mathrm{MPa}", xlabel=L"x(\mathrm{benzene}),y(\mathrm{benzene})")
+		ylabel=L"p / \mathrm{MPa}", xlabel=L"x(\mathrm{hydrogen\,\, sulfide}),y(\mathrm{hydrogen\,\, sulfide})")
 	plot!(ymix1,pmix1./1e6,color=:blue,
 		label="")
 	scatter!(1 .-Exp_mix[:,2],Exp_mix[:,1]./1e6,label="Experimental",color=:white,edgecolor=:blue)
 	scatter!(1 .-Exp_mix[:,3],Exp_mix[:,1]./1e6,label="",color=:white,edgecolor=:blue)
+			annotate!(0.75, 3., text("T=283.15 K", :black, :left, 14))
+
 end
 
 # ╔═╡ 8e670e51-c14f-4264-b804-22ba17adda58
 begin
 	plot(x,pmix2./1e6,color=:red,xlim=(0,1),
-		title="pxy diagram of benzene+methanol",
+		title="pxy diagram of hydrogen sulfide+carbon dioxide",
 		label="GERG-2008",
 		yguidefontsize=16, xguidefontsize=16,
 		legendfont=font(10), framestyle=:box, 
 		tick_direction=:out, grid=:off,foreground_color_legend = nothing,background_color_legend = nothing,legend=:bottomleft,
-		ylabel=L"p / \mathrm{MPa}", xlabel=L"x(\mathrm{benzene}),y(\mathrm{benzene})")
+		ylabel=L"p / \mathrm{MPa}", xlabel=L"x(\mathrm{hydrogen\,\, sulfide}),y(\mathrm{hydrogen\,\, sulfide})")
 	plot!(ymix2,pmix2./1e6,color=:red,
 		label="")
 	scatter!(1 .-Exp_mix2[:,2],Exp_mix2[:,1]./1e6,label="Experimental",color=:white,edgecolor=:blue)
 	scatter!(1 .-Exp_mix2[:,3],Exp_mix2[:,1]./1e6,label="",color=:white,edgecolor=:blue)
+				annotate!(0.75, 0.21, text("T=199.15 K", :black, :left, 14))
+
 end
 
 # ╔═╡ f2f063f5-d5b5-4e1c-94e7-1d17305ab30f
@@ -408,7 +412,7 @@ begin
 	Cp4 = isobaric_heat_capacity.(h2o,p4,T1)
 
 	plot(T1,Cp1,xlim=(350,800),ylim=(30,140),
-		title="Isobaric heat capacity with different EoS at p = 12 MPa",
+		title="Isobaric heat capacity of water",
 		label="p = 0.1 MPa",
 		yguidefontsize=16, xguidefontsize=16,
 		legendfont=font(10), framestyle=:box, 
@@ -500,7 +504,7 @@ begin
 	append!(vvc1,vcc1)
 
 	plot(1e-3./vlc1,Tc1,color=:blue,ylim=(200,320),
-		title="Vapour-liquid envelope of methanol",
+		title="Vapour-liquid envelope of carbon dioxide",
 		label="GERG-2008",
 		yguidefontsize=16, xguidefontsize=16,
 		legendfont=font(10), framestyle=:box, 
@@ -544,8 +548,9 @@ ShortCodes = "~0.3.3"
 PLUTO_MANIFEST_TOML_CONTENTS = """
 # This file is machine-generated - editing it directly is not advised
 
-julia_version = "1.7.3"
+julia_version = "1.8.0"
 manifest_format = "2.0"
+project_hash = "c4b8046a17338e691c3b702f66bf1225dd76f8a8"
 
 [[deps.Adapt]]
 deps = ["LinearAlgebra"]
@@ -555,6 +560,7 @@ version = "3.3.3"
 
 [[deps.ArgTools]]
 uuid = "0dad84c5-d112-42e6-8d28-ef12dabb789f"
+version = "1.1.1"
 
 [[deps.ArrayInterfaceCore]]
 deps = ["LinearAlgebra", "SparseArrays", "SuiteSparse"]
@@ -677,6 +683,7 @@ version = "3.45.0"
 [[deps.CompilerSupportLibraries_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "e66e0078-7015-5450-92f7-15fbd957f2ae"
+version = "0.5.2+0"
 
 [[deps.ConstructionBase]]
 deps = ["LinearAlgebra"]
@@ -750,6 +757,7 @@ version = "0.9.1"
 [[deps.Downloads]]
 deps = ["ArgTools", "FileWatching", "LibCURL", "NetworkOptions"]
 uuid = "f43a241f-c20a-4ad4-852c-f6b1247861c6"
+version = "1.6.0"
 
 [[deps.DualNumbers]]
 deps = ["Calculus", "NaNMath", "SpecialFunctions"]
@@ -1011,10 +1019,12 @@ version = "0.15.16"
 [[deps.LibCURL]]
 deps = ["LibCURL_jll", "MozillaCACerts_jll"]
 uuid = "b27032c2-a3e7-50c8-80cd-2d36dbcbfd21"
+version = "0.6.3"
 
 [[deps.LibCURL_jll]]
 deps = ["Artifacts", "LibSSH2_jll", "Libdl", "MbedTLS_jll", "Zlib_jll", "nghttp2_jll"]
 uuid = "deac9b47-8bc7-5906-a0fe-35ac56dc84c0"
+version = "7.84.0+0"
 
 [[deps.LibGit2]]
 deps = ["Base64", "NetworkOptions", "Printf", "SHA"]
@@ -1023,6 +1033,7 @@ uuid = "76f85450-5226-5b5a-8eaa-529ad045b433"
 [[deps.LibSSH2_jll]]
 deps = ["Artifacts", "Libdl", "MbedTLS_jll"]
 uuid = "29816b5a-b9ab-546f-933c-edad1886dfa8"
+version = "1.10.2+0"
 
 [[deps.Libdl]]
 uuid = "8f399da3-3557-5675-b5ff-fb832c97cbdb"
@@ -1113,6 +1124,7 @@ version = "1.1.1"
 [[deps.MbedTLS_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "c8ffd9c3-330d-5841-b78e-0817d7145fa1"
+version = "2.28.0+0"
 
 [[deps.Measures]]
 git-tree-sha1 = "e498ddeee6f9fdb4551ce855a46f54dbd900245f"
@@ -1136,6 +1148,7 @@ uuid = "a63ad114-7e13-5084-954f-fe012c677804"
 
 [[deps.MozillaCACerts_jll]]
 uuid = "14a3606d-f60d-562e-9121-12d972cd8159"
+version = "2022.2.1"
 
 [[deps.NLSolvers]]
 deps = ["IterativeSolvers", "LinearAlgebra", "PositiveFactorizations", "Printf", "Statistics"]
@@ -1156,6 +1169,7 @@ version = "0.3.7"
 
 [[deps.NetworkOptions]]
 uuid = "ca575930-c2e3-43a9-ace4-1e988b2c1908"
+version = "1.2.0"
 
 [[deps.Ogg_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -1166,10 +1180,12 @@ version = "1.3.5+1"
 [[deps.OpenBLAS_jll]]
 deps = ["Artifacts", "CompilerSupportLibraries_jll", "Libdl"]
 uuid = "4536629a-c528-5b80-bd46-f80d51c5b363"
+version = "0.3.20+0"
 
 [[deps.OpenLibm_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "05823500-19ac-5b8b-9628-191a04bc5112"
+version = "0.8.1+0"
 
 [[deps.OpenSSL_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -1238,6 +1254,7 @@ version = "0.40.1+0"
 [[deps.Pkg]]
 deps = ["Artifacts", "Dates", "Downloads", "LibGit2", "Libdl", "Logging", "Markdown", "Printf", "REPL", "Random", "SHA", "Serialization", "TOML", "Tar", "UUIDs", "p7zip_jll"]
 uuid = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
+version = "1.8.0"
 
 [[deps.PlotThemes]]
 deps = ["PlotUtils", "Statistics"]
@@ -1356,6 +1373,7 @@ version = "2.0.2"
 
 [[deps.SHA]]
 uuid = "ea8e919c-243c-51af-8825-aaa63cd721ce"
+version = "0.7.0"
 
 [[deps.Scratch]]
 deps = ["Dates"]
@@ -1470,6 +1488,7 @@ uuid = "4607b0f0-06f3-5cda-b6b1-a6196a1729e9"
 [[deps.TOML]]
 deps = ["Dates"]
 uuid = "fa267f1f-6049-4f14-aa54-33bafae1ed76"
+version = "1.0.0"
 
 [[deps.TableTraits]]
 deps = ["IteratorInterfaceExtensions"]
@@ -1486,6 +1505,7 @@ version = "1.7.0"
 [[deps.Tar]]
 deps = ["ArgTools", "SHA"]
 uuid = "a4e569a6-e804-4fa4-b0f3-eef7a1d5b13e"
+version = "1.10.0"
 
 [[deps.TensorCore]]
 deps = ["LinearAlgebra"]
@@ -1707,6 +1727,7 @@ version = "1.4.0+3"
 [[deps.Zlib_jll]]
 deps = ["Libdl"]
 uuid = "83775a58-1f1d-513f-b197-d71354ab007a"
+version = "1.2.12+3"
 
 [[deps.Zstd_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -1729,6 +1750,7 @@ version = "0.15.1+0"
 [[deps.libblastrampoline_jll]]
 deps = ["Artifacts", "Libdl", "OpenBLAS_jll"]
 uuid = "8e850b90-86db-534c-a0d3-1478176c7d93"
+version = "5.1.1+0"
 
 [[deps.libfdk_aac_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -1751,10 +1773,12 @@ version = "1.3.7+1"
 [[deps.nghttp2_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "8e850ede-7688-5339-a07c-302acd2aaf8d"
+version = "1.48.0+0"
 
 [[deps.p7zip_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
+version = "17.4.0+0"
 
 [[deps.x264_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -1776,7 +1800,7 @@ version = "0.9.1+5"
 """
 
 # ╔═╡ Cell order:
-# ╠═b2496a06-0f95-11ed-2a05-2b39c1c42836
+# ╟─b2496a06-0f95-11ed-2a05-2b39c1c42836
 # ╟─2a34397e-7498-4f17-b0dd-7c5b011b8787
 # ╟─57d13242-601a-4447-8041-a6a31b7a0cf2
 # ╠═1680fee0-6f0a-4f56-a9b9-bb0638a0f95a
