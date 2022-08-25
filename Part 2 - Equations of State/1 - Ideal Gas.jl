@@ -175,7 +175,7 @@ begin
 	Y3 = property.(m3,p,T1)
 
 	plot(T1,Y1,xlim=(250,500),
-		title="Isobaric heat capacity with different EoS at p = 10 MPa",
+		title="Isobaric heat capacity with different EoS",
 		label="ReidIdeal",
 		yguidefontsize=16, xguidefontsize=16,
 		legendfont=font(10), framestyle=:box, 
@@ -1505,7 +1505,7 @@ version = "0.9.1+5"
 # ╠═7a4755d3-81e6-43eb-84a1-2188099b4bc5
 # ╟─7f7461e5-9c7f-4378-950c-79c865639354
 # ╠═d0db39f5-77b6-4de4-904c-bc484173e314
-# ╟─96f5f6b6-038f-41e2-963c-00abf4d055c8
+# ╠═96f5f6b6-038f-41e2-963c-00abf4d055c8
 # ╟─0e17bbea-99be-46cc-b469-6293c0c62b25
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
