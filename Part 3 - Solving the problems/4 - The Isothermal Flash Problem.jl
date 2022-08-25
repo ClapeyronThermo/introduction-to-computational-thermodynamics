@@ -19,7 +19,7 @@ begin
 	using Clapeyron: acentric_factor, p_scale, T_scale, VT_chemical_potential
 	using Clapeyron, ForwardDiff, LinearAlgebra, NLsolve # Numerical packages
 	using LaTeXStrings, Plots # Display and plotting
-	using HypertextLiteral
+	using HypertextLiteral, ShortCodes
 	using BenchmarkTools
 	using PlutoUI
 	PlutoUI.TableOfContents()
@@ -658,6 +658,8 @@ md"""
 
 Subsequent substitution converges very quickly for situations where the state is far from the critical point and when the K-factors are weakly dependent on composition. When we fall outside of these cases, this method can take hundreds of iterations to converge.
 
+### Theoretical performance
+
 To visualise this, we can keep track of our convergence measure (the Euclidian norm of change in $\mathbf K$) and plot this against the number of iterations.
 
 Here we're looking at three different numerical methods
@@ -695,7 +697,7 @@ function rootfinding_obj_func!(model, F, lnK, p, T, z, x, y)
     Knew = update_K_factors(model, p, T, x, y)
 
     F .= log10.(Knew) .- lnK
-end
+end;
 
 # ╔═╡ 734dd8c9-cf26-4cf8-baf2-63cf97c34c2b
 begin
@@ -713,6 +715,11 @@ begin
 	push!(res_vec, ["newton", res])
 end; 
 
+# ╔═╡ 6b9fdb5c-db31-483e-8329-0ebebb9ba40f
+md"""
+### Benchmarks
+"""
+
 # ╔═╡ 457b66ff-7972-49b8-b57a-4b4fc5f0ad06
 let
 	p = plot(title="Convergence characteristics of flash calculations", xlabel="iteration", ylabel="error", framestyle=:box, tick_direction=:out, grid=:off, yaxis=:log, yticks=exp10.(range(-11, 0)), xlim=(0, 25), legendfont=font(10))
@@ -726,9 +733,11 @@ let
 	p
 end
 
-# ╔═╡ 6b9fdb5c-db31-483e-8329-0ebebb9ba40f
+# ╔═╡ 495dba24-da70-4626-9d99-6dffd9a4ad9b
 md"""
-### Benchmarks
+Initially, this looks as though Newton's method is by far the best, converging in many less iterations than successive substitution - representing the expected performance from our theoretical knowledge of these methods.
+
+However, if we then run a benchmark on each method, we can gain some insight into the real-world performance.
 """
 
 # ╔═╡ 0b08a3d1-d857-4387-8c61-da9899edeae2
@@ -739,7 +748,7 @@ md"""
 # ╔═╡ 539b985c-2973-41f3-9b8c-9879184d8cf3
 let
 	test = @benchmarkable nlsolve(f!, log10.(K0); store_trace=true, method=:anderson, m=0)
-	run(test, samples=1)
+	# run(test, samples=1)
 	run(test, samples=10000)
 end
 
@@ -751,6 +760,7 @@ md"""
 # ╔═╡ 3cdba133-68cb-4c3e-bf30-e4b235a321a1
 let
 	test = @benchmarkable nlsolve(f!, log10.(K0); store_trace=true, method=:anderson, m=5)
+	# run(test, samples=1)
 	run(test, samples=10000)
 end
 
@@ -762,16 +772,24 @@ md"""
 # ╔═╡ 48d547f4-bb0a-4c85-9ef4-4013bec76752
 let
 	test = @benchmarkable nlsolve(f!, log10.(K0); autodiff=:forward, method=:newton)
+	# run(test, samples=1)
 	run(test, samples=10000)
 end
 
 # ╔═╡ 32870a35-1276-4d91-aa55-64f6256b4188
 md"""
-From the error-iteration graph above we can see that our real-world convergence represents what we expected. However, the benchmarks then show that Newton method in this case performs worse than even successive substitution!
+These benchmarks show that Newton method in this case performs worse than even successive substitution! [^2]
 
 This occurs because of the increased complexity of Newton's method. Requiring a full Jacobian for each iteration, as well as the subsequent linear solve, there is considerably more computational cost for each iteration.
 
-Attempting to get the "best of both worlds", Michelsen proposed a combination algorithm, leveraging the advantages of both accelerated successive substitution and the Newton method. As we can see accelerated successive substitution converges very quickly for most situations, we perform up to 15 iterations of this method, then switch to a faster converging, but slower to evalute, method like Newton.
+Attempting to get the "best of both worlds", Michelsen proposed a combination algorithm, leveraging the advantages of both accelerated successive substitution and the Newton method. As we can see accelerated successive substitution converges very quickly for most situations, we perform up to 15 iterations of this method, then switch to a faster converging, but slower to evalute, method like Newton's [^3].
+"""
+
+# ╔═╡ 47544f89-b3e4-4b60-b4f1-92cc55faa2c7
+md"""
+### Effects of mixture choice
+
+A key factor in the converence characteristics of multiphase flash calculations is the ideality of the mixture. The more ideal a mixture, the weaker the composition dependence of the K-factors, and the faster the convergence.
 """
 
 # ╔═╡ e715a1b3-c11b-4d01-96d3-af3b64dee96c
@@ -876,13 +894,14 @@ function flash_iterations(model, p, T, z; SSiters=5, maxiters=70, abstol=1e-5)
 	return iters
 end;
 
-# ╔═╡ 4acb1393-030f-4cab-a765-f8de5a75893b
-html"<br><br><br><br><br><br><br><br><br><br><br><br>"
-
 # ╔═╡ 5e64af2a-b467-41f7-98f8-83d49e210a32
 md"""
 # Footnotes
-[^1]: Here we use [Anderson acceleration](https://en.wikipedia.org/wiki/Anderson_acceleration) to speed up the convergence rate of our fixpoint iteration. This is slightly different to the methods usually used in literature, e.g. by Michelsen. There you could expect to see some form of eigenvalue extrapolation, either dominant eigenvalue method (DEM) or general dominant eigenvalue method (GDEM). Another "accelerated successive substitution" method is described by _Risnes et al_, and is described [here](https://www.e-education.psu.edu/png520/m17_p6.html).
+[^1]: Here we use [Anderson acceleration](https://en.wikipedia.org/wiki/Anderson_acceleration) to speed up the convergence rate of our fixpoint iteration. This is slightly different to the methods usually used in literature, e.g. by Michelsen. There you could expect to see some form of eigenvalue extrapolation, either dominant eigenvalue method (DEM) or general dominant eigenvalue method (GDEM). Another "accelerated successive substitution" method is described by _Risnes et al_, and is documented [here](https://www.e-education.psu.edu/png520/m17_p6.html).
+
+[^2]: Microbenchmarks like this are unreliable, despite us running a relatively large number of samples (10,000). The actual performance of these tests is dependent on many factors beyond your control. As the benchmark is run as you open and start the notebook, the exact performance will vary, potential to a degree that the result differs from the discussion in the text. From my testing across multiple machines, the trend of real-life speed across these three algorithms is stable, though occasionally different results may be found.
+
+[^3]: Newton's method as used by Michelsen is not applied to the K-factor relation, but rather directly to the Gibbs free energy of the mixture. One potential issue that can occur during this procedure is singularity of the Hessian matrix. A full description of the 2-phase isothermal flash routine is set out in "Thermodynamic models : fundamentals & computational aspects" by Michelsen and Mollerup.
 """
 
 # ╔═╡ d0b2f6bb-7539-4dda-adc9-acc2ce9cca4a
@@ -968,6 +987,7 @@ LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 NLsolve = "2774e3e8-f4cf-5e23-947b-6d7e65073b56"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 PlutoUI = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
+ShortCodes = "f62ebe17-55c5-4640-972f-b59c0dd11ccf"
 
 [compat]
 BenchmarkTools = "~1.3.1"
@@ -978,6 +998,7 @@ LaTeXStrings = "~1.3.0"
 NLsolve = "~4.5.1"
 Plots = "~1.31.7"
 PlutoUI = "~0.7.39"
+ShortCodes = "~0.3.3"
 """
 
 # ╔═╡ 00000000-0000-0000-0000-000000000002
@@ -1442,6 +1463,12 @@ git-tree-sha1 = "3c837543ddb02250ef42f4738347454f95079d4e"
 uuid = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
 version = "0.21.3"
 
+[[deps.JSON3]]
+deps = ["Dates", "Mmap", "Parsers", "StructTypes", "UUIDs"]
+git-tree-sha1 = "fd6f0cae36f42525567108a42c1c674af2ac620d"
+uuid = "0f8b85d8-7281-11e9-16c2-39a750bddbf1"
+version = "1.9.5"
+
 [[deps.JpegTurbo_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
 git-tree-sha1 = "b53380851c6e6664204efb2e62cd24fa5c47e4ba"
@@ -1587,6 +1614,12 @@ uuid = "c8ffd9c3-330d-5841-b78e-0817d7145fa1"
 git-tree-sha1 = "e498ddeee6f9fdb4551ce855a46f54dbd900245f"
 uuid = "442fdcdd-2543-5da2-b0f3-8c86c306513e"
 version = "0.3.1"
+
+[[deps.Memoize]]
+deps = ["MacroTools"]
+git-tree-sha1 = "2b1dfcba103de714d31c033b5dacc2e4a12c7caa"
+uuid = "c03570c3-d221-55d1-a50c-7939bbd78826"
+version = "0.4.4"
 
 [[deps.Missings]]
 deps = ["DataAPI"]
@@ -1846,6 +1879,12 @@ version = "1.1.0"
 deps = ["Distributed", "Mmap", "Random", "Serialization"]
 uuid = "1a1011a3-84de-559e-8e89-a11a2f7dc383"
 
+[[deps.ShortCodes]]
+deps = ["Base64", "CodecZlib", "HTTP", "JSON3", "Memoize", "UUIDs"]
+git-tree-sha1 = "0fcc38215160e0a964e9b0f0c25dcca3b2112ad1"
+uuid = "f62ebe17-55c5-4640-972f-b59c0dd11ccf"
+version = "0.3.3"
+
 [[deps.Showoff]]
 deps = ["Dates", "Grisu"]
 git-tree-sha1 = "91eddf657aca81df9ae6ceb20b959ae5653ad1de"
@@ -1914,6 +1953,12 @@ deps = ["Adapt", "DataAPI", "StaticArraysCore", "Tables"]
 git-tree-sha1 = "8c6ac65ec9ab781af05b08ff305ddc727c25f680"
 uuid = "09ab397b-f2b6-538f-b94a-2f83cf4a842a"
 version = "0.6.12"
+
+[[deps.StructTypes]]
+deps = ["Dates", "UUIDs"]
+git-tree-sha1 = "79aa7175f0149ba2fe22b96a271f4024429de02d"
+uuid = "856f2bd8-1eba-4b0a-8007-ebc267875bd4"
+version = "1.9.0"
 
 [[deps.SuiteSparse]]
 deps = ["Libdl", "LinearAlgebra", "Serialization", "SparseArrays"]
@@ -2271,8 +2316,9 @@ version = "1.4.1+0"
 # ╟─001c511c-34b9-4a25-b901-1b98a3eaea9b
 # ╟─b04743cd-bdc8-46a7-be77-8b0e116fae3a
 # ╟─734dd8c9-cf26-4cf8-baf2-63cf97c34c2b
-# ╟─457b66ff-7972-49b8-b57a-4b4fc5f0ad06
 # ╟─6b9fdb5c-db31-483e-8329-0ebebb9ba40f
+# ╟─457b66ff-7972-49b8-b57a-4b4fc5f0ad06
+# ╟─495dba24-da70-4626-9d99-6dffd9a4ad9b
 # ╟─0b08a3d1-d857-4387-8c61-da9899edeae2
 # ╟─539b985c-2973-41f3-9b8c-9879184d8cf3
 # ╟─8f4cdabd-b424-4f16-8129-d315b7f77aad
@@ -2280,9 +2326,9 @@ version = "1.4.1+0"
 # ╟─c2fb190a-0b65-4356-bf89-62f776ea7fe8
 # ╟─48d547f4-bb0a-4c85-9ef4-4013bec76752
 # ╟─32870a35-1276-4d91-aa55-64f6256b4188
+# ╟─47544f89-b3e4-4b60-b4f1-92cc55faa2c7
 # ╟─e715a1b3-c11b-4d01-96d3-af3b64dee96c
 # ╟─ea5bbbc9-6d08-4f31-b657-dfb884f181c1
-# ╟─4acb1393-030f-4cab-a765-f8de5a75893b
 # ╟─5e64af2a-b467-41f7-98f8-83d49e210a32
 # ╟─d0b2f6bb-7539-4dda-adc9-acc2ce9cca4a
 # ╟─7b75b351-6490-4c33-ab77-f42f6e1453d9
