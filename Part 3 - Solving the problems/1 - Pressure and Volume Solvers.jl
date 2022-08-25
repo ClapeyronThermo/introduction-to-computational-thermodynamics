@@ -331,7 +331,7 @@ The packing fraction can visually be seen as the point at which all space in a g
 """
 
 # ╔═╡ 5b8815a8-a079-4b8f-a618-2d48269812b8
-@htl("""<center><img src="https://raw.githubusercontent.com/lucpaoli/introduction-to-computational-thermodynamics/main/Part%203%20-%20Solving%20the%20problems/assets/packing_fraction.png" height="190"></center>""")
+@htl("""<center><img src="https://raw.githubusercontent.com/lucpaoli/introduction-to-computational-thermodynamics/main/Part%203%20-%20Solving%20the%20problems/assets/packing_fraction_limit.jpg" height="220"></center>""")
 
 # ╔═╡ aa58fba4-9450-4aa2-8679-5dc953ff730e
 md"""
@@ -823,7 +823,7 @@ let
 end
 
 # ╔═╡ 4acb1393-030f-4cab-a765-f8de5a75893b
-html"<br><br><br><br><br><br><br><br><br><br><br><br>"
+#html"<br><br><br><br><br><br><br><br><br><br><br><br>"
 
 # ╔═╡ d9835e4a-e64e-4b3a-8c3c-f9d3766b23b9
 md"""
@@ -833,7 +833,7 @@ md"""
 """
 
 # ╔═╡ 2d294f2c-2b68-4dbb-8f28-1d57e113f674
-DOI("10.1016/j.fluid.2010.03.041")
+# DOI("10.1016/j.fluid.2010.03.041")
 
 # ╔═╡ d0b2f6bb-7539-4dda-adc9-acc2ce9cca4a
 hint(text) = Markdown.MD(Markdown.Admonition("hint", "Hint", [text]));
@@ -2350,7 +2350,7 @@ version = "0.9.1+5"
 # ╟─b156c581-7828-45e9-a683-4d925216aed1
 # ╟─4acb1393-030f-4cab-a765-f8de5a75893b
 # ╟─d9835e4a-e64e-4b3a-8c3c-f9d3766b23b9
-# ╟─2d294f2c-2b68-4dbb-8f28-1d57e113f674
+# ╠═2d294f2c-2b68-4dbb-8f28-1d57e113f674
 # ╟─d0b2f6bb-7539-4dda-adc9-acc2ce9cca4a
 # ╟─8fe83aab-d193-4a28-a763-6420abcbb176
 # ╟─94caf041-6363-4b38-b2c2-daaf5a6aecf1
