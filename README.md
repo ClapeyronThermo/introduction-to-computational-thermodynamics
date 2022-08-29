@@ -50,6 +50,6 @@ We will be running a debugging session on Tuesday 30th should you still have any
 
 ## Preliminary work
 
-To get used to Julia and the Pluto environment specifically, the developers created 6 introductory notebooks. Before the course, please take a look at the first two - these will help a lot with comfort when using the environment. To access these, scroll down on the Pluto homepage. We would like you to take a look at 1 and 2, but if you're interested then please kep looking through!
+To get used to Julia and the Pluto environment specifically, the developers created 6 introductory notebooks. Before the course, please take a look at these - they will help a lot with introducing you to the environment. To access these, scroll down on the Pluto homepage. We would like you to take a look at "Getting started" and "Basic mathematics", but if you're interested then please keep looking through!
 
 ![](assets/intro_notebooks.png)
