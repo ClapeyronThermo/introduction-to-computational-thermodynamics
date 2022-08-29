@@ -34,10 +34,22 @@ Once you have installed Pluto, you do not have to add it again. In each new sess
 
 ### Running notebooks
 
-To run each notebook, begin a Pluto session, go to the github page for the course (where you likely are if you're reading this!), find the relevant notebook, copy the link, and paste into the ```Open from file:``` textbox in the Pluto homescreen.
+To run each notebook, begin a Pluto session, go to the github page for the course (where you likely are if you're reading this!), find the relevant notebook, and copy the link at the top of the page
+
+![](./assets/github_screenshot.png)
+
+then paste this into the Pluto ```Open from file:``` textbox in the Pluto homescreen and click ```Open```.
+
+![](./assets/pluto_screenshot.png)
 
 Each notebook may take quite a while to run when you first open it, so allow for ~10 minutes for all packages to install and get set up.
 
 ### Still have issues?
 
 We will be running a debugging session on Tuesday 30th should you still have any issues or questions with Julia, Clapeyron, or Pluto.
+
+## Preliminary work
+
+To get used to Julia and the Pluto environment specifically, the developers created 6 introductory notebooks. Before the course, please take a look at the first two - these will help a lot with comfort when using the environment. To access these, scroll down on the Pluto homepage. We would like you to take a look at 1 and 2, but if you're interested then please kep looking through!
+
+![](assets/intro_notebooks.png)
