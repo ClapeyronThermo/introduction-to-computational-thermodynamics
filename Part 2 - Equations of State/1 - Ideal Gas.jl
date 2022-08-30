@@ -16,7 +16,7 @@ end
 md"""
 ### Section 2
 # Equations of State
-Now that we have reviewed our understanding of thermodynamics and the tools we can use to analyse our systems, we now require a surrogate model to mimic these systems. These models are referred to as equations of state. These equations are simply functions, $f$, which take in our conditions ($\mathbf{x}$) and give us a thermodynamic property, $Y$:
+Now that we have reviewed our understanding of thermodynamics and the tools we can use to analyse our systems, we now require a surrogate (mathematical) model to mimic these systems. This class of model is referred to as equations of state. These equations are simply functions, $f$, which take in our conditions ($\mathbf{x}$) and give us a thermodynamic property, $Y$:
 
 $$Y=f(\mathbf{x})$$
 
@@ -29,7 +29,7 @@ There are numerous equations of state available, each with their own benefits. I
 
 ### Section 2.1
 ## Ideal gas
-As a common starting ground, let us examine an equation of state most of us will have encountered during our time in highschool: the Ideal gas equation, initially formulated by Emille Clapeyron. Typically, it is written as:
+As a common starting ground, let us examine an equation of state most of us will have encountered during our time in highschool: the Ideal Gas equation, initially formulated by Emille Clapeyron. Typically, it is written as:
 
 $$pV=Nk_\mathrm{B}T$$
 
@@ -50,11 +50,11 @@ $$A = -\int p dV =-Nk_\mathrm{B}T\int \frac{1}{V} dV = -Nk_\mathrm{B}T\ln{V}+c(N
 
 # ╔═╡ 95d72b2d-17eb-4766-a81b-e2102fac9d79
 md"""
-Indeed, as shown above, there is an additional constant present in the above expression which could depend on the composition and temperature of our system. If derived from statistical mechanics, one will find that this constant is related to the rotational and vibrational contributions present within a molecule. In most engineering applications, to account for these contributions, rather than use the complex expression obtained from statistical mechanics, ideal isobaric heat capacity correlations are typically used. A standard functional form for these correlations is a simple cubic:
+Indeed, as shown above, there is an additional constant present in the above expression which depends on the composition and temperature of our system. If derived from statistical mechanics, one will find that this constant is related to the rotational and vibrational contributions present within a molecule. In most engineering applications, to account for these contributions, rather than use the complex expression obtained from statistical mechanics, ideal isobaric heat capacity correlations are typically used. A standard functional form for these correlations is a simple cubic:
 
 $$C_p = a + bT+cT^2+dT^3$$
 
-From here, we can use our first laws of thermodynamics to obtain the ideal Helmholtz free energy from the ideal isobaric heat capacity:
+From here, we can use our laws of thermodynamics to obtain the ideal Helmholtz free energy from the ideal isobaric heat capacity:
 
 $$dA = dH-TdS-Vdp$$
 
@@ -63,7 +63,7 @@ Remembering that:
 $$C_p = \left(\frac{\partial H}{\partial T}\right)_p$$
 $$C_p = T\left(\frac{\partial S}{\partial T}\right)_p$$
 
-One should then be able to obtain an expression for $A$ in terms of integrals of $C_p$:
+one can then obtain an expression for $A$ in terms of integrals of $C_p$:
 
 $$\frac{A}{Nk_\mathrm{B}T} = \ln{\frac{V_0}{V}} + \frac{1}{Nk_\mathrm{B}T} \int_{T_0}^T \!\!C_{p} dT + \frac{H_{0}}{Nk_\mathrm{B}T}- \frac{1}{Nk_{B}}\!\!\int_{T_0}^T \frac{C_{p}}{T} dT -\ln{\frac{T}{T_0}}-\frac{S_{0}}{Nk_\mathrm{B}} - 1$$
 
@@ -114,7 +114,7 @@ In terms of ideal gas models, there are many to choose from but generally fall i
 
 $$c_p = a+bT+cT^2+dT^3$$
 
-where the parameters $a$, $b$, $c$ and $d$ are all species-specific. This generally means that the values obtained for the ideal heat capacity should be quite accurate. However, if we start dealing with unconventional species, where species-specific parameters are not available, then we will have to resort to a group contribution method. In a group-contribution method, species are split into fragments (known as groups) which can be re-assembled to make new species. An example is shown below:
+where the parameters $a$, $b$, $c$ and $d$ are all species-specific. This generally means that the values obtained for the ideal heat capacity should be quite accurate. However, if we start dealing with unconventional species, where species-specific parameters are not available, then we will have to resort to a group-contribution method. In a group-contribution method, species are split into fragments (known as groups) which can be re-assembled to make new species. An example is shown below:
 """
 
 # ╔═╡ f9d94898-197c-4c52-93ec-7d281f7920c0
@@ -138,7 +138,7 @@ where $a_k$, $b_k$, $c_k$ and $d_k$ are all group-specific parameters and $n_k$ 
 
 Whilst this method is quite simple, one of the failings of group contribution is, given we are now trying to fit a larger dataset with fewer parameters, the accuracy will inevitably be reduced, in comparison to species-specific correlations. However, the accuracy of the method can generally be improved based on how the groups are selected; if a group covers a larger set of atoms, we can expect that it will provide a better estimate of the ideal heat capacity. For example, when modelling ethanol, using CH $_3$ and CH $_2$ OH groups instead of CH $_3$, CH $_2$, and OH groups would most likely result in more accurate estimates of the heat capacity. This argument holds true for any group contribution methodology.
 
-_Note: with the advent of machine learning, many ideal heat capacity correlations that leverage these tools have also been developed. However, as these can only really be treated as a black box, for the purposes of this course, we have choosen to omit these._
+_Note: with the advent of machine learning, many ideal heat capacity correlations that leverage these tools have also been developed. However, as they can only really be treated as a black box, for the purposes of this course, we have choosen to omit these._
 
 As a general rule, if a species-specific approach is available for your system of interest, implementation aside, the values obtained can be trusted. When using a group contribution approach, it is recommended to spend some time verifying that the values obtained are realistic (for example, does the high-temperature limit match what we would expect if we count up the number of rotations and vibrations?).
 
@@ -151,9 +151,9 @@ Commonly-used species-specific ideal gas models:
 Group-contribution ideal gas models:
 * Joback method: A 3rd order polynomial
 * Coniglio _et al._: A more-physically based approach with second-order groups.
-* Walker and Haslam: A physically based approach with special treatment of halogens
+* Walker and Haslam: A physically based approach with special treatment of halogenated molecules.
 
-To get a better understanding of the importance of the ideal term on real properties, below we consider an example where the advanced equation of state, PC-SAFT, provides the residual properties, with and without the appropriate ideal term, for a species and pressure of your choice:
+To get a better understanding of the importance of the ideal term on real properties, below we consider an example where the advanced equation of state, PC-SAFT, provides the non-ideal contribution, with and without the appropriate ideal term, for a species and pressure of your choice:
 """
 
 # ╔═╡ d0db39f5-77b6-4de4-904c-bc484173e314
@@ -1505,7 +1505,7 @@ version = "0.9.1+5"
 # ╠═7a4755d3-81e6-43eb-84a1-2188099b4bc5
 # ╟─7f7461e5-9c7f-4378-950c-79c865639354
 # ╠═d0db39f5-77b6-4de4-904c-bc484173e314
-# ╠═96f5f6b6-038f-41e2-963c-00abf4d055c8
+# ╟─96f5f6b6-038f-41e2-963c-00abf4d055c8
 # ╟─0e17bbea-99be-46cc-b469-6293c0c62b25
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002

@@ -17,9 +17,9 @@ end
 md"""
 ### Section 2.5
 # Multi-parameter Equations of State
-The last class of equations of state we will discuss are multi-parameter equations of state. The objective of the previous equations of state was to model a large range of species with (preferrably) as few parameters as possible. Multi-parameter equations of state do the exact opposite: only intended to be used for a single system where you can use as many parameters as you want. The benefit of this is that these equations are _very_ accurate, often considered as good as experimental data (in fact, the results one gets from NIST's chemistry webbok are typically obtained from such equations). While this does limit the equations to just one system, one often finds, in industry, most systems of interest are made up of the same species. As such, it is often worthwhile to use these equations of state with the benefit of significantly greater accuracy, in contrast to any other available.
+The last class of equations of state we will discuss is multi-parameter equations of state. The objective of the previous equations of state was to model a large range of species with (preferrably) as few parameters as possible. Multi-parameter equations of state do the exact opposite: these are only intended to be used for a single system where you can use as many parameters as you want. The benefit of this is that these equations are _very_ accurate, often considered as good as experimental data (in fact, the results one gets from NIST's chemistry webbook are typically obtained from such equations). While this does limit the equations to just one system, one often finds, in industry, most systems of interest are made up of the same species. As such, it is often worthwhile to use these equations of state with the benefit of significantly greater accuracy, in contrast to any other available.
 
-The only 'weakness' to these equations of state is that they are intended for interpolation, not extrapolation. Typically, they will have been fitted to quite a large range of conditions, thus making it difficult to find conditions where they begin to perform badly. However, it is something to bear in mind when using these equations.
+The only 'weakness' to these equations of state is that they are intended for interpolation, not extrapolation. Typically, they will have been fitted over quite a large range of conditions, thus making it difficult to find conditions where they begin to perform badly. However, it is something to bear in mind.
 
 Since these equations are devoid of any actual physical intuition, we will only give two examples to illustrate their impressive accuracy, but also highlight some of their limitations.
 """
@@ -29,7 +29,7 @@ md"""
 ### Section 2.5.1
 ## The International Association for the Properties of Water and Steam Equation (IAPWS-95)
 
-This equation of state is designed for just one species: water. Despite all the improvements made with equations like SAFT, there are still significant issues that are left to be addressed. For example, even in the saturation envelope:
+This equation of state was designed for just one species: water. Despite all the improvements made with equations like SAFT, there are still significant issues that are left to be addressed. For example, even in the saturation envelope:
 """
 
 # ╔═╡ 1680fee0-6f0a-4f56-a9b9-bb0638a0f95a
@@ -153,16 +153,18 @@ end
 
 # ╔═╡ 17e419a1-a190-4f14-9161-459ce685fddf
 md"""
-As we can see above, despite its advancements, SAFT-VR Mie still overestimates the critical point. Furthermore, if one looks at the saturated liquid densities around 300 K, one can see that SAFT-VR Mie is unable to predict a maxima in the liquid density. This is something that has been of interest to developers of SAFT equations for years. However, for the highly-regressed IAPWS-95 equation of state, it captures this behaviour very well.
+As we can see above, despite its advancements, with SAFT-VR Mie, we still overestimates the critical temperature. Furthermore, if one looks at the saturated-liquid densities around 300 K, one can see an anomalous but curious feature of the water phase diagram: a maximum in the liquid density. This is something that has been of interest to developers of SAFT equations for years but even SAFT-VR Mie is unable to capture this phenomenon. However, for the highly-regressed IAPWS-95 equation of state, this behaviour is captured very well.
 
-The IAPWS-95 equation was fitted using almost all data available for water, covering temperatures from 251.2 K to 1273 K, and pressures up to 1000 MPa. As such, for most practical purposes, we will always be interpolating when using IAPWS-95, making it effectively impossible to find conditions where it performs badly.
+The IAPWS-95 equation was fitted using almost all data available for water, covering temperatures from 251.2 K to 1273 K, and pressures up to 1000 MPa. As such, for most practical purposes, we will always be interpolating when using IAPWS-95, making it effectively impossible to find conditions where it performs badly. 
+
+This is also the equation of state used by the NIST Chemistry Webbook to represent water.
 """
 
 # ╔═╡ 20731888-cc20-4a49-9b63-eed1fcfe5d32
 md"""
 ### Section 2.5.2
 ## The Groupe Européen de Recherches Gazières 2008 equation of state (GERG-2008)
-As one can imagine, a lot of experimental data has been collected for natural gas systems. As a result, this data was used to fit a high-accuracy equation of state designed solely for natural gas systems. The GERG-2008 version involves 21 different species and is able to model bulk and equilibrium properties for both pure and mixed systems very accurately: 
+As one can imagine, a lot of experimental data have been collected for natural-gas systems. As a result, these data were used to fit a high-accuracy equation of state designed solely for natural-gas systems. The GERG-2008 version involves 21 different species and is able to model bulk and equilibrium properties for both pure and mixed systems very accurately: 
 """
 
 # ╔═╡ 561e5395-9849-4779-bacb-e0a23663911b
@@ -248,7 +250,7 @@ end
 
 # ╔═╡ f2f063f5-d5b5-4e1c-94e7-1d17305ab30f
 md"""
-The above example are intended to highlight that GERG-2008 is indeed very accurate for the conditions it was regressed in (approximately 90 to 450 K and pressures up to 35 MPa). However, when one starts to extrapolate, we can begin seeing some of the limitations of such multi-parametric equations of state. In the case of water's heat capacity, at intermediate pressures, agreement with experimental data is excellent. At much higher pressures, the model beings to struggle.
+The above examples are intended to highlight that GERG-2008 is indeed very accurate for the conditions over which it was regressed (approximately 90 to 450 K and pressures up to 35 MPa). However, when we start to extrapolate, we can begin seeing some of the limitations of such multi-parametric equations of state. In the case of water's heat capacity, at intermediate pressures, agreement with experimental data is excellent. At much higher pressures, the model beings to perform less well.
 
 Even for binary mixtures within the temperature range it was fitted in (see hydrogen sulfide + methane phase diagrams), it begins to perform poorly. This is to be expected and serves as a reminder to always verify the results from such equations instead of using them blindly.
 """

@@ -17,17 +17,17 @@ end
 md"""
 ### Section 2.4
 # Statistical Association Fluid Theory
-_N.B.: This will be a high-level overview of the SAFT equations, with more emphasis on the physical picture than the implementation. If one was able to implement the generalised cubic equation in the previous section, they should be able to implement any of the SAFT equations (with the exception of one aspect which will be discussed here)._
+_N.B.: This will be a high-level overview of the SAFT equations, with more emphasis on the physical picture than the implementation. If you were able to implement the generalised cubic equation in the previous section, you should be able to implement any of the SAFT equations (with the exception of one aspect which will be discussed here)._
 
-We previously established that, while the cubics are some of the most-flexible equations of state, the range of systems and properties they can model accurately is limited. Taking a few steps back, we mentioned previously that the van der Waals equation can actually be derived analytically. Writing out the residual Helmholtz free energy:
+We previously established that, while the cubics are some of the most-flexible equations of state, the range of systems and properties you can model accurately with them is limited. Taking a few steps back, we mentioned previously that the van der Waals equation can actually be derived analytically. Writing out the residual Helmholtz free energy:
 
-$$A_\mathrm{res.} = -n\bar{R}T\log{(1-nb/V)}-\frac{n^2a}{V}$$
+$$A_\mathrm{res.} = -nRT\log{(1-nb/V)}-\frac{n^2a}{V}$$
 
-we can imagine that the first term represents the contribution from the presence of particles as hard-spheres ($A_\mathrm{HS}$) and the second is a perturbation from those hard-spheres to account for dispersive, pair-wise interactions ($A_1$). Thus, we could write it out as:
+we can imagine that the first term represents the contribution from the presence of particles as hard spheres ($A_\mathrm{HS}$) and the second is a perturbation from those hard spheres to account for dispersive, pair-wise interactions ($A_1$). Thus, we could write it out as:
 
 $$A_\mathrm{res.} = A_\mathrm{HS}+A_1$$
 
-Note that $A_\mathrm{HS}$ has been refined in literature to better model true hard-sphere systems. Nevertheless, one way to improve upon this equation is to take higher order perturbations from the hard-sphere model to account for many-body interactions:
+Note that $A_\mathrm{HS}$ has been refined in literature to better model true hard-sphere systems. Nevertheless, one way to improve upon this equation is to take higher-order perturbations from the hard-sphere model to account for many-body interactions:
 
 $$A_\mathrm{res.} = A_\mathrm{HS}+A_1+\frac{A_2}{Nk_\mathrm{B}T}+...$$
 
@@ -40,7 +40,7 @@ In such approaches, species are no longer characterised by the parameters $a$ an
 
 # ╔═╡ 5e449695-f7b2-452c-82b2-af193e776280
 md"""
-Despite these improvements, it doesn't change the fact that we are just modelling spherical systems with dispersion interactions more accurately; most species will not fit this description. For decades after van der Waals' derived his equation, researchers have developed new approaches to more accurately model a larger range of species. In 1989, Chapman _et al._ published the Statistical Associating Fluid Theory (SAFT) where they first grouped the hard-sphere and perturbation contributions into a single term (the segment term, $A_\mathrm{seg.}$) and introduced two new terms:
+Despite these improvements, it doesn't change the fact that we are just modelling spherical systems with dispersion interactions, albeit more accurately; most species will not fit this description. For decades after van der Waals' derived his equation, researchers have developed new approaches to more accurately model a larger range of species. In 1989, Chapman _et al._ published the Statistical Associating Fluid Theory (SAFT) where they first grouped the hard-sphere and perturbation contributions into a single term (the segment term, $A_\mathrm{seg.}$) and introduced two new terms:
 
 $$A_\mathrm{res.} = A_\mathrm{seg.}+A_\mathrm{chain}+A_\mathrm{assoc.}$$
 ### Chain term
@@ -71,9 +71,9 @@ $$X_{ia} = \frac{1}{1 +\sum_{j,b}{\rho_{j}\Delta_{ijab}X_{jb}}}\,,$$
 
 where $\Delta_{ij,ab}$ is the association strength between site $a$ on species $i$ and site $b$ on species $j$. This equation, at first, appears a bit daunting. If we simplify it so that we only have one species with one site which can only bond with itself, we have:
 
-$$X = \frac{1}{1 +\rho \Delta X}\,,$$
+$$X = \frac{1}{1 +\rho \Delta X}\,.$$
 
-The issue should now become more-apparent: this equation is implicit (i.e. $y=f(x,y)$). This means we will need to use an iterative method to solve for the association fraction $X$. Thankfully, in the above case, the solution can actually be solved for explicitly as:
+The issue should now become more apparent: this equation is implicit (i.e. $y=f(x,y)$). This means we will need to use an iterative method to solve for the association fraction $X$. Thankfully, in the above case, the solution can actually be solved for explicitly as:
 
 $$X = \frac{-1+\sqrt{1+4\rho\Delta}}{2\rho\Delta}$$
 
@@ -157,7 +157,7 @@ Naturally, wherever possible, it is best to use the analytical solution and only
 # ╔═╡ d2dedb47-6d78-40a7-8b47-85d86ae2fa7a
 md"""
 ### Mixtures
-The SAFT equations are derived based on pure-component systems. As such, like the cubics, SAFT equations need to use mixing rules. Whereas the cubics applied mixing rules to the parameters (which some SAFT equations do), most SAFT equations apply mixing rules on the Helmholtz free energy directly. This is handled on a term-by-term basis. Firstly, in the segment term, a quadratic mixing rule is used:
+The SAFT equations are derived based on pure-component systems. As such, like the cubics, SAFT equations need to use mixing rules. Whereas with cubics, we applied mixing rules to the parameters (which we do with some SAFT equations), for most SAFT equations we apply mixing rules on the Helmholtz free energy directly. This is handled on a term-by-term basis. Firstly, in the segment term, a quadratic mixing rule is used:
 
 $$\bar{A}_\mathrm{seg.}=\sum_i\sum_jx_ix_j A_{\mathrm{seg.},ij}$$
 
@@ -166,7 +166,7 @@ where, for $i=j$, $A_{\mathrm{seg.},ii}$ is just the segment contribution for a 
 $$\sigma_{ij}=\frac{\sigma_{ii}+\sigma_{jj}}{2}(1-l_{ij})$$
 $$\epsilon_{ij}=\sqrt{\epsilon_{ii}\epsilon_{jj}}(1-k_{ij})$$
 
-Again, we have our fudge factors $l_{ij}$ and $k_{ij}$, which, like the cubics, must be fit against experimental data.
+Again, we have our 'fudge factors' $l_{ij}$ and $k_{ij}$, which, like the cubics, must be fit using experimental data.
 
 For the chain term, a linear mixing rule is used instead, which requires no new parameters:
 
@@ -193,7 +193,7 @@ As one can imagine, in contrast to the van der Waals equation, the range of mole
 * Binary interaction parameters between species: $k_{ij}$ and $l_{ij}$
 * The association energy between sites on species: $\epsilon^\mathrm{assoc.}_{ij,ab}$
 * The 'bonding' volume: $\kappa^\mathrm{assoc.}_{ij,ab}$ / $K^\mathrm{assoc.}_{ij,ab}$
-Note that the last two parameters are only needed for species which experience association. Unfortunately, while the parameters for the cubics can easily be obtained using information from the critical point and acentricity, this is not possible for SAFT equations. The pure parameters are usually obtained by regressing them against experimental data (usually the saturation pressure and saturated liquid densities). Thus, despite its strong physical foundation, SAFT equations are still limited by available experimental data (there are exceptions to this which will be shown latter). Thankfully, large databases of parameters are available online which should allow one to model most species of interest.
+Note that the last two parameters are only needed for species which experience association. Unfortunately, while the parameters for the cubics can easily be obtained using information from the critical point and acentricity, this is not possible for SAFT equations. The pure parameters are usually obtained by regressing them using experimental data (usually the saturation pressure and saturated liquid densities). Thus, despite its strong physical foundation, SAFT equations are still limited by available experimental data (there are exceptions to this which will be shown latter). Thankfully, large databases of parameters are available online which should allow one to model most species of interest.
 
 Before going online to search for parameters, there is one key detail to keep in mind: there are many different variants of SAFT equations. Whilst the formalism described above is generally true, some minor differences will be described below. We will focus on the more-popular and commonly-used SAFT equations.
 """
@@ -206,11 +206,11 @@ md"""
 
 # ╔═╡ 89ff71b7-130d-4642-9558-e49efa51247e
 md"""
-Possibly the most-popular variant of the SAFT equation, Perturbed-Chain SAFT (PC-SAFT) was developed by Gross and Sadowski. The key difference in this equation is primarily how the terms are arrange:
+Possibly the most-popular variant of the SAFT equation, Perturbed-Chain SAFT (PC-SAFT) was developed by Gross and Sadowski. The key difference in this equation is primarily how the terms are arranged:
 
 $$A_\mathrm{res.} = A_\mathrm{HC}+A_\mathrm{disp.}+A_\mathrm{assoc.}$$
 
-Here, we start with a hard-chain (HC) reference system. All this is, really, is the hard-sphere term and standard chain term summed in a single term ($A_\mathrm{HC}=A_\mathrm{HS}+A_\mathrm{chain}$). The big change comes from the fact that, rather than perturbing the hard-sphere system and then forming the chain, in PC-SAFT, the chain is formed first and then this system is perturbed to account for dispersive interactions ($A_\mathrm{disp.}$). This difference is quite subtle, but, it does result in a more-physically sound model. The association term is unchanged from the original formulation. Visually:
+Here, we start with a hard-chain (HC) reference system. All this is, really, is the hard-sphere term and standard chain term summed in a single term ($A_\mathrm{HC}=A_\mathrm{HS}+A_\mathrm{chain}$). The big change comes from the fact that, rather than perturbing the hard-sphere system and then forming the chain, in PC-SAFT, we do it the other way around: the chain is formed first and then this system is perturbed to account for dispersive interactions ($A_\mathrm{disp.}$). This difference is quite subtle, but, it does result in a more-physically sound model. The association term is unchanged from the original formulation. Visually:
 """
 
 # ╔═╡ 19f044fc-c181-44d8-bf4f-3609eade334c
@@ -218,13 +218,13 @@ Here, we start with a hard-chain (HC) reference system. All this is, really, is 
 
 # ╔═╡ 76959b4f-ae28-4b9a-b24e-572fccced269
 md"""
-The primary reasons behind PC-SAFT's popularity are three-fold. For one, the code for PC-SAFT is available open-source from publication. Secondly, there is an abundance of parameters available (over 250 species), including binary interactions parameters. Finally, many variants of the PC-SAFT equation have been developed. This last point, unfortunately, is actually one of the downsides of PC-SAFT: one has to be very careful which version of PC-SAFT is being used. Just to name a few:
-* Polar PC-SAFT (PPC-SAFT): An additional term is added to the PC-SAFT equation to account for dipole interactions. With it, we introduce a new parameter: the dipole moment of a segment ($\mu_i$). The overall equation is:
+The primary reasons behind PC-SAFT's popularity are three-fold. For one, the code for PC-SAFT was available open-source from publication. Secondly, there is an abundance of parameters available (over 250 species), including binary-interactions parameters. Finally, many variants of the PC-SAFT equation have been developed. This last point, unfortunately, is actually one of the downsides of PC-SAFT: one has to be very careful which version of PC-SAFT is being used. Just to name a few:
+* Polar PC-SAFT (PPC-SAFT): An additional term is added to the PC-SAFT equation to account for dipole interactions. With it, we introduce a new parameter, $\mu_i$, the dipole moment of a segment. The overall equation is:
 $$A_\mathrm{res.} = A_\mathrm{HC}+A_\mathrm{disp.}+A_\mathrm{assoc.}+A_\mathrm{polar}$$
-* Group contribution PC-SAFT (GC-PC-SAFT): A group contribution method for PC-SAFT which allows users to model a larger range of species. Unfortunately, there are different ways group contributions methods are handled in PC-SAFT, so one still needs to be consistent.
-* Critical point PC-SAFT (CP-PC-SAFT): As a way to become more like a cubic, this PC-SAFT variants defines its parameters based on the critical point.
-* Simplified PC-SAFT (sPC-SAFT): An attempt to reduce computational costs, this version simplifies many of the equations used in the standard PC-SAFT equation
-Furthermore, implementations which mix the above approaches also exist. Generally speaking, PC-SAFT alone is most commonly used; this just serves as a warning when one looks for parameters. 
+* Group-contribution PC-SAFT (GC-PC-SAFT): A group-contribution method for PC-SAFT which allows users to model a larger range of species. Unfortunately, there are different ways group-contribution methods are handled in PC-SAFT, so one still needs to be consistent.
+* Critical-point PC-SAFT (CP-PC-SAFT): As a way to become more like a cubic, with this PC-SAFT variant, the parameters are based on the critical point.
+* Simplified PC-SAFT (sPC-SAFT): An attempt to reduce computational costs, with this version, many of the equations used in the standard PC-SAFT equation are simplified.
+Furthermore, as a warning when one looks for parameters, implementations exist in which the above approaches are mixed. Generally speaking, PC-SAFT alone is most commonly used. 
 """
 
 # ╔═╡ 909b14ac-5b9d-40d9-959b-9b6c171d1b3a
@@ -235,19 +235,19 @@ md"""
 
 # ╔═╡ cb1b6005-39c0-4247-b824-65a25b79dc33
 md"""
-As the name implies, the ideal behind the cubic plus association (CPA) equation of state is that, most species can be modelled quite accurately using a cubic, only associating species are problematic. Thus, what if we keep the residual term from the cubic but add the association term at the end? This gives us the free energy form of:
+As the name implies, the idea behind the cubic plus association (CPA) equation of state is that, most species can be modelled quite accurately using a cubic; only associating species are problematic. Thus, what if we keep the residual term from the cubic but add the association term at the end? This gives us a free energy of the form:
 
 $$A_\mathrm{CPA} = A_\mathrm{SRK}+A_\mathrm{assoc.}$$
 
-From an alternative point of view, we are replacing the chain and segment terms with a cubic equation of state. This simplifies things in terms of the parameters as, for non-associating species, we can still use the parameters we would in our original cubic. For associating species, we replace the $\sigma_{ii}$, $\epsilon_{ii}$ and $m_i$ parameters with $a_{ii}$, $b_{ii}$ and $\gamma_i$, where $\gamma_i$ is used in a new $\alpha$ function:
+From an alternative point of view, we are replacing the chain and segment terms with a cubic equation of state. This simplifies things in terms of the parameters as, for non-associating species, we can still use the parameters we would use in our original cubic. For associating species, we replace the $\sigma_{ii}$, $\epsilon_{ii}$ and $m_i$ parameters with $a_{ii}$, $b_{ii}$ and $m_i$[^1], where $m_i$ is used in a new $\alpha$ function:
 
-$$\alpha_i = (1+\gamma_i(1-\sqrt{T/T_c}))^2$$
+$$\alpha_i = (1+m_i(1-\sqrt{T/T_c}))^2$$
 
 This equation has two key benefits: 
 1. We only need to fit parameters for associating species (water, methanol, etc.).
 2. All the tools we developed for cubics (new $\alpha$ functions, volume translation methods, advanced mixing rules, etc.) can be applied to CPA.
 
-This makes CPA a very popular alternative to other SAFT equations because of its close link to cubics. Naturally, because it loses the physical foundation that SAFT equations are based on, it can't model as wide a range of species and properties accurately as standard SAFT equations can.
+This makes CPA a very popular alternative to other SAFT equations because of its close link to cubics. Naturally, because it loses the physical foundation that SAFT equations are based on, it can't be used to model as wide a range of species and properties as accurately as SAFT equations can.
 """
 
 # ╔═╡ 76790f3f-b101-48d8-b6b0-fc1df6e14e0f
@@ -258,7 +258,7 @@ md"""
 
 # ╔═╡ b13b2c8c-6366-43e9-936b-6deb67be6db1
 md"""
-The Variable-Range SAFT (SAFT-VR) framework was originally developed by Gil-Villegas _et al._ where, previously, most previous SAFT equations assumed the dispersive interactions behaved like a Lennard-Jones potential. In SAFT-VR, a new potential shape parameter ($\lambda$) was introduced which measured the range of the dispersive interactions (for a square-well potential):
+The Variable-Range SAFT (SAFT-VR) framework was originally developed by Gil-Villegas _et al._. Previously, with most SAFT equations, it is assumed that a Lennard-Jones potential could be used to represent the dispersive interactions. In SAFT-VR, the idea was to use potentials where one could vary the shape of the potential. The simplest of these was the square-well potential where a new potential shape parameter ($\lambda$) was introduced, which measured the range of the dispersive interactions:
 """
 
 # ╔═╡ 44256338-ce74-448a-a5e2-5bca38e3c2e0
@@ -266,7 +266,7 @@ The Variable-Range SAFT (SAFT-VR) framework was originally developed by Gil-Vill
 
 # ╔═╡ c8de4d65-190b-4f36-b9ea-82bfebf9c632
 md"""
-However, this did not really improve the modelling of species much. It wasn't until Lafitte _et al._ extended this concept of a variable-range potential to a Mie potential. This introduced two new potential shape parameters, $\lambda_\mathrm{a}$ (characterising the attractive part) and $\lambda_\mathrm{r}$ (characterising the repulsive part): 
+However, this did not really improve the modelling of species much. It wasn't until Lafitte _et al._ extended this concept of a variable-range potential to a Mie potential that significant improvements were realised. This introduced two new potential shape parameters, $\lambda_\mathrm{a}$ (characterising the attractive part) and $\lambda_\mathrm{r}$ (characterising the repulsive part): 
 """
 
 # ╔═╡ c0eb6b68-29b1-413f-a38e-c6781f9c4552
@@ -279,9 +279,9 @@ This led to the development of the SAFT-VR Mie equation of state. At the surface
 $$A_\mathrm{res.} = A_\mathrm{seg.}+A_\mathrm{chain}+A_\mathrm{assoc.}$$
 
 However, internally, two big changes were made:
-* The segment term was taken to a higher order perturbation. Up to this point, all SAFT equations only went up to a second order perturbation expansion. In SAFT-VR Mie, it was decided to go up to third order. Physically, this means that many-body interactions in SAFT-VR Mie are better characterised. Practically, it improved the modelling of properties near the critical point and the modelling of bulk properties in general.
-* Similar to PC-SAFT, while we do perturb the hard-sphere system first and then form a chain, in SAFT-VR Mie, a perturbation of the chain is also applied. This is a more-theoretical consistent implementation of the chain term.
-These two modifications have lead to SAFT-VR Mie to become, possibly, the most advanced equation of state to date. Unfortunately, because of the introduction of two additional parameters ($\lambda_a$ and $\lambda_r$), it does mean more parameters need to be fitted (although, generally, it is assumed that $\lambda_a=6$). As it is slightly newer than PC-SAFT, not as many parameters have been fitted for SAFT-VR Mie, limiting its range of applicability. However, a group contribution method for SAFT-VR Mie was also developped, which will be discussed next.
+* The segment term was taken to a higher-order perturbation. Up to this point, all SAFT equations only went up to a second-order perturbation expansion. For SAFT-VR Mie, it was decided to go up to third order. Physically, this means that many-body interactions in SAFT-VR Mie are better characterised. Practically, it improved the modelling of properties near the critical point and the modelling of bulk properties in general.
+* Similar to PC-SAFT, while we do perturb the hard-sphere system first and then form a chain, for SAFT-VR Mie, in effect, a perturbation of the chain is also applied. This is a more-theoretically consistent implementation of the chain term.
+These two modifications have led SAFT-VR Mie to become, possibly, the most advanced equation of state to date. Unfortunately, because of the introduction of two additional parameters ($\lambda_\mathrm{a}$ and $\lambda_\mathrm{r}$), it does mean more parameters need to be fitted (although, generally, it is assumed that $\lambda_\mathrm{a}=6$). As it is slightly newer than PC-SAFT, not as many parameters have been fitted for SAFT-VR Mie, limiting its range of applicability. However, a group-contribution method for SAFT-VR Mie was also developped, which will be discussed next.
 """
 
 # ╔═╡ a1dad25b-453c-4689-b04c-39a51d1c90b8
@@ -292,7 +292,7 @@ md"""
 
 # ╔═╡ 0ba8192f-5e63-4fb7-990e-272031e99d21
 md"""
-To be more-widely applicable, rather than fit many parameters in SAFT-VR Mie, the developers decided to instead focus on developing a group contribution method, known as SAFT-$\gamma$ Mie. However, another modification was made to SAFT-$\gamma$ Mie that further improved its ability to model a wider range of species. In both PC-SAFT and SAFT-VR Mie, it is assumed that the segments in a chain for a given molecule all have the same size. As the chains in SAFT-$\gamma$ Mie are assembled of groups which can have different sizes, this limitation does not apply to SAFT-$\gamma$ Mie. This is why it can often be thought of as a heterosegmented version of SAFT-VR Mie. Visually:
+To be more-widely applicable, rather than fit many parameters in SAFT-VR Mie, the developers decided to instead focus on developing a group-contribution method, known as SAFT-$\gamma$ Mie. However, another modification was made to SAFT-$\gamma$ Mie that further improved its ability to model a wider range of species. In both PC-SAFT and SAFT-VR Mie, it is assumed that the segments in a chain for a given molecule all have the same size. As the chains in SAFT-$\gamma$ Mie are assembled of groups, which can have different sizes, this limitation does not apply to SAFT-$\gamma$ Mie. This is why it can often be thought of as a heterosegmented version of SAFT-VR Mie. Visually:
 """
 
 # ╔═╡ dc05c788-96f9-4c4f-b7bb-5e007e6fd9ee
@@ -300,7 +300,7 @@ To be more-widely applicable, rather than fit many parameters in SAFT-VR Mie, th
 
 # ╔═╡ 9b3e9913-7109-4cdc-901f-74191a3aa1b2
 md"""
-Unfortunately, despite this improved physical picture, the approach does still suffer from the limitations of a group-contribution approach. Nevertheless, with over 50 groups, SAFT-$\gamma$ Mie is often thought of as the state-of-the-art SAFT equation of state.
+Unfortunately, despite this improved physical picture, the approach does still suffer from the limitations of a group-contribution approach. Nevertheless, with over 50 groups so far, SAFT-$\gamma$ Mie is often thought of as the state-of-the-art SAFT equation of state.
 """
 
 # ╔═╡ d0d9ed02-b51c-4d6f-8bd2-4c89041a3b50
@@ -316,7 +316,7 @@ Having now covered most of the SAFT equations one might encounter, one question 
 
 # ╔═╡ dda0f661-d548-4022-9002-b1507bb998a1
 md"""
-There is certainly a substantial improvement in the predictions of liquid densities using any of the SAFT models, especially when compared to a standard cubic. However, a more-subtle detail appears when we approach the critical point: while the cubic predicts exactly the correct critical temperature, all SAFT equations over-estimate it. This is something inherent to all perturbation-based theories. SAFT-VR Mie attempts to address this by extending its perturbation to third order. Even then, the critical point is overestimated by a few Kelvin. Surprisingly, even a small difference in the estimation of the critical point can have a dramatic impact on bulk properties of our species:
+There is certainly a substantial improvement in the predictions of liquid densities using any of the SAFT models, especially when compared to a standard cubic like Peng-Robinson (PR). However, a more-subtle detail appears when we approach the critical point: while the cubic capture exactly the critical temperature, all SAFT equations over-estimate it, due to how the parameters are fitted. This is something inherent to all perturbation-based theories. With SAFT-VR Mie, we attempt to address this by extending its perturbation to third order. Even then, the critical temperature is overestimated by a few Kelvin. Surprisingly, even a small difference in the estimation of the critical temperature can have a dramatic impact on bulk properties of our species:
 """
 
 # ╔═╡ 7742a363-e2a0-4792-bc07-26f3650bb9d0
@@ -354,7 +354,7 @@ Exp_MeOH = [450.00 129.78;
 
 # ╔═╡ f46ff2e5-f715-4fac-8a4d-3d80fe6d8a3d
 md"""
-Although this is a bit of an extreme example, as we can see here, by over-estimating the critical point by a few kelvin, PC-SAFT and CPA dramatically overestimate the value of the heat capacity. This is because the heat capacity diverges as we approach the critical point; this is why it is so important to predict this point correctly. Furthermore, in the above, we can see the second improvement made by SAFT-VR Mie: in contrast to the other equations of state, it replicates the experimental data to a higher degree of accuracy, particularly in the liquid phase. One can attribute it to being a more-physically accurate theory. 
+Although this is a bit of an extreme example, as we can see here, by over-estimating the critical temperature by a few kelvin, PC-SAFT and CPA dramatically overestimate the value of the heat capacity. This is because the heat capacity diverges as we approach the critical temperature; this is why it is so important to predict this point correctly. Furthermore, in the above, we can see the second improvement made by SAFT-VR Mie: in contrast to the other equations of state, it replicates the experimental data to a higher degree of accuracy, particularly in the liquid phase. One can attribute this to SAFT-VR Mie being a more-physically sound theory. 
 
 The last thing to consider is how the SAFT equations handle mixtures:
 """
@@ -373,9 +373,11 @@ Exp_MeB = [0.0483 0.2719 139.5;
 
 # ╔═╡ c71b68c7-c0a4-409d-adec-542b01e88ce9
 md"""
-As we can see above, SAFT equations can reproduce experimental data far better than the cubics, even with fitted parameters. What is also noticeable is that all three SAFT equations have similar predictions. This is expected as we are, again, fitting the binary interaction parameter to experimental data. However, because of the more-physical model provided by the SAFT equations, we are able to more-accurately fit the experimental data. Nevertheless, the above example serves to show that, for the purposes of VLE equilibria, it is quite difficult to distinguish between the different equations. Note that in the above example we used SAFT-$\gamma$ Mie instead of SAFT-VR Mie, mainly to show that it too can replicate experimental data, but also that the above parameters that we used for benzen can also be re-used to model other aromatic species (such as toluene, Xylene, etc.).
+As we can see above, SAFT equations can reproduce experimental data far better than the cubics, even with fitted parameters. What is also noticeable is that all three SAFT equations have similar predictions. This is expected as we are, again, fitting the binary-interaction parameter, $k_{ij}$, using experimental data. However, because of the more-physical model provided by the SAFT equations, we are able to more-accurately capture the experimental data. Nevertheless, the above example serves to show that, for the purposes of vapour--liquid equilibria, it is quite difficult to distinguish between the different equations.
 
-All that being said, it may seem from the above that the only discernable difference between these SAFT equations is the ability to model the critical point and bulk properties, where SAFT-VR Mie and SAFT-$\gamma$ Mie have the advantage. However, one needs to consider a few things. Firstly, it is best practise to avoid the critical point for most species. The large fluctuation in properties can make it quite dangerous to operate here. As such, we hypothetically wouldn't need to use these equations of state near it. Furthermore, in terms of relative errors, at reasonable conditions, PC-SAFT and CPA are not significantly worse than SAFT-VR Mie and SAFT-$\gamma$ Mie. Finally, in simulating processes, our codes need to be very fast and, unfortunately, due to their more-complex nature, SAFT-VR Mie and SAFT-$\gamma$ Mie are at the disadvantage here:
+All that being said, it may seem from the above that the only discernable difference between these SAFT equations is the ability to model the critical point and bulk properties, where SAFT-VR Mie and SAFT-$\gamma$ Mie have the advantage. However, one needs to consider a few things. Firstly, it is best practice to avoid the critical point for most species. Although the topic of critical phenomena is beyond the scope of this course, we note that there are large fluctuations in most properties near the critical point. As such, in any case, we should avoid operating near the critical point. Furthermore, in terms of relative errors, at sub-critical conditions, PC-SAFT and CPA are not significantly worse than SAFT-VR Mie and SAFT-$\gamma$ Mie. 
+
+Finally, in simulating processes, our codes need to be very fast and, unfortunately, due to their more-complex nature, SAFT-VR Mie and SAFT-$\gamma$ Mie are at the disadvantage here:
 """
 
 # ╔═╡ ee7ea366-e3bd-41ee-900a-1244988f64c5
@@ -395,7 +397,13 @@ md"""
 
 # ╔═╡ f7d75eba-0c05-458e-b720-eee8a401df9d
 md"""
-SAFT-VR Mie is almost three times slower than PC-SAFT and five times slower than CPA! As such, we do need to weigh the advantages of these equations of state carefully, both in terms of accuracy and computational resources.
+Depending on the device you are using and species you are modelling, SAFT-VR Mie can be up to three times slower than PC-SAFT and five times slower than CPA! As such, we do need to weigh the advantages of these equations of state carefully, both in terms of accuracy and computational resources.
+"""
+
+# ╔═╡ 0311216d-53ef-4f61-81fa-9f9a2a3a3456
+md"""
+### Footnotes
+[^1]: These two $m_i$ are different but the developers of CPA choose to re-use $m_i$ for the $\alpha$-function as this is also the standard for cubics.
 """
 
 # ╔═╡ c6b6ff0e-867c-48f4-8547-eaf5a3f27740
@@ -1966,6 +1974,7 @@ version = "0.9.1+5"
 # ╟─04e034e5-fb91-40a8-b442-0e1c6d7320b7
 # ╟─ddd504a8-b907-4a33-a69a-be30316cf3ea
 # ╟─f7d75eba-0c05-458e-b720-eee8a401df9d
+# ╟─0311216d-53ef-4f61-81fa-9f9a2a3a3456
 # ╟─c6b6ff0e-867c-48f4-8547-eaf5a3f27740
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002

@@ -23,7 +23,7 @@ Nevertheless, there is one other idealised model which can give us some insight 
 
 $$y_ip = x_ip_{\mathrm{sat},i}$$
 
-To get a physical understanding of what this equation actually means. Let us say that we have a pure fluid at its boiling point. The rate of condensation and evaporation have to be the same:
+We want to get a physical understanding of what this equation actually means. Let us say that we have a pure fluid at its boiling point. The rate of condensation and evaporation have to be the same:
 
 $$R_\mathrm{cond.} = R_\mathrm{evap.}$$
 
@@ -96,7 +96,7 @@ Based on the magnitude of $\gamma_i$, we can determine if the mixture is ideal (
 # ╔═╡ b0d545c3-9b77-467c-a99c-039577246d6d
 md"""
 ### Pros and Cons of Activity Coefficient Models
-The objective of activity coefficient models is to obtained as a function of composition and temperature:
+The objective of activity coefficient models is to obtain the activity coefficient as a function of composition and temperature:
 
 $$\gamma_i = f(\mathbf{x},T)$$
 
@@ -108,7 +108,7 @@ A similar operation can be performed for the dew pressure. The bubble temperatur
 
 $$p = \sum_ix_i\gamma_i(\mathbf{x},T_\mathrm{bub.})p_{\mathrm{sat},i}(T_\mathrm{bub.})$$
 
-Nevertheless, as will be shown in the third part of this course, this is by far one of the easiest (and computationally cheaper) methods to obtain equilibrium properties. However, the above equations hint at one limitation. Firstly, as we rely on Raoult's law, we need to have a function for the saturation pressure at a given temperature. This limits us to sub-critical properties only. For example, we could not model a carbon dioxide+water system at temperatures above the critical temperature of carbon dioxide (304 K). This heavily limits the number of systems we can model. 
+Nevertheless, as will be shown in the third part of this course, this is by far one of the easiest (and computationally cheapest) methods to obtain equilibrium properties. However, the above equations hint at one limitation. Firstly, as we rely on Raoult's law, we need to have a function for the saturation pressure at a given temperature. This limits us to sub-critical properties only. For example, we could not model a carbon dioxide+water system at temperatures above the critical temperature of carbon dioxide (304 K). This heavily limits the number of systems we can model. 
 
 Furthermore, as activity coefficient models can only obtain (unsurprisingly) activity coefficients; we can't obtain the saturation pressure or any other pure-component property. Inherently, activity coefficient models cannot be used on their own. Typically, they are combined with other equations of state (such as cubics), for example: 
 """
@@ -118,19 +118,19 @@ m = UNIQUAC(["water","ethanol"];puremodel=PR);
 
 # ╔═╡ 169851f9-588b-4a8a-993a-c1bb2e43f043
 md"""
-Nevertheless, activity coefficient models are still some of the most-commonly used approaches for modelling in industry due to their simplicity in modelling otherwise complex systems.
+Nevertheless, activity-coefficient models are still some of the most-commonly used approaches for modelling in industry due to their simplicity in modelling otherwise complex systems.
 """
 
 # ╔═╡ 7906a069-824c-45f6-b3ff-15f8fc5bb738
 md"""
 ### Section 2.2.1
 ## Wilson Equation
-While the concept of activity coefficients had been around for many years, the only approaches which could be used to model them were purely correlative. This includes equations such as the van-Laar equation where:
+While the concept of activity coefficients had been around for many years, the only approaches that could be used to model them were purely correlative. This includes equations such as the van-Laar equation where:
 
 $$\ln{\gamma_1} = A_{12}x_2^2$$
 $$\ln{\gamma_2} = A_{21}x_1^2$$
 
-This approach is limited to just binary mixtures (without the introduction of a ternary parameter). Furthermore, the coefficients $A_{ij}$ don't really carry much physical meaning. It wasn't until Wilson presented his equation in 1964 that activity coefficient approach start becoming useable. The insight Wilson gave was that the composition of a species $i$ around itself was not equal to the composition of the bulk (these approaches are also known as local composition models). Visually:
+This approach is limited to just binary mixtures (without the introduction of a ternary parameter). Furthermore, the coefficients $A_{ij}$ don't really carry much physical meaning. It wasn't until Wilson presented his equation in 1964 that the activity-coefficient approach start becoming useable. The insight Wilson gave was that the composition of a species $i$ around itself was not equal to the composition of the bulk (these approaches are also known as local composition models). Visually:
 """
 
 # ╔═╡ 1ec2b9ce-104c-4779-a502-1cd13d9cc29b
@@ -150,7 +150,7 @@ where $x_{ji}$ is the local composition of species $j$ around species $i$ and $v
 
 $$\frac{x_{ji}}{x_{ii}}=\frac{x_j}{x_i}\exp{(-\Delta\lambda_{ij}/(RT))}$$
 
-where $\Delta\lambda_{ij}$ is an interaction energy parameter, quantifying how favourable interactions between species $i$ and $j$ are relative to the interaction of species $i$ with itself. Substituting this into our expression for $\xi_i$ and re-arranging for the excess Gibbs free energy gives:
+where $\Delta\lambda_{ij}$ is an interaction energy parameter, quantifying how favourable interactions between species $i$ and $j$ are, relative to the interaction of species $i$ with itself. Substituting this into our expression for $\xi_i$ and re-arranging for the excess Gibbs free energy gives:
 
 $$\Delta G^\mathrm{E} = RT\sum_ix_i \ln{\sum_jx_j\Lambda_{ij}}$$
 
@@ -158,9 +158,9 @@ where:
 
 $$\Lambda_{ij}=\frac{v_j}{v_i}\exp{(-\Delta\lambda_{ij}/(RT))}$$
 
-Where $\Lambda_{ij}$ is known as Wilson's parameter. One can notice that two effects have been accounted for in this single factor: the relative size of the two species using the ratio of the volumes, and the favourability of the interactions using the exponential. These two effects appear in all activity coefficient models we will discuss. 
+Here $\Lambda_{ij}$ is known as Wilson's parameter. One can notice that two effects have been accounted for in this single factor: the relative size of the two species using the ratio of the volumes; and the favourability of the interactions using the exponential. These two effects appear in all activity-coefficient models we will discuss. 
 
-Nevertheless, although the volumes of the two species can obtained experimentally (typically a correlation for the saturated liquid densities is used), the interaction parameter $\Delta\lambda_{ij}$ needs to be fitted to experimental data. However, the key benefit of the Wilson equation, in contrast to previous approaches like van Laar is that the binary interaction parameters can be used for multicomponent (3+) mixtures. 
+Nevertheless, although the volumes of the two species can obtained experimentally (typically a correlation for the saturated liquid densities is used), the interaction parameter $\Delta\lambda_{ij}$ needs to be fitted using experimental data. However, the key benefit of the Wilson equation, in contrast to previous approaches like van Laar is that the binary interaction parameters can be used for multicomponent (3+) mixtures. 
 
 The Wilson equation also proved to be very effective when modelling complex mixtures involving hydrogen-bonding, such as the infamous water+ethanol system:
 """
@@ -214,7 +214,7 @@ end
 
 # ╔═╡ 8ca4cb6e-5d75-4cc8-a556-a4b8ac1fb732
 md"""
-Unfortunately, despite its substantial improvements to activity coefficient modelling, the Wilson equation does have a few failings. The most notable of which is its inability to model liquid-liquid equilibrium (or immiscibility between liquids). This does limit the range of systems one can model using the Wilson equation. However, at the time, it was a big step forward for thermodynamic modelling of complex systems.
+Unfortunately, despite its substantial improvements to activity coefficient modelling, the Wilson equation does have a few failings. The most notable of these is its inability to model liquid--liquid equilibrium (or immiscibility between liquids). This does limit the range of systems one can model using the Wilson equation. However, at the time, it was a big step forward for thermodynamic modelling of complex systems.
 """
 
 # ╔═╡ 9bbc8f4c-298d-45d4-994b-b2a333265bdf
@@ -231,7 +231,7 @@ Rather than using the approach used by Wilson, in NRTL, the excess Gibbs free en
 
 $$\Delta G^\mathrm{E} = \sum_ix_i\sum_jx_{ij}\Delta g_{ij}$$
 
-Substituting our definition for $x_{ij}$:
+substituting our definition for $x_{ij}$:
 
 $$\Delta G^\mathrm{E} = RT\sum_ix_i\frac{\sum_jx_j\tau_{ji}G_{ji}}{\sum_kx_kG_{ki}}$$
 
@@ -322,7 +322,7 @@ md"""
 
 # ╔═╡ e454c3e6-22aa-4e08-ab15-ff7dcfa61496
 md"""
-While NRTL is able to model a greater range of equilibria, Abrams and Prausnitz returned to the approach used by Wilson where, instead of using the volumes of the species to determine the local composition, the surface area is used instead:
+Although NRTL is able to model a greater range of equilibria, Abrams and Prausnitz returned to the approach used by Wilson where, instead of using the volumes of the species to determine the local composition, the surface area is used instead:
 
 $$\Lambda_{ij}=\frac{q_i}{q_j}\exp{(-a_{ij}/(RT))}$$
 
@@ -344,7 +344,7 @@ $$\tau_{ij}=\exp{(-a_{ij}/(RT))}$$
 
 This results in the UNIQUAC approach and, unlike the NRTL approach, UNIQUAC requires both species-specific and binary interaction parameters (parameters that involve two species). 
 
-The Wilson equation, NRTL and UNIQUAC represent the industry standards for activity coefficient models and, whilst the Wilson equation is limited to just vapour-liquid equilibrium, they all have very similar performance:
+The Wilson equation, NRTL and UNIQUAC represent the industry standards for activity coefficient models and, whilst the Wilson equation is limited to just vapour--liquid equilibrium, they all have very similar performance:
 """
 
 # ╔═╡ be59d2e5-3506-4bc8-810a-3737b91174ab
@@ -362,9 +362,11 @@ md"""
 md"""
 The last activity coefficient model we will consider is an extension of UNIQUAC. One of the limitations of the Wilson equation, NRTL and UNIQUAC is that they are species-specific approaches meaning they cannot be extended to new systems without fitting additional parameters. 
 
-As we showed with the ideal equations, one way to work around this is through group-contribution methods where species are split into smaller groups which can be re-assembled into new species. The UNIQUAC Functional-group Activity Coefficients model (UNIFAC) is one such approach. The equations used to define UNIQUAC are essentially unchanged where, the only thing that has changed is that, rather than discussion interactions between species or the local composition around species, this is done from the point of view of the groups. 
+As we showed with the ideal equations, one way to work around this is through group-contribution methods where species are split into smaller groups which can be re-assembled into new species. The UNIQUAC Functional-group Activity Coefficients model (UNIFAC) is one such approach. The equations used to define UNIQUAC are essentially unchanged where, the only thing that has changed is that, rather than discussing interactions between species or the local composition around species, this is done from the point of view of the groups. 
 
-While this approach grants users a great deal of flexibility, unfortunately, as it was for the ideal equations, it is bound to be slightly less accurate than the species-specific approaches:
+While this approach grants users a great deal of flexibility, unfortunately, as it was for the ideal equations, it is bound to be slightly less accurate than the species-specific approaches.
+
+One important thing to bear in mind when using UNIFAC, particularly when looking at literature, is that many variants do exist. As a matter of fact, when people refer to UNIFAC, they usually are not referring to the original version published in 1979. They usually mean the Dortmund modification in 1987 (used above) which improved over many of the original failings of UNIFAC where, as shown above, it can perform better than even a species-specific approach:
 """
 
 # ╔═╡ c9b3799f-4545-4080-95ac-70ee1fce8bc2
@@ -445,7 +447,7 @@ end
 
 # ╔═╡ 7026c8c3-caaa-44ef-978a-705caeb21110
 md"""
-One important thing to bear in mind when using UNIFAC, particularly when looking at literature, is that many variants do exist. As a matter of fact, when people refer to UNIFAC, they usually are not referring to the original version published in 1979. They usually mean the Dortmund modification in 1987 (used above) which improved over many of the original failings of UNIFAC where, as shown above, it can perform better than even a species-specific approach. One of these improvements came from replacing the $a_{ij}$ parameter in the expression for $\tau_{ij}$ with a temperature-dependent correlation:
+One of these improvements came from replacing the $a_{ij}$ parameter in the expression for $\tau_{ij}$ with a temperature-dependent correlation:
 
 $$a_{kl}=A_{kl}+B_{kl}T+C_{kl}T^2$$
 
@@ -1778,7 +1780,7 @@ version = "0.9.1+5"
 # ╟─1ec2b9ce-104c-4779-a502-1cd13d9cc29b
 # ╟─99e9a503-a5d2-462d-8a35-51734ba206f1
 # ╠═0b40e2d9-da7a-47c3-915c-124ba57c3434
-# ╠═675876ef-6dd5-4dfb-bd95-4a9dbb726bfd
+# ╟─675876ef-6dd5-4dfb-bd95-4a9dbb726bfd
 # ╟─07849f32-b99b-4564-8f75-aee6061eaa33
 # ╟─8ca4cb6e-5d75-4cc8-a556-a4b8ac1fb732
 # ╟─9bbc8f4c-298d-45d4-994b-b2a333265bdf
