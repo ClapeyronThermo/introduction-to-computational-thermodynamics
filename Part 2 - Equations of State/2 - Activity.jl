@@ -11,12 +11,12 @@ begin
 	using HypertextLiteral
 	# using JSON2, Tables,Random # Data handling
 	using BenchmarkTools, PlutoUI
+	PlutoUI.TableOfContents()
 end
 
 # ╔═╡ e164fd79-5644-4011-b07d-b55d9dc642a4
 md"""
-### Section 2.2
-# Activity Coefficient models
+# Section 2.2 - Activity Coefficient models
 In the previous section, we discussed the ideal gas model, which is appropriate to use for gaseous species at low pressures. However, it is unable to model the liquid phase and, as a result, phase equilibria. 
 
 Nevertheless, there is one other idealised model which can give us some insight on the liquid phase: the ideal solution model. An ideal solution, by definition, obeys Raoult's law:
@@ -123,8 +123,7 @@ Nevertheless, activity-coefficient models are still some of the most-commonly us
 
 # ╔═╡ 7906a069-824c-45f6-b3ff-15f8fc5bb738
 md"""
-### Section 2.2.1
-## Wilson Equation
+## Section 2.2.1 - Wilson Equation
 While the concept of activity coefficients had been around for many years, the only approaches that could be used to model them were purely correlative. This includes equations such as the van-Laar equation where:
 
 $$\ln{\gamma_1} = A_{12}x_2^2$$
@@ -219,8 +218,7 @@ Unfortunately, despite its substantial improvements to activity coefficient mode
 
 # ╔═╡ 9bbc8f4c-298d-45d4-994b-b2a333265bdf
 md"""
-### Section 2.2.2
-## Non-Random Two-Liquid (NRTL) model
+## Section 2.2.2 - Non-Random Two-Liquid (NRTL) model
 Taking a similar approach to the Wilson equation, the non-random two-liquid model (NRTL) also assumes the local composition around species is different from the bulk and uses a similar equation to the one used by Wilson:
 
 $$\frac{x_{ji}}{x_{ii}}=\frac{x_j}{x_i}\exp{(-\alpha_{ij}\Delta g_{ij}/(RT))}$$
@@ -316,8 +314,7 @@ end
 
 # ╔═╡ a2a7fc71-4e92-4ed8-ad1d-5628866d93f2
 md"""
-### Section 2.2.3
-## UNIversal QUasichemical Activity Coefficient (UNIQUAC) model
+## Section 2.2.3 - UNIversal QUasichemical Activity Coefficient (UNIQUAC) model
 """
 
 # ╔═╡ e454c3e6-22aa-4e08-ab15-ff7dcfa61496
@@ -354,8 +351,7 @@ As with most thermodynamic models, it is important to verify how accurate a give
 
 # ╔═╡ 396d5ad2-ecc1-4dbe-b0b4-931d6eef9259
 md"""
-### Section 2.2.4
-## UNIQUAC Functional-group Activity Coefficients (UNIFAC)
+## Section 2.2.4 - UNIQUAC Functional-group Activity Coefficients (UNIFAC)
 """
 
 # ╔═╡ dca6080c-1ee6-4d5a-9549-afd3026928ce
@@ -1773,7 +1769,7 @@ version = "0.9.1+5"
 # ╟─e164fd79-5644-4011-b07d-b55d9dc642a4
 # ╟─d9c277b9-f5e7-4ace-90fe-3582890ad2da
 # ╟─91eb9e25-9fb2-4f8d-861d-7873b521111d
-# ╟─b0d545c3-9b77-467c-a99c-039577246d6d
+# ╠═b0d545c3-9b77-467c-a99c-039577246d6d
 # ╠═9e1eede8-4b86-41e6-b2ab-aa79ca0dacb3
 # ╟─169851f9-588b-4a8a-993a-c1bb2e43f043
 # ╟─7906a069-824c-45f6-b3ff-15f8fc5bb738

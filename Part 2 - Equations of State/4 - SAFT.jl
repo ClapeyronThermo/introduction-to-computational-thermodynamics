@@ -8,15 +8,15 @@ using InteractiveUtils
 begin
 	using Clapeyron, ForwardDiff, Roots, Optim, LinearAlgebra, PolynomialRoots # Numerical packages
 	using LaTeXStrings, Plots, ShortCodes, Printf # Display and plotting
-	using HypertextLiteral
+	using HypertextLiteral, PlutoUI
 	# using JSON2, Tables,Random # Data handling
 	using BenchmarkTools
+	PlutoUI.TableOfContents()
 end
 
 # ╔═╡ f9c5a11e-0e45-11ed-2b32-153050d16a4a
 md"""
-### Section 2.4
-# Statistical Association Fluid Theory
+# Section 2.4 - Statistical Association Fluid Theory
 _N.B.: This will be a high-level overview of the SAFT equations, with more emphasis on the physical picture than the implementation. If you were able to implement the generalised cubic equation in the previous section, you should be able to implement any of the SAFT equations (with the exception of one aspect which will be discussed here)._
 
 We previously established that, while the cubics are some of the most-flexible equations of state, the range of systems and properties you can model accurately with them is limited. Taking a few steps back, we mentioned previously that the van der Waals equation can actually be derived analytically. Writing out the residual Helmholtz free energy:
@@ -200,8 +200,7 @@ Before going online to search for parameters, there is one key detail to keep in
 
 # ╔═╡ 303fba91-9844-4649-82be-e169d6f52a9c
 md"""
-### Section 2.4.1
-## Perturbed-Chain SAFT (PC-SAFT)
+## Section 2.4.1 - Perturbed-Chain SAFT (PC-SAFT)
 """
 
 # ╔═╡ 89ff71b7-130d-4642-9558-e49efa51247e
@@ -229,8 +228,7 @@ Furthermore, as a warning when one looks for parameters, implementations exist i
 
 # ╔═╡ 909b14ac-5b9d-40d9-959b-9b6c171d1b3a
 md"""
-### Section 2.4.2
-## Cubic plus association (CPA)
+## Section 2.4.2 - Cubic plus association (CPA)
 """
 
 # ╔═╡ cb1b6005-39c0-4247-b824-65a25b79dc33
@@ -252,8 +250,7 @@ This makes CPA a very popular alternative to other SAFT equations because of its
 
 # ╔═╡ 76790f3f-b101-48d8-b6b0-fc1df6e14e0f
 md"""
-### Section 2.4.3
-## SAFT-VR Mie
+## Section 2.4.3 - SAFT-VR Mie
 """
 
 # ╔═╡ b13b2c8c-6366-43e9-936b-6deb67be6db1
@@ -286,8 +283,7 @@ These two modifications have led SAFT-VR Mie to become, possibly, the most advan
 
 # ╔═╡ a1dad25b-453c-4689-b04c-39a51d1c90b8
 md"""
-### Section 2.4.4
-## Heterosegmented SAFT-VR Mie (SAFT-$\gamma$ Mie)
+## Section 2.4.4 - Heterosegmented SAFT-VR Mie (SAFT-$\gamma$ Mie)
 """
 
 # ╔═╡ 0ba8192f-5e63-4fb7-990e-272031e99d21
@@ -305,8 +301,7 @@ Unfortunately, despite this improved physical picture, the approach does still s
 
 # ╔═╡ d0d9ed02-b51c-4d6f-8bd2-4c89041a3b50
 md"""
-### Section 2.4.5
-## Comparing SAFT equations
+## Section 2.4.5 - Comparing SAFT equations
 """
 
 # ╔═╡ 66ebf47c-aecc-42d6-b67d-8837d5086a44
@@ -648,6 +643,7 @@ LaTeXStrings = "b964fa9f-0449-5b57-a5c2-d3ea65f4040f"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 Optim = "429524aa-4258-5aef-a3af-852621145aeb"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
+PlutoUI = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
 PolynomialRoots = "3a141323-8675-5d76-9d11-e1df1406c778"
 Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
 Roots = "f2b01f46-fcfa-551c-844a-d8ac1e96c665"
@@ -661,6 +657,7 @@ HypertextLiteral = "~0.9.4"
 LaTeXStrings = "~1.3.0"
 Optim = "~1.7.0"
 Plots = "~1.31.4"
+PlutoUI = "~0.7.39"
 PolynomialRoots = "~1.0.0"
 Roots = "~2.0.2"
 ShortCodes = "~0.3.3"
@@ -672,7 +669,13 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.8.0"
 manifest_format = "2.0"
-project_hash = "c4b8046a17338e691c3b702f66bf1225dd76f8a8"
+project_hash = "9fe256970afcfaff39be4e01821711b5a222a3b4"
+
+[[deps.AbstractPlutoDingetjes]]
+deps = ["Pkg"]
+git-tree-sha1 = "8eaf9f1b4921132a4cff3f36a1d9ba923b14a481"
+uuid = "6e696c72-6542-2067-7265-42206c756150"
+version = "1.1.4"
 
 [[deps.Adapt]]
 deps = ["LinearAlgebra"]
@@ -1037,11 +1040,23 @@ git-tree-sha1 = "709d864e3ed6e3545230601f94e11ebc65994641"
 uuid = "34004b35-14d8-5ef3-9330-4cdb6864b03a"
 version = "0.3.11"
 
+[[deps.Hyperscript]]
+deps = ["Test"]
+git-tree-sha1 = "8d511d5b81240fc8e6802386302675bdf47737b9"
+uuid = "47d2ed2b-36de-50cf-bf87-49c2cf4b8b91"
+version = "0.0.4"
+
 [[deps.HypertextLiteral]]
 deps = ["Tricks"]
 git-tree-sha1 = "c47c5fa4c5308f27ccaac35504858d8914e102f9"
 uuid = "ac1192a8-f4b3-4bfe-ba22-af5b92cd3ab2"
 version = "0.9.4"
+
+[[deps.IOCapture]]
+deps = ["Logging", "Random"]
+git-tree-sha1 = "f7be53659ab06ddc986428d3a9dcc95f6fa6705a"
+uuid = "b5f81e59-6552-4d32-b1f0-c071b021bf89"
+version = "0.2.2"
 
 [[deps.IniFile]]
 git-tree-sha1 = "f550e6e32074c939295eb5ea6de31849ac2c9625"
@@ -1395,6 +1410,12 @@ deps = ["Base64", "Contour", "Dates", "Downloads", "FFMPEG", "FixedPointNumbers"
 git-tree-sha1 = "0a0da27969e8b6b2ee67c112dcf7001a659049a0"
 uuid = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 version = "1.31.4"
+
+[[deps.PlutoUI]]
+deps = ["AbstractPlutoDingetjes", "Base64", "ColorTypes", "Dates", "Hyperscript", "HypertextLiteral", "IOCapture", "InteractiveUtils", "JSON", "Logging", "Markdown", "Random", "Reexport", "UUIDs"]
+git-tree-sha1 = "8d1f54886b9037091edf146b517989fc4a09efec"
+uuid = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
+version = "0.7.39"
 
 [[deps.PolynomialRoots]]
 git-tree-sha1 = "5f807b5345093487f733e520a1b7395ee9324825"

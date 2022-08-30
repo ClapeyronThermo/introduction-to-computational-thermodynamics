@@ -8,23 +8,22 @@ using InteractiveUtils
 begin
 	using Clapeyron, ForwardDiff, Roots, Optim, LinearAlgebra, PolynomialRoots # Numerical packages
 	using LaTeXStrings, Plots, ShortCodes, Printf # Display and plotting
-	using HypertextLiteral
+	using HypertextLiteral, PlutoUI
 	# using JSON2, Tables,Random # Data handling
 	import Clapeyron: vdWModel, RKModel, PRModel, cubic_ab, R̄
+	PlutoUI.TableOfContents()
 end
 
 # ╔═╡ 2119146e-cb56-4cb2-a4ba-7a359f05ca8d
 md"""
-### Section 2.3 
-# Cubic equations of state
+# Section 2.3 - Cubic equations of state
 Cubic equations of state are by far the most-popular equations of state. This can mainly be attributed to the their long tenure as the only practical equations of state, but also their simple functional form. We refer to such equations as cubics because they can all be written in the following form:
 
 $$V^3+AV^2+BV+C=0$$
 
 This form has a lot of benefits which we will discuss in part 3 of the course.
 
-### Section 2.3.1
-## Van der Waals equation
+## Section 2.3.1 - Van der Waals equation
 
 It is likely that most undergraduates will have encountered the van der Waals equation at some point. However, to give a high-level understanding of this equation, let us start with the ideal gas equation:
 
@@ -144,8 +143,7 @@ Even in the case of methane, which can almost be considered spherical, the van d
 
 # ╔═╡ 114acd11-0a26-4388-bb5a-d389495cc0a5
 md"""
-### Section 2.3.2
-## Engineering Cubics
+## Section 2.3.2 - Engineering Cubics
 """
 
 # ╔═╡ c15d67d2-28bb-4fba-9f78-b018e187081d
@@ -599,8 +597,7 @@ Nevertheless, with this equation defined, we will be able to obtain any properti
 
 # ╔═╡ 3d93db93-97c7-4bb5-85a1-8965f40f601a
 md"""
-### Section 2.3.3
-## $\alpha$ functions
+## Section 2.3.3 - $\alpha$ functions
 """
 
 # ╔═╡ 91386684-ea1d-4a56-8437-fb72c45c02b0
@@ -733,8 +730,7 @@ Overall, when considering which cubic equation of state to use, which $\alpha$ f
 
 # ╔═╡ 46dbdb64-819c-4e5b-a4ee-2b66b571e7aa
 md"""
-### Section 2.3.4
-## Volume translation
+## Section 2.3.4 - Volume translation
 """
 
 # ╔═╡ ba6362ec-3c1a-43c1-8651-637d352bbc1a
@@ -814,8 +810,7 @@ Generally, volume translations should only be used when we need accurate volumet
 
 # ╔═╡ ab519b39-d547-4bd8-aead-050bdf5a5c9d
 md"""
-### Section 2.3.5
-## Mixing rules
+## Section 2.3.5 - Mixing rules
 """
 
 # ╔═╡ c9cc4916-a0c4-498b-bbd3-5d2605f1b382
@@ -970,8 +965,7 @@ In terms of recommendations, if possible, it is always best to validate these mi
 
 # ╔═╡ e31698b2-90bf-4c77-a207-867f9e5e8e33
 md"""
-### Section 2.3.6
-## Predictive Cubics
+## Section 2.3.6 - Predictive Cubics
 Now that we've gone through the different types of cubics, $\alpha$ functions, volume translation and mixing rules, it is time to bring them together:
 """
 
@@ -1089,6 +1083,7 @@ LaTeXStrings = "b964fa9f-0449-5b57-a5c2-d3ea65f4040f"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 Optim = "429524aa-4258-5aef-a3af-852621145aeb"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
+PlutoUI = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
 PolynomialRoots = "3a141323-8675-5d76-9d11-e1df1406c778"
 Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
 Roots = "f2b01f46-fcfa-551c-844a-d8ac1e96c665"
@@ -1101,6 +1096,7 @@ HypertextLiteral = "~0.9.4"
 LaTeXStrings = "~1.3.0"
 Optim = "~1.7.0"
 Plots = "~1.31.3"
+PlutoUI = "~0.7.39"
 PolynomialRoots = "~1.0.0"
 Roots = "~2.0.2"
 ShortCodes = "~0.3.3"
@@ -1112,7 +1108,13 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.8.0"
 manifest_format = "2.0"
-project_hash = "b86326280b812b4b9c42bf735609317e6b02f964"
+project_hash = "6e3fa7fa6f1092cbb75af6ad510dfbce587a6e08"
+
+[[deps.AbstractPlutoDingetjes]]
+deps = ["Pkg"]
+git-tree-sha1 = "8eaf9f1b4921132a4cff3f36a1d9ba923b14a481"
+uuid = "6e696c72-6542-2067-7265-42206c756150"
+version = "1.1.4"
 
 [[deps.Adapt]]
 deps = ["LinearAlgebra"]
@@ -1471,11 +1473,23 @@ git-tree-sha1 = "709d864e3ed6e3545230601f94e11ebc65994641"
 uuid = "34004b35-14d8-5ef3-9330-4cdb6864b03a"
 version = "0.3.11"
 
+[[deps.Hyperscript]]
+deps = ["Test"]
+git-tree-sha1 = "8d511d5b81240fc8e6802386302675bdf47737b9"
+uuid = "47d2ed2b-36de-50cf-bf87-49c2cf4b8b91"
+version = "0.0.4"
+
 [[deps.HypertextLiteral]]
 deps = ["Tricks"]
 git-tree-sha1 = "c47c5fa4c5308f27ccaac35504858d8914e102f9"
 uuid = "ac1192a8-f4b3-4bfe-ba22-af5b92cd3ab2"
 version = "0.9.4"
+
+[[deps.IOCapture]]
+deps = ["Logging", "Random"]
+git-tree-sha1 = "f7be53659ab06ddc986428d3a9dcc95f6fa6705a"
+uuid = "b5f81e59-6552-4d32-b1f0-c071b021bf89"
+version = "0.2.2"
 
 [[deps.IniFile]]
 git-tree-sha1 = "f550e6e32074c939295eb5ea6de31849ac2c9625"
@@ -1829,6 +1843,12 @@ deps = ["Base64", "Contour", "Dates", "Downloads", "FFMPEG", "FixedPointNumbers"
 git-tree-sha1 = "5a1e85f3aed2e0d3d99a4068037c8582597b89cf"
 uuid = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 version = "1.31.3"
+
+[[deps.PlutoUI]]
+deps = ["AbstractPlutoDingetjes", "Base64", "ColorTypes", "Dates", "Hyperscript", "HypertextLiteral", "IOCapture", "InteractiveUtils", "JSON", "Logging", "Markdown", "Random", "Reexport", "UUIDs"]
+git-tree-sha1 = "8d1f54886b9037091edf146b517989fc4a09efec"
+uuid = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
+version = "0.7.39"
 
 [[deps.PolynomialRoots]]
 git-tree-sha1 = "5f807b5345093487f733e520a1b7395ee9324825"

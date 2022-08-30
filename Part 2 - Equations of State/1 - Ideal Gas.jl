@@ -10,12 +10,12 @@ begin
 	using LaTeXStrings, Plots, ShortCodes, Printf # Display and plotting
 	using HypertextLiteral, PlutoUI
 	# using JSON2, Tables,Random # Data handling
+	PlutoUI.TableOfContents()
 end
 
 # ╔═╡ 1e30be5e-6fdc-46b8-99df-b0bd3ea473dc
 md"""
-### Section 2
-# Equations of State
+# Section 2 - Equations of State
 Now that we have reviewed our understanding of thermodynamics and the tools we can use to analyse our systems, we now require a surrogate (mathematical) model to mimic these systems. This class of model is referred to as equations of state. These equations are simply functions, $f$, which take in our conditions ($\mathbf{x}$) and give us a thermodynamic property, $Y$:
 
 $$Y=f(\mathbf{x})$$
@@ -27,8 +27,7 @@ $$A = f(V,T,\mathbf{N})$$
 
 There are numerous equations of state available, each with their own benefits. It is the objective of this section to give you a high-level understanding of the equations of state, details of their implementation and guidance on how to go about selecting one for a particular application.
 
-### Section 2.1
-## Ideal gas
+# Section 2.1 - Ideal gas
 As a common starting ground, let us examine an equation of state most of us will have encountered during our time in highschool: the Ideal Gas equation, initially formulated by Emille Clapeyron. Typically, it is written as:
 
 $$pV=Nk_\mathrm{B}T$$
