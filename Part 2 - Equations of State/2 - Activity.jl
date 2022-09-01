@@ -185,12 +185,12 @@ Exp_h2o_etoh = [372.63	101330	0	0;
 
 # ╔═╡ 675876ef-6dd5-4dfb-bd95-4a9dbb726bfd
 begin
-	T1 = 1e5
+	p1 = 1e5
 	x1 = range(1e-5,1-1e-5,length=100)
 
 	X1 = Clapeyron.Fractions.FractionVector.(x1)
 
-	bub1 = bubble_temperature.(model,T1,X1)
+	bub1 = bubble_temperature.(model,p1,X1)
 
 	pbub1 = [bub1[i][1] for i ∈ 1:100]
 	y1 = []
@@ -1769,7 +1769,7 @@ version = "0.9.1+5"
 # ╟─e164fd79-5644-4011-b07d-b55d9dc642a4
 # ╟─d9c277b9-f5e7-4ace-90fe-3582890ad2da
 # ╟─91eb9e25-9fb2-4f8d-861d-7873b521111d
-# ╠═b0d545c3-9b77-467c-a99c-039577246d6d
+# ╟─b0d545c3-9b77-467c-a99c-039577246d6d
 # ╠═9e1eede8-4b86-41e6-b2ab-aa79ca0dacb3
 # ╟─169851f9-588b-4a8a-993a-c1bb2e43f043
 # ╟─7906a069-824c-45f6-b3ff-15f8fc5bb738

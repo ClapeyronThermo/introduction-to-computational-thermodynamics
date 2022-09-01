@@ -215,7 +215,7 @@ $$a = 0.42748 \frac{(RT_c)^2}{p_c}$$
 
 and $\alpha(T)$, the $\alpha$-function, given by:
 
-$$\alpha(T) = (1+(0.480 + 1.547\omega - 0.176\omega^2)(1-(T/T_c))^{0.5})^2$$
+$$\alpha(T) = (1+(0.480 + 1.547\omega - 0.176\omega^2)(1-(T/T_c)^{0.5}))^2$$
 
 where $\omega$ is the acentricity, a species-specific parameter, defined as:
 
@@ -429,7 +429,7 @@ $$b = 0.0778 \frac{RT_\mathrm{c}}{p_\mathrm{c}}$$
 
 and $\alpha(T)$:
 
-$$\alpha(T) = (1+(0.37464 + 1.54226\omega - 0.26992\omega^2)(1-(T/T_\mathrm{c}))^{0.5})^2$$
+$$\alpha(T) = (1+(0.37464 + 1.54226\omega - 0.26992\omega^2)(1-(T/T_\mathrm{c})^{0.5}))^2$$
 Indeed, using the PR equation, the improvement in modelling of liquid densities is significant:
 """
 
@@ -1108,7 +1108,7 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.8.0"
 manifest_format = "2.0"
-project_hash = "6e3fa7fa6f1092cbb75af6ad510dfbce587a6e08"
+project_hash = "4d889628daa564316a79b531da1da0a0086168c3"
 
 [[deps.AbstractPlutoDingetjes]]
 deps = ["Pkg"]

@@ -82,7 +82,7 @@ begin
 	model1 = WalkerIdeal(["methane"])
 	model2 = ReidIdeal(["methane"])
 	
-	T = range(100,3000,length=100)
+	T = range(100,4000,length=100)
 	
 	Cp1 = isobaric_heat_capacity.(model1,1e5,T)
 	Cp2 = isobaric_heat_capacity.(model2,1e5,T);
