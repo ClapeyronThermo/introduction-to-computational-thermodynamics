@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.9
+# v0.19.11
 
 using Markdown
 using InteractiveUtils
@@ -32,7 +32,7 @@ md"""
 
 Now we know how to choose an equation of state for different situations, we need to investigate how to obtain the fluid properties at a specified state. To start with, we will look at how to solve for the volume at a given pressure, temperature, and phase for a pure fluid. From there, we will see how this changes when the phase is not known beforehand, and when dealing with a multicomponent mixture.
 
-Usually, we specify pressure and temperature (_pT_), which when solving for the volume corresponds to solving the equation
+Usually, we specify pressure and temperature (_p,T_) which, when solving for the volume, corresponds to solving the equation
 
 $$p(v,T_0) = p_0$$
 
@@ -52,15 +52,15 @@ $$\alpha(T) = 1$$
 
 # ╔═╡ 2f3a7b9d-3dac-4e12-abb1-ce09cef36e93
 md"""
-Giving us
+giving us
 
-$$p = \frac{RT}{v-b} - \frac{a}{v^2}$$
+$$p = \frac{RT}{v-b} - \frac{a}{v^2}~,$$
 
 where
 
 $$\begin{align} 
 a &= \frac{27}{64}\frac{(RT_\mathrm{c})^2}{p_\mathrm{c}}\\
-b &= \frac{1}{8}\frac{RT_\mathrm{c}}{p_\mathrm{c}}\\
+b &= \frac{1}{8}\frac{RT_\mathrm{c}}{p_\mathrm{c}}~.\\
 \end{align}$$
 
 To solve this for the volume, we can leverage the fact you can rearrange it as a cubic equation in terms of the **compressibility factor**, Z.
@@ -75,7 +75,7 @@ pv^3 - (bp + RT)v^2 + av - ab = 0\\
 Z^3 - \left(1 + \frac{bp}{RT}\right)Z^2 + \left(\frac{ap}{(RT)^2}\right)Z - \frac{abp^2}{(RT)^3} = 0
 \end{gather}$$
 
-To express this cubic neatly we define 2 constants, $A$ and $B$.
+To express this cubic neatly we define two constants, $A$ and $B$.
 
 $$\begin{align} 
 A &= a\cdot\frac{p}{(RT)^2}\\
@@ -84,7 +84,7 @@ B &= b\cdot\frac{p}{RT}
 
 The cubic we then need to solve is
 
-$$Z^3 - (1 + B)Z^2 + AZ - AB = 0$$
+$$Z^3 - (1 + B)Z^2 + AZ - AB = 0~.$$
 
 A similar result can be obtained for any cubic equation.
 """
@@ -185,7 +185,7 @@ end
 
 # ╔═╡ 8ef607ea-4c80-4da6-a209-ce34cf6fb55f
 md"""
-Under saturated conditions, the middle root never has physical meaning. Note also the line marked **pressure construction**. For a pure saturated fluid, an isotherm has **constant temperature**. This is not typically captured by an equation of state, so when designing software, care should be taken that calculations of pressure are physical and correct.
+Under saturated conditions, the middle root never has physical meaning. Note also the line marked **pressure construction**. For a pure saturated fluid, an isotherm has, by definition, **constant temperature**. This is not typically captured by an equation of state, so when designing software, care should be taken that calculations of pressure are physical and correct.
 
 Let's now solve the van der Waals equation for the volume roots and see if our answers make sense.
 """
@@ -209,6 +209,9 @@ function cubic_volume(model::ABCubicModel, p, T)
 	poly = [-A*B, A, -(1+B), 1.0] # Polynomial coefficients
 	Zvec = roots(poly) # Solve polynomial for Z
 	Vvec = Zvec.*(R*T/p) # Transform to volume
+
+
+	# Vvec = []
 	return Vvec
 end
 
@@ -222,9 +225,9 @@ end
 
 # ╔═╡ 78ac6273-5029-4aa0-9e44-caacab4e40ef
 md"""
-Now we have that working, we can see we have 3 real roots. How do we know which one to choose? We know that the smallest root is _liquidlike_, the largest root is _vapourlike_, and that the middle root has no physical meaning. From our physical knowledge of hydrogen sulfide, we can tell that it should be a gas and so we should take the vapourlike root, but this isn't something we can apply rigorously or put into our code.
+Now we have that working, we can see we have three real roots. How do we know which one to choose? We know that the smallest root should correspond to a _liquid-like_ specific volume, while the largest root corresponds to a _vapour-like_ specific volume, and that the middle root has no physical meaning. From our physical knowledge of carbon dioxide, we can tell that it should be a gas and so we should take the vapour-like root, but this isn't something we can apply rigorously or put into our code.
 
-In many situations the cubic equation will have imaginary roots, which are always unphysical and should be discarded. However, most of the time a decision between real roots has to be made. To do this, we will introduce the **gibbs free energy**, as we know that the phase with the lowest gibbs free energy (or chemical potential) will by the stable phase at the given conditions.
+In many situations the cubic equation will have imaginary roots, which are always unphysical and should be discarded. However, most of the time a decision between real roots has to be made. To do this, we will introduce the **Gibbs free energy**, as we know that the phase with the lowest gibbs free energy (or chemical potential) will be the stable phase at the given conditions.
 
 To evaluate the chemical potential, we can use
 
@@ -246,7 +249,7 @@ end
 md"""
 We can see that our lowest chemical potential is given by our third root, showing this is the most stable root and that it is the correct volume for the system.
 
-We can compare our answer for $V$ to the result calculated by Clapeyron, using 
+We can compare our answer for $v$ to the result calculated using Clapeyron, using 
 
 ```
 volume(model, p, T)
@@ -268,7 +271,7 @@ and see that we have chosen the correct root!
 md"""
 ## Statistical Associating Fluid Theory (SAFT)
 
-With equations of state based off of SAFT (e.g. ogSAFT, SAFTVRMie), we have an expression for the residual helmholtz free energy. This is expressed as a sum of different contributions,
+With SAFT (e.g. ogSAFT or SAFTVRMie) or related equations of state, we have an expression for the residual helmholtz free energy. This is written as a sum of different contributions,
 
 $$a^\mathrm{res} = a^\mathrm{seg} + a^\mathrm{chain} + a^\mathrm{assoc}~.$$
 
@@ -299,11 +302,11 @@ $$\beta\cdot(p_2 - p_1) = \ln(V_1)-\ln(V_2)$$
 $$\exp(\beta\cdot(p_2 - p_1)) = \frac{V_1}{V_2}$$
 $$V_1 = V_2\exp(\beta\cdot(p_2 - p_1))~.$$
 
-If we take $p_2$ as the specification pressure, and $p_1$ a function of $V_2$, then we have obtained a formula we can use to iterate to convergence.
+If we take $p_2$ as the specified pressure, and $p_1$ a function of $V_2$, then we have obtained a formula we can use to iterate to convergence.
 
 $$V_{i+1} = V_i \exp(\beta(V_i) \cdot (p^\mathrm{spec} - p(V_i)))$$
 
-Where every variable is evaluated at the specification temperature, $T^\mathrm{spec}$.
+where every variable is evaluated at the specified temperature, $T^\mathrm{spec}$.
 
 To increase numerical stability this is then moved to log-space
 
@@ -318,28 +321,28 @@ We now have a relation that will converge to a volume root of our equation via *
 
 ### Initial  guesses
 
-To generate liquid-like initial guesses for SAFT equations, we're going to use a method based off of the packing fraction. This is defined as
+To generate liquid-like initial guesses for SAFT equations, we're going to use a method utilising the packing fraction. This is defined as
 
-$$\eta = \frac{\frac{3\pi}{3}\cdot \left(\frac{\sigma}{2}\right)^3\cdot N_A}{V}$$
+$$\eta = \frac{\frac{3\pi}{3}\cdot \left(\frac{\sigma}{2}\right)^3\cdot N_\mathrm{A}}{V}$$
 
-where $\sigma$ is the segment size and $N_A$ is Avogadro's number.
+where $\sigma$ is the segment size and $N_\mathrm{A}$ is Avogadro's number.
 """
 
 # ╔═╡ 2c4e32b3-0eee-427b-bace-e723952d2e5b
 md"""
-The packing fraction can visually be seen as the point at which all space in a given volume is taken up by fluid molecules:
+The packing fraction can visually be seen as the proportion of all space in a given volume taken up by fluid molecules:
 """
 
 # ╔═╡ 5b8815a8-a079-4b8f-a618-2d48269812b8
-@htl("""<center><img src="https://raw.githubusercontent.com/lucpaoli/introduction-to-computational-thermodynamics/main/Part%203%20-%20Solving%20the%20problems/assets/packing_fraction_limit.jpg" height="220"></center>""")
+@htl("""<center><img src="https://raw.githubusercontent.com/lucpaoli/introduction-to-computational-thermodynamics/main/Part%203%20-%20Solving%20the%20problems/assets/packing_fraction.png" height="220"></center>""")
 
 # ╔═╡ aa58fba4-9450-4aa2-8679-5dc953ff730e
 md"""
-As we take the limit of the packing fraction to one, 
+Since we are just looking for a good initial guess, for convenience we can ignore the physical upper bound on $\eta$, and take the limit of the packing fraction to one:
 
 $$1 = \frac{\frac{\pi}{6}\cdot N_A\cdot \sigma^3}{V}$$
 
-Giving us the expression for our volume guess as
+giving us the expression for our volume guess as
 
 $$V_0^\mathrm{liq} = \frac{\pi}{6}\cdot N_A \cdot \sigma^3~.$$
 """
@@ -350,7 +353,7 @@ For the vapour-like initial guesses we can use the ideal gas equation
 
 $$V^\mathrm{vap} = \frac{nRT}{p}~.$$
 
-It would be possible to improve this by including further terms of the Virial equation, for example
+It would be possible to improve this by including further terms of the virial expansion, for example
 
 $$Z^\mathrm{vap} = 1 + \frac{B(T)}{V}$$
 
@@ -359,7 +362,7 @@ but this isn't necessary for now, as the sequence defined by equation (2) genera
 
 # ╔═╡ 852f0913-187a-4a88-b62e-f7597c6663dc
 md"""
-It is typical for PCSAFT to have three roots, though it can have up to five! Five roots can usually only occur in unphysical scenarios, such as the example in [^2] of a decane isotherm at 135 K. Generally, this does not prove too much of an issue, though it emphasises the need for reasonable initial guesses, as convergence to unexpected and unphysical volume roots or critical points does become a possibility.
+It is typical for PCSAFT to have three roots, though it can have up to five! Five roots can usually only occur in unphysical scenarios, such as the example in [^2] of a decane isotherm at 135 K. Generally, this does not prove too much of an issue, although it emphasises the need for reasonable initial guesses, as convergence to unexpected and unphysical volume roots or critical points does become a possibility.
 """
 
 # ╔═╡ 07c9b193-3ca8-47e7-91ad-0492e2dddf2c
@@ -444,7 +447,7 @@ The ```volume_guess``` function for the liquid phase directly indexes the model 
 """
 	volume_guess(model, p, T, phase)
 
-Generates initial guessses for the a volume solver. The liquid phase initial guess is based off of the packing fraction limit, and the vapour phase guess is based off of the ideal gas equation.
+Generates initial guessses for the a volume solver. The liquid phase initial guess is based on the packing fraction limit, and the vapour phase guess is based on the ideal-gas equation.
 """
 function volume_guess(model::SAFTModel, p, T, phase)
 	if phase == :liquid
@@ -462,7 +465,7 @@ end
 
 # ╔═╡ ad443d16-38d5-4a39-b9a8-28576e40d52e
 md"""
-In this implementation of ```SAFT_volume```, ```abstol``` and ```maxiters``` are **keyword arguments**. These are optional when calling the function, and have given default values. For example, you could either call
+In this implementation of ```SAFT_volume```, ```abstol``` and ```maxiters``` [^3] are **keyword arguments**. These have given default values and so are optional when calling the function. For example, you could either call
 
 ```
 SAFT_volume(model, p, T, phase)
@@ -479,7 +482,7 @@ you can read more about keyword arguments [here](https://docs.julialang.org/en/v
 """
 	SAFT_volume(model, p, T, phase; abstol=1e-9, maxiters=100)
 
-Solves an equation of state for a volume root. The root converged to is chosen by the initial guess, which is specified by the phase argument. The phase can either be liquid, ```:liquid```, or vapour, ```:vapour```.
+Solves an equation of state for a volume root. The root converged to is dictated by the initial guess, which is specified by the phase argument. The phase can either be liquid, ```:liquid```, or vapour, ```:vapour```.
 """
 function SAFT_volume(model, p, T, phase;
 					abstol=1e-9,
@@ -524,8 +527,11 @@ end
 
 # ╔═╡ fea36d6d-572d-4421-8616-ea59820c225e
 md"""
-We can again compare our answer to Clapeyron
+We can again compare our answer to the volume obtained when using Clapeyron directly.
 """
+
+# ╔═╡ 372202a7-99d0-4b02-b5e9-99740c2a4023
+V_SAFT ≈ volume(SAFT_model, p, T)
 
 # ╔═╡ fc58d8f6-9647-4331-bebd-624ba7d75e7f
 md"""
@@ -689,13 +695,15 @@ We can see fairly rapid convergence, though it does become clear that our initia
 # ╔═╡ 73acffd2-3f5e-4a6b-b135-1e128eac0577
 md"""
 ## Helmholtz-Explicit (e.g. GERG, IAPWS-95)
-Because the volume solver we developed for SAFT is a non-linear solver making no assumptions about the form of the equation of state other than that it can be expressed explicitly in terms of the Helmholtz free energy, we can actually use that solver directly with any other equation of state!
-The only issue encountered with this is we need to re-think our initial guesses. This is generally dependent on the model used in question.
+Because the volume solver we developed for SAFT is a non-linear solver (where we make no assumptions about the form of the equation of state other than that it can be expressed explicitly in terms of the Helmholtz free energy), we can actually use that solver directly with any other equation of state!
+The only issue encountered with this is that we need to re-think our approach to the generation of initial guesses. The approach used typically differs according to the "class" of the equation of state in use.
 """
 
 # ╔═╡ b4c2baf6-5433-45e0-b191-b43c38f346ef
 md"""
-Helmholtz-Explicit equations of state now have more than 3 volume roots within the saturated region. This introduces some additional risk when solving for the volume for converging to the incorrect root, but for these equations of state there are usually well-defined methods for generating initial guesses, such as a known solution to the IAPWS-95 saturation curve, or a select reference fluid for the GERG-2004 model.
+Helmholtz-explicit equations of state often have more than three volume roots within the saturation envelope. This introduces some additional risk when solving for the volume, as converging to the incorrect root can become more likely.
+
+Luckily, for these equations of state there are usually well-defined methods for generating good initial guesses, such as a known solution to the IAPWS-95 saturation curve, or a select reference fluid for the GERG-2004 model. A good initial guess massively reduces the risk of incorrect convergence, making these models very reliable to use. 
 """
 
 # ╔═╡ 8af302d2-371e-457d-a0de-06819d01df92
@@ -833,7 +841,12 @@ md"""
 """
 
 # ╔═╡ 2d294f2c-2b68-4dbb-8f28-1d57e113f674
-# DOI("10.1016/j.fluid.2010.03.041")
+DOI("10.1016/j.fluid.2010.03.041")
+
+# ╔═╡ b8c4abc0-8574-468d-9160-b54295e71867
+md"""
+[^3]: [FOOTNOTE ABOUT ABSTOL AND MAXITERS]
+"""
 
 # ╔═╡ d0b2f6bb-7539-4dda-adc9-acc2ce9cca4a
 hint(text) = Markdown.MD(Markdown.Admonition("hint", "Hint", [text]));
@@ -855,7 +868,7 @@ correct(text=rand(yays)) = Markdown.MD(Markdown.Admonition("correct", "Got it!",
 
 # ╔═╡ 54de307b-64c3-4bed-9c91-d8ab7d3ad815
 if V_cubic ≈ volume(cubic_model, p, T)
-	correct(md"You converged within machine precision!")
+	correct()
 else
 	almost(md"Not quite there, you're off by δ = $(V_SAFT - volume(SAFT_model, p, T))")
 end
@@ -897,7 +910,7 @@ begin
 			<table>
 			  <tr>
 			    <th>Root</th>
-				<th>V (m³)</th>
+				<th><i>v</i> (m³/mol)</th>
 			  </tr>
 			  <tr>
 			    <td>1</td>
@@ -963,8 +976,8 @@ begin
 			<table>
 			  <tr>
 			    <th>Root</th>
-				<th>μ</th>
-				<th>V</th>
+				<th><i>μ</i> (J/mol)</th>
+				<th><i>v</i> (m³/mol)</th>
 			  </tr>
 			  <tr>
 			    <td>1</td>
@@ -1059,8 +1072,9 @@ Unitful = "~1.11.0"
 PLUTO_MANIFEST_TOML_CONTENTS = """
 # This file is machine-generated - editing it directly is not advised
 
-julia_version = "1.7.3"
+julia_version = "1.8.0"
 manifest_format = "2.0"
+project_hash = "418d24b53c8e31fb9e4c066bc5de33480ed1ccda"
 
 [[deps.AbstractPlutoDingetjes]]
 deps = ["Pkg"]
@@ -1076,6 +1090,7 @@ version = "3.3.3"
 
 [[deps.ArgTools]]
 uuid = "0dad84c5-d112-42e6-8d28-ef12dabb789f"
+version = "1.1.1"
 
 [[deps.ArrayInterfaceCore]]
 deps = ["LinearAlgebra", "SparseArrays", "SuiteSparse"]
@@ -1192,6 +1207,7 @@ version = "3.45.0"
 [[deps.CompilerSupportLibraries_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "e66e0078-7015-5450-92f7-15fbd957f2ae"
+version = "0.5.2+0"
 
 [[deps.ConstructionBase]]
 deps = ["LinearAlgebra"]
@@ -1266,6 +1282,7 @@ version = "0.8.6"
 [[deps.Downloads]]
 deps = ["ArgTools", "FileWatching", "LibCURL", "NetworkOptions"]
 uuid = "f43a241f-c20a-4ad4-852c-f6b1247861c6"
+version = "1.6.0"
 
 [[deps.DualNumbers]]
 deps = ["Calculus", "NaNMath", "SpecialFunctions"]
@@ -1539,10 +1556,12 @@ version = "0.15.15"
 [[deps.LibCURL]]
 deps = ["LibCURL_jll", "MozillaCACerts_jll"]
 uuid = "b27032c2-a3e7-50c8-80cd-2d36dbcbfd21"
+version = "0.6.3"
 
 [[deps.LibCURL_jll]]
 deps = ["Artifacts", "LibSSH2_jll", "Libdl", "MbedTLS_jll", "Zlib_jll", "nghttp2_jll"]
 uuid = "deac9b47-8bc7-5906-a0fe-35ac56dc84c0"
+version = "7.84.0+0"
 
 [[deps.LibGit2]]
 deps = ["Base64", "NetworkOptions", "Printf", "SHA"]
@@ -1551,6 +1570,7 @@ uuid = "76f85450-5226-5b5a-8eaa-529ad045b433"
 [[deps.LibSSH2_jll]]
 deps = ["Artifacts", "Libdl", "MbedTLS_jll"]
 uuid = "29816b5a-b9ab-546f-933c-edad1886dfa8"
+version = "1.10.2+0"
 
 [[deps.Libdl]]
 uuid = "8f399da3-3557-5675-b5ff-fb832c97cbdb"
@@ -1641,6 +1661,7 @@ version = "1.0.3"
 [[deps.MbedTLS_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "c8ffd9c3-330d-5841-b78e-0817d7145fa1"
+version = "2.28.0+0"
 
 [[deps.Measures]]
 git-tree-sha1 = "e498ddeee6f9fdb4551ce855a46f54dbd900245f"
@@ -1664,6 +1685,7 @@ uuid = "a63ad114-7e13-5084-954f-fe012c677804"
 
 [[deps.MozillaCACerts_jll]]
 uuid = "14a3606d-f60d-562e-9121-12d972cd8159"
+version = "2022.2.1"
 
 [[deps.NLSolvers]]
 deps = ["IterativeSolvers", "LinearAlgebra", "PositiveFactorizations", "Printf", "Statistics"]
@@ -1684,6 +1706,7 @@ version = "0.3.7"
 
 [[deps.NetworkOptions]]
 uuid = "ca575930-c2e3-43a9-ace4-1e988b2c1908"
+version = "1.2.0"
 
 [[deps.Ogg_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -1694,10 +1717,12 @@ version = "1.3.5+1"
 [[deps.OpenBLAS_jll]]
 deps = ["Artifacts", "CompilerSupportLibraries_jll", "Libdl"]
 uuid = "4536629a-c528-5b80-bd46-f80d51c5b363"
+version = "0.3.20+0"
 
 [[deps.OpenLibm_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "05823500-19ac-5b8b-9628-191a04bc5112"
+version = "0.8.1+0"
 
 [[deps.OpenSSL_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -1766,6 +1791,7 @@ version = "0.40.1+0"
 [[deps.Pkg]]
 deps = ["Artifacts", "Dates", "Downloads", "LibGit2", "Libdl", "Logging", "Markdown", "Printf", "REPL", "Random", "SHA", "Serialization", "TOML", "Tar", "UUIDs", "p7zip_jll"]
 uuid = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
+version = "1.8.0"
 
 [[deps.PlotThemes]]
 deps = ["PlotUtils", "Statistics"]
@@ -1886,6 +1912,7 @@ version = "2.0.1"
 
 [[deps.SHA]]
 uuid = "ea8e919c-243c-51af-8825-aaa63cd721ce"
+version = "0.7.0"
 
 [[deps.Scratch]]
 deps = ["Dates"]
@@ -1995,6 +2022,7 @@ uuid = "4607b0f0-06f3-5cda-b6b1-a6196a1729e9"
 [[deps.TOML]]
 deps = ["Dates"]
 uuid = "fa267f1f-6049-4f14-aa54-33bafae1ed76"
+version = "1.0.0"
 
 [[deps.TableTraits]]
 deps = ["IteratorInterfaceExtensions"]
@@ -2011,6 +2039,7 @@ version = "1.7.0"
 [[deps.Tar]]
 deps = ["ArgTools", "SHA"]
 uuid = "a4e569a6-e804-4fa4-b0f3-eef7a1d5b13e"
+version = "1.10.0"
 
 [[deps.TensorCore]]
 deps = ["LinearAlgebra"]
@@ -2232,6 +2261,7 @@ version = "1.4.0+3"
 [[deps.Zlib_jll]]
 deps = ["Libdl"]
 uuid = "83775a58-1f1d-513f-b197-d71354ab007a"
+version = "1.2.12+3"
 
 [[deps.Zstd_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -2248,6 +2278,7 @@ version = "0.15.1+0"
 [[deps.libblastrampoline_jll]]
 deps = ["Artifacts", "Libdl", "OpenBLAS_jll"]
 uuid = "8e850b90-86db-534c-a0d3-1478176c7d93"
+version = "5.1.1+0"
 
 [[deps.libfdk_aac_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -2270,10 +2301,12 @@ version = "1.3.7+1"
 [[deps.nghttp2_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "8e850ede-7688-5339-a07c-302acd2aaf8d"
+version = "1.48.0+0"
 
 [[deps.p7zip_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
+version = "17.4.0+0"
 
 [[deps.x264_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -2328,11 +2361,12 @@ version = "0.9.1+5"
 # ╟─68cad9ec-8f72-41f1-8665-3b0fb87147de
 # ╟─87867c7c-101c-4534-b6e7-d3ebc8b81a47
 # ╠═dbb341dd-e535-470f-b43a-b28ed13a7af9
-# ╟─ad443d16-38d5-4a39-b9a8-28576e40d52e
+# ╠═ad443d16-38d5-4a39-b9a8-28576e40d52e
 # ╠═27ac6272-6d1e-4c8d-8660-5d7c049d0285
 # ╟─04299697-4527-4fc7-a8bc-0d1c1a10bea5
 # ╠═8da908bb-13b6-48e0-9023-506c9bf2a1ee
 # ╟─fea36d6d-572d-4421-8616-ea59820c225e
+# ╠═372202a7-99d0-4b02-b5e9-99740c2a4023
 # ╟─2d740e80-c450-46c2-9086-75f4ce23ce26
 # ╟─fc58d8f6-9647-4331-bebd-624ba7d75e7f
 # ╟─123c84a4-f363-4569-ba96-408a376fd4cf
@@ -2350,7 +2384,8 @@ version = "0.9.1+5"
 # ╟─b156c581-7828-45e9-a683-4d925216aed1
 # ╟─4acb1393-030f-4cab-a765-f8de5a75893b
 # ╟─d9835e4a-e64e-4b3a-8c3c-f9d3766b23b9
-# ╠═2d294f2c-2b68-4dbb-8f28-1d57e113f674
+# ╟─2d294f2c-2b68-4dbb-8f28-1d57e113f674
+# ╟─b8c4abc0-8574-468d-9160-b54295e71867
 # ╟─d0b2f6bb-7539-4dda-adc9-acc2ce9cca4a
 # ╟─8fe83aab-d193-4a28-a763-6420abcbb176
 # ╟─94caf041-6363-4b38-b2c2-daaf5a6aecf1

@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.9
+# v0.19.11
 
 using Markdown
 using InteractiveUtils
@@ -51,19 +51,25 @@ There is therefore a need for a mathematical description of phase stability that
 
 This description can be derived by considering the fact the Gibbs free energy being at a **global minimum**. This requires that the formation of any new phase must increase $G$.
 
-The change in Gibbs free energy upon the formation of $\delta e$ of a new phase with composition $\mathbf x$ from a prexisting mixture with composition $\mathbf z$ can be written as
+Let's suppose we have a pre-existing mixture with a composition $z$. The change in Gibbs free energy upon the formation of a small amount, $\delta e$, of a new phase with composition $\mathbf x$, can be written as
 
-$$\delta G = \delta e \sum x_i(\mu_i(\mathbf x) - \mu_i(\mathbf z))~.$$
+$$\delta G = \delta e \sum x_i(\mu_i(\mathbf x) - \mu_i(\mathbf z))$$
 
-For a mixture to be stable, we must therefore have that 
+where $\mu_i$ represents the chemical potential of species $i$.
+
+For the pre-existing mixture to be stable, it must lie at the minimum of the Gibbs free energy. This means that the formation of a new phase will increase $G$, so we must therefore have that 
+
+$$\delta G \geq 0$$
+
+for any $\delta e$. 
 
 $$\delta G \geq 0 \implies \sum x_i (\mu_i(\mathbf x) - \mu_i(\mathbf z)) \geq 0$$
 
-Physically, this represents the distance from the gibbs free energy surface at overall composition $\mathbf z$ to a tangent plane constructed at composition $\mathbf x$. Because of this we call this function the **tangent plane distance** function, or
+Physically, the sum in the above expression represents the distance from the Gibbs free-energy surface at overall composition $\mathbf z$ to a tangent plane constructed at composition $\mathbf x$. Because of this we call the sum the **tangent-plane distance** function, or $TPD$. In other words,
 
-$$TPD(\mathbf x) = \sum x_i (\mu_i(\mathbf x) - \mu_i(\mathbf z))$$
+$$TPD(\mathbf x) = \sum x_i (\mu_i(\mathbf x) - \mu_i(\mathbf z))~.$$
 
-and we can see that if $TPD \geq 0$ for all possible compositions $\mathbf x$, then our mixture must be stable. Another way of looking at this is is that if we evaluate every minima of $TPD$, and they are all positive, then the mixture is stable.
+If $TPD \geq 0$ for all possible compositions $\mathbf x$, then our mixture must be stable, i.e., no new phase will appear. Another way of looking at this is is that if we evaluate every minimum of $TPD$, and they are all positive, then the mixture is stable.
 
 The $TPD$ function can be seen visualised below:
 """
@@ -72,7 +78,7 @@ The $TPD$ function can be seen visualised below:
 md"""
 ## Unconstrained formulation
 
-We now have a function describing whether a mixture is stable or not, but how do we go about implementing this?
+We now have a function describing whether or not a mixture is stable, but how do we go about implementing this?
 
 If we were to attempt to naively program this in, we would end up with a poorly scaled constrained minimisation problem, requiring all our mole fractions sum to one. While this is possible to solve, it is more complicated than necessary.
 
@@ -80,41 +86,38 @@ If we were to attempt to naively program this in, we would end up with a poorly 
 > subject to
 >
 > $$\begin{gather}
-> 0 \leq w_i \leq 1\quad\forall i \in [1, C]\\
-> \sum w_i = 1
+> 0 \leq x_i \leq 1 \text{ for all components }i\text{, and}\\
+> \sum x_i = 1~.
 > \end{gather}$$
 
-The first change we make is expressing this in terms of the fugacity coefficients, as typically these are easier to work with. While this isn't technically true when using Clapeyron, it is still a convention that we will follow. To do this, we rewrite our chemical potential in terms of our fugacity coefficients
+The first change we make is to express this in terms of the fugacity coefficients, as typically these are easier to work with. (While this isn't technically true when using Clapeyron, it is still a convention that we will follow.) To do this, we rewrite our chemical potential in terms of our fugacity coefficients $\varphi_i$
 
-$$\mu_i = \mu_i^* + RT\ln\frac{f_i}{P^\mathrm{ref}} = \mu_i^* + RT(\ln x_i + \ln \varphi_i)$$
+$$\mu_i = \mu_i^* + RT\ln\frac{f_i}{p^\mathrm{ref}} = \mu_i^* + RT(\ln x_i + \ln \varphi_i)$$
 
-noting that $P^\mathrm{ref}$ is taken as one. Our function is now 
+noting that $p^\mathrm{ref}$ is the chosen reference pressure (for example, one bar) and $\mu_i^*$ is the ideal chemical potential. Our function is now 
 
-$$TPD(\mathbf x) = \sum x_i (\ln x_i + \ln \varphi_i(\mathbf x) - \ln x_i - \ln \varphi_i(\mathbf z))$$
+$$TPD(\mathbf x) = RT\sum x_i (\ln x_i + \ln \varphi_i(\mathbf x) - \ln z_i - \ln \varphi_i(\mathbf z))$$
 
 and we then define a "helper variable", $d_i$, to simplify our expression
 
-$$d_i = \ln z_i - \ln\varphi_i(\mathbf z)$$
+$$d_i = \ln z_i + \ln\varphi_i(\mathbf z)$$
 
 To better scale our problem we use the same $RT$ scaling factor as before
 
 $$tpd = \frac{TPD}{RT} = \sum x_i (\ln x_i + \ln φ_i(\mathbf x) - d_i)$$
-where
 
-$$d_i = \ln z_i + \ln \varphi_i(\mathbf z)$$
-
-Finally, we remove the mass balance constraints by reformulating changing it to be a function of mole numbers, $\mathbf X$,
+Finally, we remove the mass balance constraints by reformulating the minimisation problem as a function of mole numbers, $\mathbf X$. When doing so, we introduce a related but new function $tm(\mathbf X)$, which turns out to be more convenient (see [^3]).
 
 $$tm(\mathbf X) = 1 + \sum_i X_i (\ln X_i + \ln \varphi_i(\mathbf X) - d_i - 1)~.$$
 
-Because of this change $tm$ no longer describes the tangent plane distance, however it can be shown that [1]
+Because of this change $tm$ no longer describes the tangent plane distance, however it can be shown that [^1]
 
 $$\begin{gather}
 tm < 0 \iff TPD < 0\\
 \min tm \iff \min TPD
 \end{gather}$$
 
-meaning $tm$ can be used nearly identically to $TPD$ in the context of stability analysis. We should also note that a positive value of $tm$, does **not necessarily** imply a positive value of $TPD$. This means that if no negative value of $tm$ is located, we should also check the value of $TPD$ at each minima [^2].
+meaning $tm$ can be used nearly identically to $TPD$ in the context of stability analysis. We should also note that a positive value of $tm$, does **not necessarily** imply a positive value of $TPD$. This means that if no negative value of $tm$ is located, we should also check the value of $TPD$ at each minimum [^2].
 
 > $$\min tm(p^\mathrm{spec}, T^\mathrm{spec}, \mathbf z^\mathrm{spec}, \mathbf X)$$
 > subject to
@@ -132,7 +135,7 @@ This method is applicable to any number of components, though is easiest to visu
 md"""
 ## Implementation
 
-Now we're familiar with our problem, and we have an objective function let's implement it.
+Now we're familiar with our problem, and we have an objective function, let's implement it.
 
 This will be split into three stages:
 
@@ -140,12 +143,12 @@ This will be split into three stages:
 * Specify $p, T, \mathbf{z}$
 ###### 2. Generate initial guesses
 * Use a correlation to obtain $\mathbf{x}_0$
-###### 3. Minimise our objective function $tm$
-* Use an optimisation algorithm to minimise the tangent plane distance
+###### 3. Minimise our objective function, $tm$
+* Use an optimisation algorithm to minimise the tangent-plane distance
 
 ### 1. State and model specification
 
-We're going to use a predictive cubic, EPPR78, to capture nonidealities with the binary interaction coefficient. The components, temperature, pressure, and composition are all from Example 1.
+We're going to use a predictive cubic equation of state, EPPR78, to capture nonidealities with the binary interaction coefficient. The components, temperature, pressure, and composition are all from Example 1.
 """
 
 # ╔═╡ e2525963-2931-4bd4-ba32-207dc3f2413f
@@ -207,9 +210,15 @@ end;
 md"""
 ### 2. Generate initial guesses
 
-$$\ln K_i = \ln \frac{P_{c,i}}{P_i} + 5.373(1+\omega_i)\left(1-\frac{T_{c,i}}{T}\right)$$
+$$\ln K_i = \ln \frac{p_{c,i}}{p_i} + 5.373(1+\omega_i)\left(1-\frac{T_{c,i}}{T}\right)$$
 
-The Wilson approximation is based on the ideal solution approximation, and is structured to match pure component vapour pressure at $T_r = 0.7$ and $T_r = 1.0$. It relies on the **critical temperature and pressure** as well as the **acentric factor**, all easily obtainable properties of the pure components. While it generally performs quite well, especially for mixtures relevant to the petrochemical industry, it has very poor predictions when used with hydrogen.
+where $K_i$ represents the K-factor,
+
+$$K_i = \frac{x_i^\mathrm{vap}}{x_i^\mathrm{liq}}$$
+
+and $\omega_i$ represents the acentric factor (or acentricity) of species $i$.
+
+The Wilson correlation is based on the ideal-solution approximation, and is structured to match pure-component vapour pressure at $T_r = 0.7$ and $T_r = 1.0$. It relies on the **critical temperature and pressure** as well as the **acentric factor**, all widely tabulated properties of the pure components. While it generally performs quite well, especially for mixtures relevant to the petrochemical industry, it has very poor predictions when used with hydrogen.
 
 To calculate Wilson K-factors we use the function supplied by Clapeyron:
 ```julia
@@ -229,24 +238,24 @@ function chemical_stability_analysis(model, p, T, z)
 	Kʷ = wilson_k_values(model, p, T)
 	z = z ./ sum(z)
 	# Generate initial guesses
-	w_vap = normalize(z ./ Kʷ, 1) # vapour-like
-	w_liq = normalize(Kʷ .* z, 1) # liquid-like
-	w0_vec = [w_liq, w_vap]
+	x_vap = normalize(z ./ Kʷ, 1) # vapour-like
+	x_liq = normalize(Kʷ .* z, 1) # liquid-like
+	x0_vec = [x_liq, x_vap]
 
 	# Objective function - Unconstrained formulation in mole numbers
 	φ(x) = fugacity_coefficient(model, p, T, x)
 	d(x) = log.(x) .+ log.(φ(x))
 	d_z = d(z)
 
-	tm(W) = 1.0 + sum(W .* (d(W) .- d_z .- 1.0))
-	f(W, _) = tm(exp.(W))
+	tm(X) = 1.0 + sum(X .* (d(X) .- d_z .- 1.0))
+	f(X, _) = tm(exp.(X))
 
 	# Solve for our liquid and vapour guesses
 	optf = OptimizationFunction(f, Optimization.AutoForwardDiff())
-	prob(w0) = OptimizationProblem(optf, log.(w0))
-	sol(w0) = solve(prob(w0), Newton())
+	prob(x0) = OptimizationProblem(optf, log.(x0))
+	sol(x0) = solve(prob(x0), Newton())
 	# Evaluate solutions
-	sol_vec = sol.(w0_vec)
+	sol_vec = sol.(x0_vec)
 
 	# Extract minimum
 	tm_min, idx = findmin([s.minimum for s in sol_vec])
@@ -268,42 +277,22 @@ tp_flash(model, p, T, z)
 
 # ╔═╡ 9f8aa417-5887-4294-b497-3925f9cd7ded
 @htl("""
-We can see that our value of tpd_min, $(round(tpd_min;sigdigits=4)), is less than 0. This correctly suggests that our mixture is unstable and a phase split will occur.
-
-On top of this, if we plot the minimum point we see it's incredibly close to the actual value of the equilibrium values - this secondary function of providing initial guesses to the flash solver is part of what makes stability analysis via the Gibbs tangent plane so powerful.
+We can see that our value of tpd_min, $(tpd_min<0 ? "– " : "")$(abs(round(tpd_min;sigdigits=4))), is less than zero. This correctly suggests that our mixture is unstable and a phase split will occur.
 """)
+
+# ╔═╡ d6ec4f45-184a-4857-b6de-2916fd812bcb
+md"""
+On top of this, if we plot the minimum point we see it's incredibly close to the actual value of the equilibrium values; this secondary function of providing initial guesses to the flash solver is part of what makes stability analysis via the Gibbs tangent plane so powerful.
+"""
 
 # ╔═╡ ebeff010-8e3e-4ab6-8215-d4b9d80288d2
 md"""
-In certain cases, this can provide incredibly good initial guesses
+In certain cases, this can provide incredibly good initial guesses:
 """
 
 # ╔═╡ c8cdbae6-118d-4636-8205-47fde2a72e01
 md"""
-Though this is, unfortunately, not the norm. Otherwise, we often obtain pretty good initial guesses, though not perfect. For example, with an octane + ethane mixture
-"""
-
-# ╔═╡ 0b018495-b1ad-46b0-af2a-dde532cf3442
-md"""
-## Problems and difficulties
-
-However, our stability analysis algorithm is not foolproof. If we begin to increase the temperature from our state above, we approach the critical point of Methane and a third phase begins to appear. You can see this below using our Newton algorithm we converge to the incorrect minima.
-
-We now have two minima very close to one another, and converging to the "correct" point can become very difficult without using more expensive optimisation techniques. 
-"""
-
-# ╔═╡ 217bbc70-3db5-4368-8819-0fabb9071637
-begin
-	T2 = 189.7
-	tm_xmin2, tm_min2 = chemical_stability_analysis(model, p, T2, z)
-end
-
-# ╔═╡ 9d0d9c0d-5964-4507-b71a-4802915f4bb8
-md"""
-Techniques for more robust stability analysis include:
-- Multistart - here we start from a vapour-like and a liquid-like initial guess, but it would be possible to generate many more starting points through permutations to our initial guess or randomly generated points.
-- Stochastic methods - evolutionary algorithms are typically quite good at finding global minima, but come with considerable expense.
-- Tunnelling - Tunnelling algorithms have found considerable use in stability analysis, notably used in the HELD algorithm [^3]
+Unfortunately, however, this is not the norm. Nevertheless, the initial guesses obtained are often still pretty good. For example an octane + ethane mixture:
 """
 
 # ╔═╡ bfc93f97-258b-482f-bd4f-3781e7fd548f
@@ -369,52 +358,9 @@ let
     plot!([flash_xmin[1], flash_ymin[1]], [gᴹ(flash_xmin), gᴹ(flash_ymin)], label="equilibrium tangent plane", linewidth=3, linestyle=:dash)
 
 	tm_xmin, tpd_min = chemical_stability_analysis(model, p, T, z)
-	scatter!([tm_xmin[1]], [gᴹ(tm_xmin)], markersize=4, markercolour=:black, label="tm minimum")
+	scatter!([tm_xmin[1]], [gᴹ(tm_xmin)], markersize=4, markercolour=:black, label="initial guess (tm minimum)")
 	fig9
 end
-
-# ╔═╡ 51f6e633-e954-4542-badc-5ddb178509d1
-let # Fig 7
-	gr()
-    model = EPPR78(["methane", "hydrogen sulfide"])
-
-    p = 4.052e6
-    T = 190.5
-    z = ones(2)/2
-
-    gⱽ(z) = gibbs_free_energy(model, p, T, z; phase=:vapour) ./ (R * T)
-    gᴸ(z) = gibbs_free_energy(model, p, T, z; phase=:liquid) ./ (R * T)
-    gᴹ(z) = mixing(model, p, T, z, gibbs_free_energy) ./ (R * T)
-	
-    x_out, nvals, best_f = tp_flash(model, p, T, z, DETPFlash(time_limit=5))
-	# x_out = multiphase_flash(model, p, T, z)
-    flash_xmin = x_out[1, :]
-    flash_ymin = x_out[2, :]
-
-    # Returns function describing our tangent plane
-    tangent_plane(w) = tangent_line(x -> gᴹ([x, 1 - x]), w[1])
-
-    flash_tangent = tangent_plane(flash_xmin)
-	
-    global fig7 = plot(title="Gibbs free energy of mixing in a\nCH₄ + H₂S mixture\n",
-        ylabel=L"Δg^{\mathrm{mix}}/RT", xlabel=L"x, y~(\mathrm{CH}_4)", yguidefontsize=16, xguidefontsize=16, legendfont=font(10), framestyle=:box, tick_direction=:out, grid=:off, ylim = (-0.08, 0.10), xlim=(0.0, 1.0)
-    )
-
-    x_range = range(1e-3, 1 - 1e-3, 200)
-    z_range = [[x, 1 - x] for x in x_range]
-    plot!(x_range, gᴹ.(z_range), label="Δg surface", linewidth=2)
-    annotate!(0.71, 0.08, text("T=$(T) K\np=$(p/1e6) MPa", :black, :left, 14))
-
-    flash_range = range(flash_xmin[1], flash_ymin[1], 3)
-    plot!([flash_xmin[1], flash_ymin[1]], [gᴹ(flash_xmin), gᴹ(flash_ymin)], label="equilibrium tangent plane", linewidth=3, linestyle=:dash)
-
-	scatter!([tm_xmin2[1]], [gᴹ(tm_xmin2)], markersize=4, markercolour=:black, label="tm minimum")
-	# stability_range = [0.01, 0.99]
-    plot!(legend=:topleft)
-end;
-
-# ╔═╡ 3dafafd0-99ea-4f36-82ae-4a28d090c866
-fig7
 
 # ╔═╡ a0b8bd11-282c-4bc6-9458-668bd9b007eb
 # Fig 1, 5, 6, 8
@@ -488,7 +434,7 @@ let
 	
     plot!([flash_xmin[1], flash_ymin[1]], [gᴹ(flash_xmin), gᴹ(flash_ymin)], label="equilibrium tangent plane", linewidth=3, linestyle=:dash)
 
-	scatter!([tm_xmin[1]], [gᴹ(tm_xmin)], markersize=4, markercolour=:black, label="tm minimum")
+	scatter!([tm_xmin[1]], [gᴹ(tm_xmin)], markersize=4, markercolour=:black, label="initial guess (tm minimum)")
 	
 	global fig8 = plot(title="Tangent plane distance for a CH₄ + H₂S mixture",
         ylabel=L"TPD", xlabel=L"x~(\mathrm{CH}_4)", yguidefontsize=16, xguidefontsize=16, legendfont=font(10), framestyle=:box, tick_direction=:out, grid=:off, xlim=(0.0, 1.0), legend=:topleft
@@ -661,8 +607,9 @@ ShortCodes = "~0.3.3"
 PLUTO_MANIFEST_TOML_CONTENTS = """
 # This file is machine-generated - editing it directly is not advised
 
-julia_version = "1.7.3"
+julia_version = "1.8.0"
 manifest_format = "2.0"
+project_hash = "83f7ff23ebc683d0813e51d33bd26f1ec01bd09a"
 
 [[deps.AbstractPlutoDingetjes]]
 deps = ["Pkg"]
@@ -683,6 +630,7 @@ version = "3.3.3"
 
 [[deps.ArgTools]]
 uuid = "0dad84c5-d112-42e6-8d28-ef12dabb789f"
+version = "1.1.1"
 
 [[deps.ArrayInterfaceCore]]
 deps = ["LinearAlgebra", "SparseArrays", "SuiteSparse"]
@@ -823,6 +771,7 @@ version = "3.45.0"
 [[deps.CompilerSupportLibraries_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "e66e0078-7015-5450-92f7-15fbd957f2ae"
+version = "0.5.2+0"
 
 [[deps.ConsoleProgressMonitor]]
 deps = ["Logging", "ProgressMeter"]
@@ -908,6 +857,7 @@ version = "0.8.6"
 [[deps.Downloads]]
 deps = ["ArgTools", "FileWatching", "LibCURL", "NetworkOptions"]
 uuid = "f43a241f-c20a-4ad4-852c-f6b1247861c6"
+version = "1.6.0"
 
 [[deps.DualNumbers]]
 deps = ["Calculus", "NaNMath", "SpecialFunctions"]
@@ -1223,10 +1173,12 @@ version = "0.1.3"
 [[deps.LibCURL]]
 deps = ["LibCURL_jll", "MozillaCACerts_jll"]
 uuid = "b27032c2-a3e7-50c8-80cd-2d36dbcbfd21"
+version = "0.6.3"
 
 [[deps.LibCURL_jll]]
 deps = ["Artifacts", "LibSSH2_jll", "Libdl", "MbedTLS_jll", "Zlib_jll", "nghttp2_jll"]
 uuid = "deac9b47-8bc7-5906-a0fe-35ac56dc84c0"
+version = "7.84.0+0"
 
 [[deps.LibGit2]]
 deps = ["Base64", "NetworkOptions", "Printf", "SHA"]
@@ -1235,6 +1187,7 @@ uuid = "76f85450-5226-5b5a-8eaa-529ad045b433"
 [[deps.LibSSH2_jll]]
 deps = ["Artifacts", "Libdl", "MbedTLS_jll"]
 uuid = "29816b5a-b9ab-546f-933c-edad1886dfa8"
+version = "1.10.2+0"
 
 [[deps.Libdl]]
 uuid = "8f399da3-3557-5675-b5ff-fb832c97cbdb"
@@ -1331,6 +1284,7 @@ version = "1.1.0"
 [[deps.MbedTLS_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "c8ffd9c3-330d-5841-b78e-0817d7145fa1"
+version = "2.28.0+0"
 
 [[deps.Measures]]
 git-tree-sha1 = "e498ddeee6f9fdb4551ce855a46f54dbd900245f"
@@ -1354,6 +1308,7 @@ uuid = "a63ad114-7e13-5084-954f-fe012c677804"
 
 [[deps.MozillaCACerts_jll]]
 uuid = "14a3606d-f60d-562e-9121-12d972cd8159"
+version = "2022.2.1"
 
 [[deps.Mustache]]
 deps = ["Printf", "Tables"]
@@ -1392,6 +1347,7 @@ version = "0.3.7"
 
 [[deps.NetworkOptions]]
 uuid = "ca575930-c2e3-43a9-ace4-1e988b2c1908"
+version = "1.2.0"
 
 [[deps.Observables]]
 git-tree-sha1 = "dfd8d34871bc3ad08cd16026c1828e271d554db9"
@@ -1407,10 +1363,12 @@ version = "1.3.5+1"
 [[deps.OpenBLAS_jll]]
 deps = ["Artifacts", "CompilerSupportLibraries_jll", "Libdl"]
 uuid = "4536629a-c528-5b80-bd46-f80d51c5b363"
+version = "0.3.20+0"
 
 [[deps.OpenLibm_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "05823500-19ac-5b8b-9628-191a04bc5112"
+version = "0.8.1+0"
 
 [[deps.OpenSSL_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -1497,6 +1455,7 @@ version = "0.40.1+0"
 [[deps.Pkg]]
 deps = ["Artifacts", "Dates", "Downloads", "LibGit2", "Libdl", "Logging", "Markdown", "Printf", "REPL", "Random", "SHA", "Serialization", "TOML", "Tar", "UUIDs", "p7zip_jll"]
 uuid = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
+version = "1.8.0"
 
 [[deps.PlotThemes]]
 deps = ["PlotUtils", "Statistics"]
@@ -1642,6 +1601,7 @@ version = "2.0.1"
 
 [[deps.SHA]]
 uuid = "ea8e919c-243c-51af-8825-aaa63cd721ce"
+version = "0.7.0"
 
 [[deps.SciMLBase]]
 deps = ["ArrayInterfaceCore", "CommonSolve", "ConstructionBase", "Distributed", "DocStringExtensions", "IteratorInterfaceExtensions", "LinearAlgebra", "Logging", "Markdown", "RecipesBase", "RecursiveArrayTools", "StaticArraysCore", "Statistics", "Tables", "TreeViews"]
@@ -1762,6 +1722,7 @@ uuid = "4607b0f0-06f3-5cda-b6b1-a6196a1729e9"
 [[deps.TOML]]
 deps = ["Dates"]
 uuid = "fa267f1f-6049-4f14-aa54-33bafae1ed76"
+version = "1.0.0"
 
 [[deps.TableTraits]]
 deps = ["IteratorInterfaceExtensions"]
@@ -1778,6 +1739,7 @@ version = "1.7.0"
 [[deps.Tar]]
 deps = ["ArgTools", "SHA"]
 uuid = "a4e569a6-e804-4fa4-b0f3-eef7a1d5b13e"
+version = "1.10.0"
 
 [[deps.TensorCore]]
 deps = ["LinearAlgebra"]
@@ -2035,6 +1997,7 @@ version = "1.4.0+3"
 [[deps.Zlib_jll]]
 deps = ["Libdl"]
 uuid = "83775a58-1f1d-513f-b197-d71354ab007a"
+version = "1.2.12+3"
 
 [[deps.Zstd_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -2063,6 +2026,7 @@ version = "0.15.1+0"
 [[deps.libblastrampoline_jll]]
 deps = ["Artifacts", "Libdl", "OpenBLAS_jll"]
 uuid = "8e850b90-86db-534c-a0d3-1478176c7d93"
+version = "5.1.1+0"
 
 [[deps.libfdk_aac_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -2085,10 +2049,12 @@ version = "1.3.7+1"
 [[deps.nghttp2_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "8e850ede-7688-5339-a07c-302acd2aaf8d"
+version = "1.48.0+0"
 
 [[deps.p7zip_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
+version = "17.4.0+0"
 
 [[deps.x264_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -2129,15 +2095,11 @@ version = "0.9.1+5"
 # ╠═5accf1cf-4475-4ddd-862a-b30b105462d9
 # ╠═601fb988-665a-4bb4-a412-eaa995b932f1
 # ╟─9f8aa417-5887-4294-b497-3925f9cd7ded
+# ╟─d6ec4f45-184a-4857-b6de-2916fd812bcb
 # ╟─ebeff010-8e3e-4ab6-8215-d4b9d80288d2
 # ╟─9890eb1e-cc4e-4d9a-a47e-348c624a2934
 # ╟─c8cdbae6-118d-4636-8205-47fde2a72e01
 # ╟─58dabd1a-c5ca-49f5-9af1-60e86838c93a
-# ╟─0b018495-b1ad-46b0-af2a-dde532cf3442
-# ╟─51f6e633-e954-4542-badc-5ddb178509d1
-# ╟─217bbc70-3db5-4368-8819-0fabb9071637
-# ╟─3dafafd0-99ea-4f36-82ae-4a28d090c866
-# ╟─9d0d9c0d-5964-4507-b71a-4802915f4bb8
 # ╟─bfc93f97-258b-482f-bd4f-3781e7fd548f
 # ╟─30692b0e-6029-40a2-98a5-d8803304ff7e
 # ╟─ece3c292-448b-445b-8eea-f94a6b9ffbaf

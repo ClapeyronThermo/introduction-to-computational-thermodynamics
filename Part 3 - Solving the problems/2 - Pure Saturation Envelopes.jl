@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.9
+# v0.19.11
 
 using Markdown
 using InteractiveUtils
@@ -21,13 +21,13 @@ end
 md"""
 # Section 3.2 - Saturation solvers for pure substances
 
-According to the Gibbs phase rule, we only have 1 degree of freedom along the saturation curves for a pure substance. This means that we should be able to specify either pressure or temperature and determine the corresponding saturated point.
+According to the Gibbs phase rule, we have one degree of freedom along the saturation curves for a pure substance. This means that we should be able to specify either pressure or temperature and determine the corresponding saturated point.
 
-This can be solved in 2 ways, either as an optimisation problem formulated in just pressure or chemical potential, or a root-finding problem using both equations. Generally root-finding problems are easier to solve numerically, so that formulation is generally preferable.
+This can be solved in two ways, either as an optimisation problem formulated in just pressure or chemical potential, or a root-finding problem. Generally root-finding problems are easier to solve numerically, so most often this is the formulation that is preferable.
 
-## Specification of equilibrium
+## Specification of phase equilibrium
 
-We know at equilibrium we have the equivalence of temperature, pressure, and chemical potential between phases. For vapour-liquid equilibrium this could be written as 
+We know that at equilibrium we have the equalities of temperature, pressure, and chemical potential between phases. For vapour-liquid equilibrium this could be written as
 
 $$\begin{align}
 T^\mathrm{vap} &= T^\mathrm{liq}\tag{1}\\
@@ -35,19 +35,21 @@ p^\mathrm{vap} &= p^\mathrm{liq}\tag{2}\\
 \mu^\mathrm{vap} &= \mu^\mathrm{liq}~.\tag{3}
 \end{align}$$
 
-As we are iterating using two variables, we need to select two of the three equations to "complete" our problem. While any two could be used, solving for temperature is far more expensive than solving for pressure and chemical potential. This is because equations of state are generally not analytically solvable for temperature, meaning they would require an additional inner loop to solve for this. Therefore we solve for equilibrium using equations (1) and (3).
+To distinguish between the phases, we must use a property that takes a different value in each. A suitable choice is the specific volume, or density. This provides two "iteration" variables: $v^\mathrm{liq}$ and $v^\mathrm{vap}$.
+
+As we are iterating using two variables, we need to select two of the three equations to "complete" our problem. While any two could be used, solving for temperature is far more expensive than solving for pressure or chemical potential. This is because equations of state are generally not analytically solvable for temperature, meaning they would require an additional inner loop to solve for this. Therefore we solve for equilibrium using equations (2) and (3).
 
 This is a root-finding problem in $\mathbb R^2$, with an objective function $F$ defined as
 
 $$F : \mathbb R^{2} \to \mathbb R^{2}$$
 
 $$F : \left[\begin{split}
-V^\mathrm{liq}\\
-V^\mathrm{vap}
+v^\mathrm{liq}\\
+v^\mathrm{vap}
 \end{split}\right]
 \to
 \left[\begin{split}
-T^\mathrm{liq} - T^\mathrm{vap} = 0\\
+p^\mathrm{liq} - p^\mathrm{vap} = 0\\
 \mu^\mathrm{liq} - \mu^\mathrm{vap} = 0
 \end{split}\right]~.$$
 """
@@ -59,7 +61,7 @@ When solving our problem, properly scaling our equations is very important. Part
 
 $$|f(x)| < ϵ$$
 
-where ϵ is a **user-defined tolerance**. By using these scaling factors, our variables are similarly-sized, and the system of equations is better behaved. The typical scaling factors for the thermodynamic variables are given by the table below.
+where ϵ is a **user-defined tolerance**. By using scaling factors, our variables are similarly-sized, and the system of equations is better behaved. The typical scaling factors for the thermodynamic variables are given by the table below.
 """
 
 # ╔═╡ d6f55d1e-a9c4-49c5-9ec3-14d51d0781e8
@@ -73,25 +75,25 @@ where ϵ is a **user-defined tolerance**. By using these scaling factors, our va
 		  </tr>
 		  <tr>
 		    <th>Pressure</th>
-		    <td>P<sub>C</sub></td>
-		    <td>R⋅ϵ/(N<sub>A</sub>⋅σ³)</td>
+		    <td><i>P</i><sub>c</sub></td>
+		    <td><i>R⋅ϵ</i>/(<i>N</i><sub>A</sub>⋅<i>σ</i>³)</td>
 		  </tr>
 		  <tr>
 		    <th>Temperature</th>
-		    <td>T<sub>C</sub></td>
-		    <td>ϵ</td>
+		    <td><i>T</i><sub>c</sub></td>
+		    <td><i>ϵ</i></td>
 		  </tr>
 		  <tr>
-			<th>Molar Energies (e.g. μ, g, a)</th>
-		    <td>R⋅T</td>
-			<td>R⋅T</td>
+			<th>Molar Energies (e.g. <i>μ</i>, <i>g</i>, <i>a</i>)</th>
+		    <td><i>R⋅T</i></td>
+			<td><i>R⋅T</i></td>
 		  </tr>
 		</table>
 		""")
 
 # ╔═╡ 103b01a4-971a-44b1-be08-b3e59d952dcb
 md"""
-using Clapeyron, we can access the pressure and temperature scaling factors using 
+Using Clapeyron, we can access the pressure and temperature scaling factors using 
 
 ```julia
 ps = p_scale(model)
@@ -101,7 +103,7 @@ Ts = T_scale(model)
 
 # ╔═╡ b7b778eb-6f77-4183-8c67-76cb2aa3c25c
 md"""
-Another technique often used is using logs to scale variables scanning multiple orders of magnitude. This frequently comes up with volumes, with liquid and vapour volumes varying by up to 1000x.
+Another technique often adopted is using logs to scale variables scanning multiple orders of magnitude. This frequently arises in relation to volumes, with liquid and vapour volumes varying by up to 1000x.
 """
 
 # ╔═╡ 61c34a9b-1e5f-45ab-bbfd-c4e8b21c7320
@@ -109,23 +111,32 @@ md"""
 
 ## Initial guesses
 
-As with all numerical methods, good initial guesses are quite important. To obtain these, we can leverage the theory of corresponding states. This states that "all fluids, when compared at the same reduced temperature and reduced pressure, have approximately the same compressibility factor and all deviate from ideal gas behavior to about the same degree" [^1]. This allows us to express the solution to the van der Waals EoS saturation curve in terms of **reduced variables**. We use a highly-accurate numerical approximation for this, with saturated volumes given by
+As with all numerical methods, good initial guesses are quite important. To obtain these, we can leverage the theory of corresponding states. This can be stated as: "All fluids, when compared at the same reduced temperature and reduced pressure, have approximately the same compressibility factor and all deviate from ideal gas behavior to about the same degree." [^1]. This allows us to express the solution to the van der Waals EoS saturation curve in terms of **reduced variables**. We use a highly-accurate numerical approximation for this, with saturated volumes given by
 
 $$\begin{gather}
-v^\textrm{sat. liq} = 3b/c^\textrm{sat. liq}\\
-v^\textrm{sat. vap} = 3b/c^\textrm{sat. vap}
+v^\textrm{sat. liq vdW} = 3b/c^\textrm{sat. liq vdW}\\
+v^\textrm{sat. vap vdW} = 3b/c^\textrm{sat. vap vdW}
 \end{gather}$$
 
 where $c$ is given by 
 
-$$c^\textrm{sat. liq} = 1 + 2(1-T_\mathrm{r})^{1/2} + \frac25(1-T_\mathrm{r}) - \frac{13}{25}(1-T_\mathrm{r})^{3/2} + 0.115(1-T_\mathrm{r})^2$$
+$$c^\textrm{sat. liq vdW} = 1 + 2(1-T_\mathrm{r})^{1/2} + \frac25(1-T_\mathrm{r}) - \frac{13}{25}(1-T_\mathrm{r})^{3/2} + 0.115(1-T_\mathrm{r})^2$$
 
-$$c^\textrm{sat. vap} = \begin{cases} 2(1+\frac25(1-T_\mathrm{r}) + 0.161(1-T_\mathrm{r})^2) - c^\textrm{sat. liq}\quad 0.25 < T_\mathrm{r} \leq 1\\ 2(\frac32 - \frac49T_\mathrm{r}-0.15T_\mathrm{r}^2)-c^\textrm{sat. liq}\quad0\leq T_\mathrm{r} < 0.64\end{cases}$$
+$$c^\textrm{sat. vap vdW} = \begin{cases} 2(1+\frac25(1-T_\mathrm{r}) + 0.161(1-T_\mathrm{r})^2) - c^\textrm{sat. liq}\quad 0.25 < T_\mathrm{r} \leq 1\\ 2(\frac32 - \frac49T_\mathrm{r}-0.15T_\mathrm{r}^2)-c^\textrm{sat. liq}\quad0\leq T_\mathrm{r} < 0.64\end{cases}$$
 
-When using this for an initial guess we take one final step by moving the initial guesses away from the van der Waals saturation curve. I chose to use a factor of 0.5 for the liquid volume and 2 for the vapour volume respectively. This is done to avoid the guesses falling _inside_ the saturation curve of the fluid we're solving for, as that can lead to numerical instability and convergence issues. By choosing guesses that bracket, but don't lie too far from, the saturation curve, convergence is far more reliable.
+A potential issue when relying on the van der Waals saturation curve to determine our initial guesses is the situation where the initial guesses fall _inside_ the saturation envelope of the fluid we're solving for, as that can lead to numerical instability and convergence issues. By choosing guesses that bracket, but don't lie too far from, the saturation curve, convergence is far more reliable.
 
-The derivation can be seen in [The van der Waals equation: analytical and approximate
-solutions](https://rdcu.be/cTmlc), the code is implemented below:
+To do so, I chose to use an extra factor of 0.5 for the liquid volume and 2 for the vapour volume:
+
+$$\begin{gather}
+v^\textrm{sat. liq}_0 = 0.5v^\textrm{sat. liq vdW}\\
+v^\textrm{sat. vap}_0 = 2v^\textrm{sat. vap vdW}
+\end{gather}$$
+
+ This is done to avoid the guesses falling _inside_ the saturation curve of the fluid we're solving for, as that can lead to numerical instability and convergence issues. 
+
+The derivation of the volume expression can be seen in the article [_The van der Waals equation: analytical and approximate
+solutions_](https://rdcu.be/cTmlc). The code is implemented below:
 """
 
 # ╔═╡ 80662d56-e97c-4ea5-9ba7-0d2ad827740d
@@ -149,7 +160,7 @@ $$V_0^\mathrm{liq} = \frac{\pi}{6}\cdot N_A \cdot \sigma^3~.$$
 md"""
 
 ## Implementation
-Now, lets implement our saturation solver. We have two functions - our objective function, or the funcation to be zeroed, and the solver.
+Now, lets implement our saturation solver. We have two functions -- our objective function, or the function to be zeroed, and the solver.
 """
 
 # ╔═╡ 94e20664-95f2-4760-9bc4-b81df13328dc
@@ -188,7 +199,7 @@ md"""
 
 Now we are able to determine the location of the saturation curve, how do we build up a graph of the entire phase boundary? We can call the solver we just wrote above again and again for different temperatures with the same initial guess, and for most cases it will probably converge. However, as before there are a particular number of difficulties near the critical point and the solver can become very sensitive to the initial guesses. 
 
-To help with this, we can reuse each previous result as the new guess to the solver. On top of being very important near the critical point, this technique is very important for speeding up the overall solver - the very good initial guesses obtained in this way allow for rapid convergence.
+To help with this, we can reuse each previous result as the new guess to the solver. On top of being very important near the critical point, this technique is very important for speeding up the overall solver -- the very good initial guesses obtained in this way allow for rapid convergence.
 
 When building this, remember that the triple point is not represented by typical equations of state! As only liquid and vapour phases are captured, the only significant point we see on pure phase diagrams is the critical point.
 """
@@ -199,18 +210,21 @@ md"""
 
 ### Formulation
 
-Above, we traced the pure saturation envelope between two user-decided points. If one of these falls above the critical point, the saturation solver will either fail or converge to a trivial solution. If we want to determine the end point of our saturation curve before beginning calculation, how should we go about that?
+Above, we traced the pure saturation envelope between two user-decided points. If one of these falls above the critical point, the saturation solver will either fail or converge to a trivial solution [^3]. If we want to determine the end point of our saturation curve before beginning calculation, how should we go about this?
 
-For a cubic equation of state the critical temperature and pressure are an input to the EoS, meaning for a pure substance you will always know the critical point beforehand. This is not the case for other equations of state, meaning it must be solved for numerically.
+For a cubic equation of state the critical temperature and pressure are input to the equation of state, meaning for a pure substance you will always know the critical point beforehand. As this is not the case for other equations of state, we must solve numerically for $p_\mathrm{c}$ and $T_\mathrm{c}$.
 
-The conditions for the critical point in a pure substance are:
+When considering the projection into _p,v_ space, the critical point of a pure substance can be defined as the point of inflection along a unique isotherm (known as the _critical isotherm_). Therefore, we can write three equations defining this point exactly:
 
 $$\begin{gather}
-f_1(v, T) = \left(\frac{\partial p(v,T)}{\partial v}\right)_{T} = 0\\
-f_2(v, T) = \left(\frac{\partial^2 p(v,T)}{\partial v^2}\right)_{T} = 0\\
+f_1(v, T) = \left(\frac{\partial p(v,T)}{\partial v}\right)_{T} = 0\tag{4}\\
+f_2(v, T) = \left(\frac{\partial^2 p(v,T)}{\partial v^2}\right)_{T} = 0\tag{5}\\
+f_3(v, T) = \left(\frac{\partial^3 p(v,T)}{\partial v^3}\right)_{T} < 0\tag{6}\\
 \end{gather}$$
 
-This would usually require analytical derivatives, as calculation with finite differences are both inaccurate and expensive, especially for higher order derivatives. However, automatic differentiation allows us to easily determine the exact derivatives in the objective function, as well as the higher order derivatives needed to solve this with Newton's method. Note that although solver methods that do not rely on derivatives exist, it is faster to use derivative information if it is available.
+however, as we iterate using two variables (the specific volumes of each phase), we select only equations (4) and (5) to complete our root-finding problem. (To be strict, once the solution has been found, equation (6) should also be checked for consistency. In practice, however, this is not normally done.)
+
+To define our objective function, we would usually require analytical derivatives, as calculation with finite differences [^4] are both inaccurate and expensive, especially for derivatives beyond second order. However, automatic differentiation allows us to easily determine the exact derivatives of the objective function, as well as the higher-order derivatives needed to solve this using Newton's method. Note that although numerical methods that do not rely on derivatives exist, it is faster to use derivative information if it is available.
 """
 
 # ╔═╡ 1e01206f-e565-4d90-83f8-f7c038b5e961
@@ -285,10 +299,10 @@ function solve_critical_point(model)
 	Ts = T_scale(model)
 	# Generate initial guesses
 	x0 = critical_point_guess(model)
-
-	# Solve system for critical point
-	res = nlsolve((F, x) -> critical_objective!(model, F, [exp10(x[1]), Ts*x[2]]), x0, autodiff = :forward, xtol=1e-9, method=:newton)
 	
+	# Solve system for critical point
+	res = nlsolve((F, x) -> critical_objective!(model, F, [exp10(x[1]), Ts*x[2]]), x0, autodiff = :forward, xtol=1e-9, method=:newton)	
+
 	# Extract answer
 	Vc = exp10(res.zero[1])
 	Tc = Ts*res.zero[2]
@@ -377,15 +391,16 @@ md"""
 And we've converged correctly on the right answer!
 """
 
-# ╔═╡ 18f53692-50ab-4d2d-80dd-00d169fae340
-html"<br><br><br><br><br><br><br><br><br><br><br><br>"
-
 # ╔═╡ 58b76139-6976-4624-8d71-347b50e1b494
 md"""
 # Footnotes
 [^1]: Equation conditioning generally refers to the sensitivity of the output to small pertubations in the input. Often in numerical methods, a highly sensitive (i.e. poorly conditioned) problem can result in the loss of precision. The condition number is often discussed for both matrices and for functions.
 
 [^2]: If you are using a model with volume translation, you should also account for that in your initial guess.
+
+[^3]: A trivial solution is encountered when the solver converges both phases to the same solution, resulting in the automatic satisfaction of the equilibrium conditions (equality of temperature, pressure, and chemical potential)
+
+[^4]: Finite differencing is the traditional method for calculation of derivatives. A good explanation can be found on [wikipedia](https://en.wikipedia.org/wiki/Finite_difference).
 """
 
 # ╔═╡ 1d24ec62-7457-4b75-b2b6-740711df3e49
@@ -426,7 +441,7 @@ vdW_b(pc, Tc) = 1/8 * (R*Tc)/pc;
 """
 	vdW_saturation_volume(model, T)
 
-Returns the saturation curve for a van der Waals with an equivalent critical point for ```model```. Uses a derivation from 10.1007/s10910-007-9272-4 for the approximate solution to the saturation curve.
+Returns the saturation curve for a van der Waals with an equivalent critical temperature and pressure for ```model```. Uses a derivation from 10.1007/s10910-007-9272-4 for the approximate solution to the saturation curve.
 """
 function vdW_saturation_volume(model, T)
 	Tc, pc, vc = crit_pure(model)
@@ -454,7 +469,7 @@ end
 """
 	solve_sat_p(model, T; V0 = vdW_saturation_volume(model, T), itersmax=100, abstol=1e-10)
 
-Solves an equation of state for the saturation pressure at a given temperature using Newton's method. By default uses the solution to the van der Waals equation for initial guesses. Returns (psat, V_liq, V_vap)
+Solves an equation of state for the saturation pressure at a given temperature using Newton's method. By default uses the solution to the van der Waals equation for initial guesses. Returns (psat, _v_\\_liq, _v_\\_vap)
 """
 function solve_sat_p(model, T; V0 = vdW_saturation_volume(model, T), itersmax=100, abstol=1e-10)
 	# Objective function accepting a vector of volumes, R²→R² 
@@ -468,6 +483,7 @@ function solve_sat_p(model, T; V0 = vdW_saturation_volume(model, T), itersmax=10
 	fx = 1.0
 	fx0 = f(logV0)
 	iters = 0
+	
 	# Iterate until converged or the loop has reached the maximum number of iterations
 	while (iters < itersmax && all(abs.(fx) .> abstol))
 		Jfx = Jf(logV) # Calculate the jacobian
@@ -477,6 +493,7 @@ function solve_sat_p(model, T; V0 = vdW_saturation_volume(model, T), itersmax=10
 		logV = logV .+ d # Take newton step
 		iters += 1 # Increment our iteration counter
 	end
+	
 	# Show a warning if the solver did not converge (uses short circuit evaluation rather than if statement)
 	iters == itersmax && @warn "solver did not converge in $(iters) iterations\nfV=$(fx)"
 	
@@ -673,8 +690,9 @@ ShortCodes = "~0.3.3"
 PLUTO_MANIFEST_TOML_CONTENTS = """
 # This file is machine-generated - editing it directly is not advised
 
-julia_version = "1.7.3"
+julia_version = "1.8.0"
 manifest_format = "2.0"
+project_hash = "802688e3c27045e63434127f015fb7866a9eebc5"
 
 [[deps.AbstractPlutoDingetjes]]
 deps = ["Pkg"]
@@ -690,6 +708,7 @@ version = "3.4.0"
 
 [[deps.ArgTools]]
 uuid = "0dad84c5-d112-42e6-8d28-ef12dabb789f"
+version = "1.1.1"
 
 [[deps.ArrayInterfaceCore]]
 deps = ["LinearAlgebra", "SparseArrays", "SuiteSparse"]
@@ -824,6 +843,7 @@ version = "3.45.0"
 [[deps.CompilerSupportLibraries_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "e66e0078-7015-5450-92f7-15fbd957f2ae"
+version = "0.5.2+0"
 
 [[deps.ConstructionBase]]
 deps = ["LinearAlgebra"]
@@ -903,6 +923,7 @@ version = "0.8.6"
 [[deps.Downloads]]
 deps = ["ArgTools", "FileWatching", "LibCURL", "NetworkOptions"]
 uuid = "f43a241f-c20a-4ad4-852c-f6b1247861c6"
+version = "1.6.0"
 
 [[deps.DualNumbers]]
 deps = ["Calculus", "NaNMath", "SpecialFunctions"]
@@ -1217,10 +1238,12 @@ version = "0.15.1"
 [[deps.LibCURL]]
 deps = ["LibCURL_jll", "MozillaCACerts_jll"]
 uuid = "b27032c2-a3e7-50c8-80cd-2d36dbcbfd21"
+version = "0.6.3"
 
 [[deps.LibCURL_jll]]
 deps = ["Artifacts", "LibSSH2_jll", "Libdl", "MbedTLS_jll", "Zlib_jll", "nghttp2_jll"]
 uuid = "deac9b47-8bc7-5906-a0fe-35ac56dc84c0"
+version = "7.84.0+0"
 
 [[deps.LibGit2]]
 deps = ["Base64", "NetworkOptions", "Printf", "SHA"]
@@ -1229,6 +1252,7 @@ uuid = "76f85450-5226-5b5a-8eaa-529ad045b433"
 [[deps.LibSSH2_jll]]
 deps = ["Artifacts", "Libdl", "MbedTLS_jll"]
 uuid = "29816b5a-b9ab-546f-933c-edad1886dfa8"
+version = "1.10.2+0"
 
 [[deps.Libdl]]
 uuid = "8f399da3-3557-5675-b5ff-fb832c97cbdb"
@@ -1319,6 +1343,7 @@ version = "1.1.3"
 [[deps.MbedTLS_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "c8ffd9c3-330d-5841-b78e-0817d7145fa1"
+version = "2.28.0+0"
 
 [[deps.Measures]]
 git-tree-sha1 = "e498ddeee6f9fdb4551ce855a46f54dbd900245f"
@@ -1342,6 +1367,7 @@ uuid = "a63ad114-7e13-5084-954f-fe012c677804"
 
 [[deps.MozillaCACerts_jll]]
 uuid = "14a3606d-f60d-562e-9121-12d972cd8159"
+version = "2022.2.1"
 
 [[deps.Mustache]]
 deps = ["Printf", "Tables"]
@@ -1380,6 +1406,7 @@ version = "0.3.7"
 
 [[deps.NetworkOptions]]
 uuid = "ca575930-c2e3-43a9-ace4-1e988b2c1908"
+version = "1.2.0"
 
 [[deps.Observables]]
 git-tree-sha1 = "dfd8d34871bc3ad08cd16026c1828e271d554db9"
@@ -1395,10 +1422,12 @@ version = "1.3.5+1"
 [[deps.OpenBLAS_jll]]
 deps = ["Artifacts", "CompilerSupportLibraries_jll", "Libdl"]
 uuid = "4536629a-c528-5b80-bd46-f80d51c5b363"
+version = "0.3.20+0"
 
 [[deps.OpenLibm_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "05823500-19ac-5b8b-9628-191a04bc5112"
+version = "0.8.1+0"
 
 [[deps.OpenSSL_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -1467,6 +1496,7 @@ version = "0.40.1+0"
 [[deps.Pkg]]
 deps = ["Artifacts", "Dates", "Downloads", "LibGit2", "Libdl", "Logging", "Markdown", "Printf", "REPL", "Random", "SHA", "Serialization", "TOML", "Tar", "UUIDs", "p7zip_jll"]
 uuid = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
+version = "1.8.0"
 
 [[deps.PlotThemes]]
 deps = ["PlotUtils", "Statistics"]
@@ -1594,6 +1624,7 @@ version = "2.0.2"
 
 [[deps.SHA]]
 uuid = "ea8e919c-243c-51af-8825-aaa63cd721ce"
+version = "0.7.0"
 
 [[deps.Scratch]]
 deps = ["Dates"]
@@ -1708,6 +1739,7 @@ uuid = "4607b0f0-06f3-5cda-b6b1-a6196a1729e9"
 [[deps.TOML]]
 deps = ["Dates"]
 uuid = "fa267f1f-6049-4f14-aa54-33bafae1ed76"
+version = "1.0.0"
 
 [[deps.TableTraits]]
 deps = ["IteratorInterfaceExtensions"]
@@ -1724,6 +1756,7 @@ version = "1.7.0"
 [[deps.Tar]]
 deps = ["ArgTools", "SHA"]
 uuid = "a4e569a6-e804-4fa4-b0f3-eef7a1d5b13e"
+version = "1.10.0"
 
 [[deps.TensorCore]]
 deps = ["LinearAlgebra"]
@@ -1969,6 +2002,7 @@ version = "1.4.0+3"
 [[deps.Zlib_jll]]
 deps = ["Libdl"]
 uuid = "83775a58-1f1d-513f-b197-d71354ab007a"
+version = "1.2.12+3"
 
 [[deps.Zstd_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -1991,6 +2025,7 @@ version = "0.15.1+0"
 [[deps.libblastrampoline_jll]]
 deps = ["Artifacts", "Libdl", "OpenBLAS_jll"]
 uuid = "8e850b90-86db-534c-a0d3-1478176c7d93"
+version = "5.1.1+0"
 
 [[deps.libfdk_aac_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -2013,10 +2048,12 @@ version = "1.3.7+1"
 [[deps.nghttp2_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "8e850ede-7688-5339-a07c-302acd2aaf8d"
+version = "1.48.0+0"
 
 [[deps.p7zip_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
+version = "17.4.0+0"
 
 [[deps.x264_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -2080,7 +2117,6 @@ version = "1.4.1+0"
 # ╠═90fd5f17-4347-416c-95a5-d6791ccec7b8
 # ╟─704cb182-fa73-4cd8-bad4-16118a8f8219
 # ╟─f87fb61e-2f63-4df8-8d31-e397966f840f
-# ╟─18f53692-50ab-4d2d-80dd-00d169fae340
 # ╟─58b76139-6976-4624-8d71-347b50e1b494
 # ╟─1d24ec62-7457-4b75-b2b6-740711df3e49
 # ╟─33ed3f41-3107-4497-85e0-aa7de6686612
