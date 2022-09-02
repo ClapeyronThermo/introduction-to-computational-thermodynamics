@@ -8,35 +8,34 @@ using InteractiveUtils
 begin
 	using Clapeyron, ForwardDiff, Roots, Optim, LinearAlgebra, PolynomialRoots # Numerical packages
 	using LaTeXStrings, Plots, ShortCodes, Printf # Display and plotting
-	using HypertextLiteral
+	using HypertextLiteral, PlutoUI
 	# using JSON2, Tables,Random # Data handling
 	import Clapeyron: vdWModel, RKModel, PRModel, cubic_ab, R̄
+	PlutoUI.TableOfContents()
 end
 
 # ╔═╡ 2119146e-cb56-4cb2-a4ba-7a359f05ca8d
 md"""
-### Section 2.3 
-# Cubic equations of state
+# Section 2.3 - Cubic equations of state
 Cubic equations of state are by far the most-popular equations of state. This can mainly be attributed to the their long tenure as the only practical equations of state, but also their simple functional form. We refer to such equations as cubics because they can all be written in the following form:
 
 $$V^3+AV^2+BV+C=0$$
 
 This form has a lot of benefits which we will discuss in part 3 of the course.
 
-### Section 2.3.1
-## Van der Waals equation
+## Section 2.3.1 - Van der Waals equation
 
 It is likely that most undergraduates will have encountered the van der Waals equation at some point. However, to give a high-level understanding of this equation, let us start with the ideal gas equation:
 
 $$p = \frac{Nk_\mathrm{B}T}{V}$$
 
-As mentioned previously, the ideal gas equation assumes that particles are infinitesmally small and experience perfectly elastic collisions. However, for most molecules, this is not the case. Firstly, molecules have volume and thus, take up space in the system, thus reducing the total amount of volume available for species to move around in. The volume of a single particle is typically denoted by the parameter $b$. For $N$ particles, we reduce the available volume by $Nb$:
+As mentioned previously, the ideal gas equation is based on an assumption that particles are infinitesmally small and experience perfectly elastic collisions. However, for most molecules, this assumption is not valid. Firstly, molecules have volume and thus, take up space in the system, thus reducing the total amount of volume available for other molecules to move around in. The excluded volume of a single particle is typically denoted by the parameter $b$. For $N$ particles, we reduce the available volume by $Nb$:
 
 $$p = \frac{Nk_\mathrm{B}T}{V-Nb}$$
 
-However, molecules also experience attractions between them. The impact on the pressure is two-fold. Firstly, as particles on the edge of our box are about to collide with the box surface, the attraction with molecules in the bulk will reduce their velocity. This will be proportional to the density of particles in the bulk. Similarly, particles interacting together would much rather clump together rather than venture out to the boundaries of the box, thus further reducing the pressure. This too will be proportional to the bulk density of our system. As a result, the net change to the pressure will be proportional to the density squared:
+However, molecules also experience attractions between them. The impact on the pressure, which is manifested by the collisions of the molecules with the walls of the box, or container, is two-fold. Firstly, as particles on the edge of our box are about to collide with the box surface, the attraction with molecules in the bulk will reduce their velocity. This will reduce their impact with the surface by an amount proportional to the density of particles in the bulk. Similarly, particles interacting together would much rather clump together rather than venture out to the boundaries of the box, thus further reducing the pressure. This too will be proportional to the bulk density of our system. As a result, the net change to the pressure will be proportional to the density squared:
 
-$$\Delta p \propto -\rho^2$$
+$$\Delta p \propto -(N/V)^2=-\rho^2$$
 
 If we characterise this proportionality by a parameter $a$, we can write out the van der Waals equation as:
 
@@ -44,7 +43,7 @@ $$p = \frac{Nk_\mathrm{B}T}{V-Nb} - \frac{N^2a}{V^2}$$
 
 More commonly written out in molar form as:
 
-$$p = \frac{RT}{v_m-b} - \frac{a}{v^2_m}$$
+$$p = \frac{RT}{v_\mathrm{m}-b} - \frac{a}{v^2_\mathrm{m}}$$
 
 This was a very high-level description of the van der Waals equation; it is possible to derive it using statistical mechanics although, it is worth pointing out, van der Waals himself did not derive it this way. The equation was only ever meant to be empirical! Nevertheless, the first term can be thought of as the repulsive contribution and the second term can be thought of as the attractive contribution. Visually:
 """
@@ -54,10 +53,10 @@ This was a very high-level description of the van der Waals equation; it is poss
 
 # ╔═╡ 51306a06-e837-4e83-a892-a6de8617374d
 md"""
-Interestingly, for all cubics we will discuss, this visual picture does not change singificantly. The parameters $a_m$ and $b_m$ can be obtained by constraining the equation such that it must pass through the critical point of a given species:
+Interestingly, for all cubics we will discuss, this visual picture does not change singificantly. The parameters $a_m$ and $b_m$ can be obtained by constraining the equation such that it must pass through the critical pressure and temperature of a given species:
 
-$$a = \frac{27}{64} \frac{(RT_c)^2}{p_c}$$
-$$b = \frac{1}{8} \frac{RT_c}{p_c}$$
+$$a = \frac{27}{64} \frac{(RT_\mathrm{c})^2}{p_\mathrm{c}}$$
+$$b = \frac{1}{8} \frac{RT_\mathrm{c}}{p_\mathrm{c}}$$
 
 where the subscripts $c$ denote the critical properties of a species.
 
@@ -127,7 +126,7 @@ begin
 	vv1 = [sat[i][3] for i ∈ 1:N]
 
 	plot(1e-3./vl1,T,color=:blue,xlim=(0,30),ylim=(75,200),
-		title="Vapour-liquid envelope of methane",
+		title="Vapour—liquid envelope of methane",
 		label="van der Waals",
 		yguidefontsize=16, xguidefontsize=16,
 		legendfont=font(10), framestyle=:box, 
@@ -139,13 +138,12 @@ end
 
 # ╔═╡ 8527090b-637b-4e77-b2c4-826754ebfba0
 md"""
-Even in the case of methane, which can almost be considered spherical, the van der Waals cannot reproduce the experimental data. A few modifications made by Clausius and Berthelot did come along, but none ever fully dealt with the main issues of the van der Waals equation.
+Even in the case of methane, which can almost be considered spherical, the van der Waals equation cannot capture the experimental data. A few modifications made by Clausius and Berthelot did come along, but none ever fully dealt with the main issues of the van der Waals equation.
 """
 
 # ╔═╡ 114acd11-0a26-4388-bb5a-d389495cc0a5
 md"""
-### Section 2.3.2
-## Engineering Cubics
+## Section 2.3.2 - Engineering Cubics
 """
 
 # ╔═╡ c15d67d2-28bb-4fba-9f78-b018e187081d
@@ -156,10 +154,10 @@ $$p = \frac{Nk_\mathrm{B}T}{V-Nb} - \frac{N^2a}{V(V+Nb)\sqrt{T}}$$
 
 where the parameters $a$ and $b$ can now be obtained from:
 
-$$a = 0.42748 \frac{R^2T_c^{2.5}}{p_c}$$
-$$b = 0.08664 \frac{RT_c}{p_c}$$
+$$a = 0.42748 \frac{R^2T_\mathrm{c}^{2.5}}{p_\mathrm{c}}$$
+$$b = 0.08664 \frac{RT_\mathrm{c}}{p_\mathrm{c}}$$
 
-The change made to the second term is purely empirical, with no physical meaning aside from improved modelling of gas fugacities (important in vapour-liquid calculations). In comparison to the van der Waals equation, this equation saw a substantial improvement in modelling the vapour phase:
+The change made to the second term is purely empirical, with no physical meaning aside from improved modelling of gas fugacities (important in vapour--liquid calculations). In comparison to the van der Waals equation, this equation saw a substantial improvement in modelling the vapour phase (and, somewhat, the liquid phase):
 """
 
 # ╔═╡ f18d246f-e54f-4538-ba49-1ce57a5aea71
@@ -187,7 +185,7 @@ begin
 	vv4 = [sat4[i][3] for i ∈ 1:N]
 
 	plot(1e-3./vl1,T,color=:blue,xlim=(1e-2,30),ylim=(100,200),
-		title="Vapour-liquid envelope of methane",
+		title="Vapour—liquid envelope of methane",
 		label="van der Waals",
 		yguidefontsize=16, xguidefontsize=16,
 		legendfont=font(10), framestyle=:box, 
@@ -211,13 +209,13 @@ md"""
 However, the real 'game-changer' for cubic equations of state came when Soave introduced the concept of an $\alpha$-function which modified the Redlich—Kwong equation in the following way:
 
 $$p = \frac{Nk_\mathrm{B}T}{V-Nb} - \frac{N^2aα(T)}{V(V+Nb)}\,,$$
-Here, $b$ and $a$ are defined almost the same way, except for $a_0$:
+Here, $b$ and $a$ are defined almost the same way, except for $a$:
 
 $$a = 0.42748 \frac{(RT_c)^2}{p_c}$$
 
 and $\alpha(T)$, the $\alpha$-function, given by:
 
-$$\alpha(T) = (1+(0.480 + 1.547\omega - 0.176\omega^2)(1-(T/T_c))^{0.5})^2$$
+$$\alpha(T) = (1+(0.480 + 1.547\omega - 0.176\omega^2)(1-(T/T_c)^{0.5}))^2$$
 
 where $\omega$ is the acentricity, a species-specific parameter, defined as:
 
@@ -225,7 +223,7 @@ $$\omega = -\log{(p_\mathrm{sat}/p_c)}-1\,\,\mathrm{at}\,\,T=0.7T_c$$
 
 Interestingly, the acentricity does carry some physical meaning: the more-spherical the species is, the closer its value should be to zero (such as methane or the noble gases). 
 
-The idea behind the $\alpha$-function is that, if you can nail-down both the critical point (which the Redlich—Kwong equation already does) and a second point on the saturation curve around 0.7$T_c$, characterised by the acentricity, then, ideally, you should be able to capture the entire saturation curve. This is indeed what happens for most species:
+The idea behind the $\alpha$-function is that, if you can nail-down, in ($p,T$) space, both the critical point (which the Redlich—Kwong equation already does) and a second point on the saturation curve around 0.7$T_c$, characterised by the acentricity, then, ideally, you should be able to capture the entire saturation curve. This is indeed what happens for most species:
 """
 
 # ╔═╡ 57eee2ce-2b25-404a-a5b0-dcbc191d6ee6
@@ -404,7 +402,7 @@ begin
 	vvb1 = [satb1[i][3] for i ∈ 1:N]
 
 	plot(1e-3./vl3,T,color=:blue,ylim=(70,440),
-		title="Vapour-liquid envelope of methane and n-butane\n using SRK",
+		title="Vapour—liquid envelope of methane and n-butane\n using SRK",
 		label="methane",
 		yguidefontsize=16, xguidefontsize=16,
 		legendfont=font(10), framestyle=:box, 
@@ -426,12 +424,12 @@ It is for this reason that Peng and Robinson (PR) developed their own cubic equa
 $$p = \frac{Nk_\mathrm{B}T}{V-Nb} - \frac{N^2aα(T)}{V^2+2NbV+(Nb)^2}\,,$$
 where:
 
-$$a_0 = 0.45724 \frac{(RT)^2}{p_c}$$
-$$b = 0.0778 \frac{RT_c}{p_c}$$
+$$a = 0.45724 \frac{(RT_\mathrm{c})^2}{p_\mathrm{c}}$$
+$$b = 0.0778 \frac{RT_\mathrm{c}}{p_\mathrm{c}}$$
 
 and $\alpha(T)$:
 
-$$\alpha(T) = (1+(0.37464 + 1.54226\omega - 0.26992\omega^2)(1-(T/T_c))^{0.5})^2$$
+$$\alpha(T) = (1+(0.37464 + 1.54226\omega - 0.26992\omega^2)(1-(T/T_\mathrm{c})^{0.5}))^2$$
 Indeed, using the PR equation, the improvement in modelling of liquid densities is significant:
 """
 
@@ -446,7 +444,7 @@ begin
 	vvb2 = [satb2[i][3] for i ∈ 1:N]
 
 	plot(1e-3./vlb1,Tb,color=:blue,ylim=(70,440),
-		title="Vapour-liquid envelope of n-butane",
+		title="Vapour—liquid envelope of n-butane",
 		label="SRK",
 		yguidefontsize=16, xguidefontsize=16,
 		legendfont=font(10), framestyle=:box, 
@@ -467,7 +465,7 @@ end
 
 # ╔═╡ 59a53741-74c5-46f0-81b7-2310078e6a3f
 md"""
-That isn't to say SRK is no longer useful. In fact, both SRK and PR represent the industry standards for equation of state modelling as, depending on what you are trying to model, one may be more-accurate than the other. 
+That isn't to say SRK is no longer useful. In fact, both SRK and PR represent the industry standards for equation of state modelling as, depending on what you are trying to model (do fugacities or densities matter more?), one may be more-accurate than the other. 
 
 However, it is also important to bear in mind what systems these equations of state are intended for: hydrocarbon / natural gases. If you were to try and model something like water using either of these equations the results would be disappointing:
 """
@@ -493,7 +491,7 @@ begin
 	vvw2 = [satw2[i][3] for i ∈ 1:N]
 
 	plot(1e-3./vlw1,Tw,color=:blue,ylim=(270,660),
-		title="Vapour-liquid envelope of water",
+		title="Vapour—liquid envelope of water",
 		label="SRK",
 		yguidefontsize=16, xguidefontsize=16,
 		legendfont=font(10), framestyle=:box, 
@@ -508,7 +506,7 @@ end
 
 # ╔═╡ dfab5341-cb23-4878-a868-8a3432677f27
 md"""
-Nevertheless, for most systems engineers are interested in, SRK and PR provide an easy way to access the full range of thermodynamic properties we might need. There have been further developments in cubic equation of state modelling (some of which will be highlighted below), including the introduction of a third (e.g., Patel-Teja) and sometimes fourth (e.g., GEOS) parameter to model a wider range of species. However, all retain the simple cubic form which can be generalised as:
+Nevertheless, for most systems engineers are interested in, SRK and PR provide an easy way to access the full range of thermodynamic properties we might need. There have been further developments in cubic equation of state modelling (some of which will be highlighted below), including the introduction of a third (e.g., Patel-Teja) and sometimes fourth (e.g., GEOS) parameter to model a wider range of species. However, all retain the simple cubic form, which can be generalised as:
 
 $$p = \frac{Nk_\mathrm{B}T}{V-Nb} - \frac{N^2aα(T)}{(V+r_1Nb)(V+r_2Nb)}\,,$$
 
@@ -520,7 +518,7 @@ where:
 | RK/SRK   | 0            | 1            |
 | PR       | $1+\sqrt{2}$ | $1-\sqrt{2}$ |
 
-Meaning, if we can just write a single function to obtain the pressure in terms of the parameters $r_1$ and $r_2$, it would be compatible with all cubic equations of state we may which to use. However, if we also want to be able to obtain other properties of interest (such as heat capacities, Joule-Thomson coefficients, etc.), it is more-convenient to express our equation in terms of the Helmholtz free energy. This can be obtained by integrating the pressure in terms of the volume:
+Meaning, if we can just write a single function to obtain the pressure in terms of the parameters $r_1$ and $r_2$, it would be compatible with all cubic equations of state we may wish to use. However, if we also want to be able to obtain other properties of interest (such as heat capacities, Joule--Thomson coefficients, etc.), it is more convenient to express our equation in terms of the Helmholtz free energy. This can be obtained by integrating the pressure in terms of the volume:
 
 $$A = -\int p dV = -Nk_\mathrm{B}T\log{(V-Nb)}-\frac{Na}{b}\frac{\log(V+r_2Nb)-\log(V+r_1Nb)}{r_2-r_1}+c(N,T)$$
 
@@ -544,8 +542,8 @@ As a first step, let us write these `cubic_r` functions:
 # ╔═╡ 81ff3c9b-a23a-4466-adcd-f6ce7545ed66
 begin
 	cubic_r(model::vdWModel) = (0.,0.) # van der Waals
-	cubic_r(model::RKModel) = (0.,1.) # Redlich-Kwong and Soave-Redlich-Kwong
-	cubic_r(model::PRModel) = (1+sqrt(2),1-sqrt(2)) # Peng-Robinson
+	cubic_r(model::RKModel) = (0.,0.) # Redlich-Kwong and Soave-Redlich-Kwong
+	cubic_r(model::PRModel) = (0.,0.) # Peng-Robinson
 end
 
 # ╔═╡ de07e69d-d670-4684-bdfd-8570b00403f5
@@ -580,12 +578,12 @@ function a_res(model::CubicModel,V,T,z)
 
 	r1,r2 = cubic_r(model)
 	
-	a1 = -log(1-n*b/V)
+	a1 = 0
 	
 	if r1==r2
-		a2 = -n*aα/(V*R̄*T)
+		a2 = 0
 	else
-		a2 = -aα/(b*R̄*T)*(log(V+r2*n*b)-log(V+r1*n*b))/(r2-r1)
+		a2 = 0
 	end
 	return a1+a2
 end
@@ -599,8 +597,7 @@ Nevertheless, with this equation defined, we will be able to obtain any properti
 
 # ╔═╡ 3d93db93-97c7-4bb5-85a1-8965f40f601a
 md"""
-### Section 2.3.3
-## $\alpha$ functions
+## Section 2.3.3 - $\alpha$ functions
 """
 
 # ╔═╡ 91386684-ea1d-4a56-8437-fb72c45c02b0
@@ -639,7 +636,7 @@ end
 
 # ╔═╡ 473e023d-20a9-4cd8-961b-f6fb17002203
 md"""
-The impact of the $\alpha$ function is a bit more-subtle than just the saturation pressure. It can also have a large impact of vapour-liquid equilibrium properties of mixtures. Although we haven't covered how mixtures are handled within cubics, for the time being, we will only look at the impact of the $\alpha$-function from a high-level perspect:
+The impact of the $\alpha$ function is a bit more subtle than just the saturation pressure. It can also have a large impact of vapour—liquid equilibrium properties of mixtures. Although we haven't covered how mixtures are handled using cubics, for the time being, we will only look at the impact of the $\alpha$-function from a high-level perspective:
 """
 
 # ╔═╡ faacd2b7-0218-4848-85d4-6441ec30d155
@@ -726,15 +723,14 @@ end
 
 # ╔═╡ a768aeed-693a-4f21-8a31-9101cfd3fe68
 md"""
-The reason for this, and why the Boston-Matthias $\alpha$ function should be used whenever one component is supercritical is that, the default $\alpha$ functions in PR and SRK both behave unphysically at temperature above the critical point ($T>3T_c$) which is a problem when mixtures contain species, like carbon monoxide, which have low critical points.
+The reason for this, and why the Boston—Matthias $\alpha$ function should be used whenever one component is supercritical is that, the default $\alpha$ functions in PR and SRK both behave unphysically at temperatures above the critical point ($T>3T_c$), which is a problem when mixtures contain species, like carbon monoxide, which have low critical points.
 
 Overall, when considering which cubic equation of state to use, which $\alpha$ function to use is an important question to ask. For most hydrocarbon systems, the standard SRK and PR equations should be sufficient. However, for more-complex systems, it is worth considering not only the pure saturation curves, but the mixed systems as well. In general, the safest would be to use species-specific $\alpha$ functions like the one developed by Twu _et al._ although the parameters may not be available for every species.
 """
 
 # ╔═╡ 46dbdb64-819c-4e5b-a4ee-2b66b571e7aa
 md"""
-### Section 2.3.4
-## Volume translation
+## Section 2.3.4 - Volume translation
 """
 
 # ╔═╡ ba6362ec-3c1a-43c1-8651-637d352bbc1a
@@ -760,7 +756,7 @@ end
 
 # ╔═╡ 47d1995c-896e-44c9-b786-e6f6ff182cbf
 md"""
-This is not ideal as, in some scenarios, we need accurate liquid densities. One very simple correction that has a minimal impact on our original equation is to introduce a volume translation. In this case, The `true` volume and the volume fed into our equation is shift slightly:
+This is not ideal as, in some scenarios, we need accurate liquid densities. One very simple correction that has a minimal impact on our original equation is to introduce a volume translation. In this case, The `true` volume and the volume fed into our equation is shifted slightly:
 
 $$V_\mathrm{eos} = V - Nc$$
 
@@ -800,7 +796,7 @@ end
 md"""
 Although still not quite ideal for water, it is an improvement over the untranslated results. 
 
-One this to consider is the impact on our generalised equation for the cubics. Introducing the shift gives us a slightly different equation:
+One thing to consider is the impact on our generalised equation for the cubics. Introducing the shift gives us a slightly different equation:
 
 $$A_\mathrm{res.} = -n\bar{R}T\log{(1-n(c-b)/V)}-\frac{na}{b}\frac{\log(V+n(c+r_2b))-\log(V+n(c+r_1b))}{r_2-r_1}$$
 	"""
@@ -814,13 +810,12 @@ Generally, volume translations should only be used when we need accurate volumet
 
 # ╔═╡ ab519b39-d547-4bd8-aead-050bdf5a5c9d
 md"""
-### Section 2.3.5
-## Mixing rules
+## Section 2.3.5 - Mixing rules
 """
 
 # ╔═╡ c9cc4916-a0c4-498b-bbd3-5d2605f1b382
 md"""
-Now that we have established all the tools needed to model pure systems using cubics, we now need to consider extending them to model mixtures. Typically, we want a set of $a$ and $b$ parameters that characterise the mixture (we will denote this `one-fluid mixture' parameters as $\bar{a}$ and $\bar{b}$):
+Now that we have established all the tools needed to model pure systems using cubics, we now need to consider extending them to model mixtures. Typically, we want a set of $a$ and $b$ parameters that characterise the mixture (we will denote these `one-fluid mixture' parameters as $\bar{a}$ and $\bar{b}$):
 """
 
 # ╔═╡ c971e885-6887-4f38-a907-e7cdb1e52032
@@ -834,7 +829,7 @@ How can we do this? The critical points for the mixtures are generally not known
 # ╔═╡ d71826d0-1b95-4b21-9c5b-125e0c10f9b0
 md"""
 ### Van der Waals one-fluid mixing rule
-The simplest and most-widely used approximation for obtaining $\bar{a}$ and $\bar{b}$ is the van der Waals one-fluid mixing rule:
+The simplest and most-widely used approximation for obtaining $\bar{a}$ and $\bar{b}$ is a van der Waals one-fluid mixing rule:
 
 $$\bar{a}=\sum_i\sum_j x_ix_j a_{ij}$$
 $$\bar{b}=\sum_i\sum_j x_ix_j b_{ij}$$
@@ -844,7 +839,7 @@ where, if $i=j$, then $a_{ii}$ and $b_{ii}$ are the usual parameters for a pure 
 $$a_{ij} = \sqrt{a_{ii}a_{jj}}(1-k_{ij})$$
 $$b_{ij} = \frac{b_{ii}+b_{jj}}{2}(1-l_{ij})$$
 
-The above are known as combining rules, and $k_{ij}$ and $l_{ij}$ are known as binary interaction parameters. Typically, the van der Waals mixing rule will work well for mixtures of similar species (e.g. ethane+propane) but struggle with associating (e.g. water+ethanol) and/or size asymmetric (e.g. carbon dioxide+n-decane) mixtures. $k_{ij}$ and $l_{ij}$ are fitted against mixtures containing species $i$ and $j$ to account for these `non-ideal' interactions. Generally, $l_{ij}=0$, meaning the mixing rule for $\bar{b}$ simplifies to: 
+The above are known as combining rules, and $k_{ij}$ and $l_{ij}$ are known as binary interaction parameters. Typically, the van der Waals mixing rule will work well for mixtures of similar species (e.g. ethane+propane) but struggle with associating (e.g. water+ethanol) and/or size asymmetric (e.g. carbon dioxide+n-decane) mixtures. $k_{ij}$ and $l_{ij}$ are fitted using experimental data for mixtures containing species $i$ and $j$ to account for these `non-ideal' interactions. Generally, $l_{ij}=0$, meaning the mixing rule for $\bar{b}$ simplifies to: 
 
 $$\bar{b}=\sum_ix_i b_{ii}$$
 
@@ -881,7 +876,7 @@ begin
 
 	plot(x,p_bm1./1e6,color=:blue,xlim=(0,1),
 		title="pxy diagram of benzene+methanol",
-		label=L"k_{ij}=0",
+		label="kᵢⱼ=0",
 		yguidefontsize=16, xguidefontsize=16,
 		legendfont=font(10), framestyle=:box, 
 		tick_direction=:out, grid=:off,foreground_color_legend = nothing,background_color_legend = nothing,legend=:topright,
@@ -889,10 +884,10 @@ begin
 	plot!(y_bm1,p_bm1./1e6,color=:blue,
 		label="")
 	plot!(x,p_bm2./1e6,color=:red,
-		label=L"k_{ij}=0.125")
+		label="kᵢⱼ=0.125")
 	plot!(y_bm2,p_bm2./1e6,color=:red,
 		label="")
-	scatter!(1 .-Exp_MeB[:,1],Exp_MeB[:,3].*0.00689476,label=L"\mathrm{Experimental}",color=:white,edgecolor=:blue)
+	scatter!(1 .-Exp_MeB[:,1],Exp_MeB[:,3].*0.00689476,label="Experimental",color=:white,edgecolor=:blue)
 	scatter!(1 .-Exp_MeB[:,2],Exp_MeB[:,3].*0.00689476,label="",color=:white,edgecolor=:blue)
 	annotate!(0.02, 0.75, text("T=433.15 K", :black, :left, 14))
 
@@ -900,9 +895,9 @@ end
 
 # ╔═╡ a4b3d1ca-4251-4f24-aed2-f3c82680918e
 md"""
-Clearly, this binary interaction parameter can have a profound effect on the predicted equilibria for the mixture. We can see above that the equilibria goes from being almost ideal to having an azeotrope, as well as agreeing more-quantitatively with the experimental data.
+Clearly, this binary interaction parameter can have a profound effect on the predicted equilibria for the mixture. We can see above that the equilibrium goes from being almost ideal to having an azeotrope, as well as agreeing more-quantitatively with the experimental data.
 
-There are other mixing rules similar to the van der Waals one-fluid mixing rule (e.g. Kay's rule, Rao's rule, etc.). However, all of these require binary interaction parameters to accurately model mixtures. These binary interactions can usually be found in literature, although tools like ASPEN and gPROMS have large databases available. If these are not available, it is recommended to simply fit these parameters to any available experimental data. 
+There are other mixing rules similar to the van der Waals one-fluid mixing rule (e.g. Kay's rule, Rao's rule, etc.). However, all of these require binary interaction parameters to accurately model mixtures. These binary interactions can usually be found in literature, although tools like ASPEN and gPROMS have large databases available. If these are not available, it is recommended to simply fit these parameters using any available experimental data. 
 
 Naturally, there comes the limitation that we sometimes need to model systems for which there are no binary interaction parameters or experimental data available in literature.
 """
@@ -910,17 +905,17 @@ Naturally, there comes the limitation that we sometimes need to model systems fo
 # ╔═╡ 967d43b8-deb2-4365-98d3-65d798395e76
 md"""
 ### EoS/$G^E$ mixing rules
-Having now seen the limitations of simple mixing rules in cubics, we now consider another class of mixing rules. In the previous section, we showed how effective activity coefficient-based models were for modelling equilibrium properties of mixture systems, despite being unable to model pure systems and limited to a few properties. What if we could 'borrow' this better modelling from the activity coefficent models, and use it within cubics? 
+Having now seen the limitations of simple mixing rules in cubics, we now consider another class of mixing rules. In the previous section, we showed how effective activity coefficient-based models were for modelling equilibrium properties of mixture systems, despite being unable to model pure systems and limited to a few properties. What if we could 'borrow' this better modelling from the activity coefficent models, and use it together with cubics? 
 
 The basic ideal behind $G^E$ mixing rules is we set the excess Gibbs free energy obtained from the cubic equation of state to that obtained from activity models:
 
 $$g^E_\mathrm{cubic}(T,p,z)=g^E_\mathrm{act.}(T,z)$$
 
-The difficulty is that activity coefficient models are pressure-independent. Thus, at which pressure do we set this equality? This depends on which mixing rule we use. The first such mixing rule derived was by Huron and Vidal which took the infinite pressure limit, giving the following mixing rule:
+The difficulty is that activity coefficient models are pressure-independent. Thus, at which pressure do we set this equality? This depends on which mixing rule we use. The first such mixing rule derived was by Huron and Vidal, who took the infinite pressure limit, giving the following mixing rule:
 
 $$\frac{\bar{a}}{\bar{b}}=\sum_ix_i\frac{a_i}{b_i}-\frac{G^E}{\lambda}$$
 
-where $G^E$ is obtained from the activity coefficient model and $\lambda$ is equation of state-specific. Taking the opposite limit of zero pressure, the mixing rules of Michelsen and, Wong and Sandler are other alternatives (which are too complex to write here). The interesting aspect here is that there is no restriction as to which activity coefficient model can be used here (Wilson, NRTL, UNIQUAC, etc.). For example (feel free to switch out the mixing rule and activity model):
+where $G^E$ is obtained from the activity-coefficient model and $\lambda$ is specific to the equation of state. Taking the opposite limit of zero pressure, the mixing rules of Michelsen and, Wong and Sandler are other alternatives (which are too complex to write here). The interesting aspect here is that there is no restriction as to which activity coefficient model can be used here (Wilson, NRTL, UNIQUAC, etc.). For example (feel free to switch out the mixing rule and activity model):
 """
 
 # ╔═╡ 1de4e49b-36cd-4140-8219-c197f5e42898
@@ -965,13 +960,12 @@ end
 md"""
 As we can see, the results obtained from these mixing rules are substantially better than those obtained using the simple van der Waals one-fluid mixing rule. However, the above also illustrates the big advantage of such a mixing rule. While Wilson, NRTL and UNIQUAC are all species-specific method, models like UNIFAC are group-contribution based. This means, as long as the groups for a species are available, we will be able to use this mixing rule to _predict_ the mixture phase equilibria!
 
-In terms of recommendations, if possible, it is always best to validate these mixing rules against experimental data. If binary interaction parameters have been fitted against experimental data, it is usually easier and more-trustworthy to use the simpler mixing rules. However, if one must use a $G^E$ mixing rule, generally speaking, the Michelsen and, Wong-Sandler mixing rules are typically the most-reliable, coupled with any of the activity coefficient models (naturally, if one can use species-specific approaches, that is preferred).
+In terms of recommendations, if possible, it is always best to validate these mixing rules against experimental data. If binary interaction parameters have been fitted against experimental data, it is usually easier and more trustworthy to use the simpler mixing rules. However, if one must use a $G^E$ mixing rule, generally speaking, the Michelsen, and Wong--Sandler mixing rules are typically the most-reliable, coupled with any of the activity-coefficient models (naturally, if one can use species-specific approaches, that is preferred).
 """
 
 # ╔═╡ e31698b2-90bf-4c77-a207-867f9e5e8e33
 md"""
-### Section 2.3.6
-## Predictive Cubics
+## Section 2.3.6 - Predictive Cubics
 Now that we've gone through the different types of cubics, $\alpha$ functions, volume translation and mixing rules, it is time to bring them together:
 """
 
@@ -984,7 +978,7 @@ md"""
 However, there are two cubics that make use of all the above methods to provide some of the most-accurate equations of state available:
 * Predictive SRK: Combines the standard Soave $\alpha$ function, Peneloux volume translation, the Michelsen first order mixing rule and its own version of UNIFAC.
 * Volume-translated PR: Combines Twu _et al._'s $\alpha$ function, Rackett volume translation, a modified Huron-Vidal mixing rule and its own version of UNIFAC.
-These equations of state are, for most mixtures of interest in industry, almost as accurate as the high-accuracy empirical models (GERG-2008). Both of these approaches are predictive for mixtures, only requiring the critical point to be used. If one can use either of these methods, they are highly recommended. Try to create your own cubic equation of state to see if it rivals their accuracy!
+These equations of state are, for most mixtures of interest in industry, almost as accurate as the high-accuracy empirical models (GERG-2008). Both of these approaches are predictive for mixtures, only requiring the critical temperature and pressure to be used. If one can use either of these methods, they are highly recommended. Try to create your own cubic equation of state to see if it rivals their accuracy!
 """
 
 # ╔═╡ 156de269-904c-4312-937e-600c07d088a1
@@ -1000,7 +994,7 @@ begin
 	y_bm5 = [bub_bm5[i][4][1] for i ∈ 1:N]
 
 	plot(x,pbub./1e6,color=:blue,xlim=(0,1),
-		title=L"pxy\;\textrm{diagram\; of\;benzene+methanol}",
+		title="pxy diagram of benzene+methanol",
 		label="Your model",
 		yguidefontsize=16, xguidefontsize=16,
 		legendfont=font(10), framestyle=:box, 
@@ -1014,6 +1008,8 @@ begin
 		label="")
 	scatter!(1 .-Exp_MeB[:,1],Exp_MeB[:,3].*0.00689476,label="Experimental",color=:white,edgecolor=:blue)
 	scatter!(1 .-Exp_MeB[:,2],Exp_MeB[:,3].*0.00689476,label="",color=:white,edgecolor=:blue)
+		annotate!(0.75, 1.9, text("T=433.15 K", :black, :left, 14))
+
 end
 
 # ╔═╡ 73a7e252-8ce8-4640-afea-f7abe28249d2
@@ -1087,6 +1083,7 @@ LaTeXStrings = "b964fa9f-0449-5b57-a5c2-d3ea65f4040f"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 Optim = "429524aa-4258-5aef-a3af-852621145aeb"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
+PlutoUI = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
 PolynomialRoots = "3a141323-8675-5d76-9d11-e1df1406c778"
 Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
 Roots = "f2b01f46-fcfa-551c-844a-d8ac1e96c665"
@@ -1099,6 +1096,7 @@ HypertextLiteral = "~0.9.4"
 LaTeXStrings = "~1.3.0"
 Optim = "~1.7.0"
 Plots = "~1.31.3"
+PlutoUI = "~0.7.39"
 PolynomialRoots = "~1.0.0"
 Roots = "~2.0.2"
 ShortCodes = "~0.3.3"
@@ -1110,7 +1108,13 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.8.0"
 manifest_format = "2.0"
-project_hash = "b86326280b812b4b9c42bf735609317e6b02f964"
+project_hash = "4d889628daa564316a79b531da1da0a0086168c3"
+
+[[deps.AbstractPlutoDingetjes]]
+deps = ["Pkg"]
+git-tree-sha1 = "8eaf9f1b4921132a4cff3f36a1d9ba923b14a481"
+uuid = "6e696c72-6542-2067-7265-42206c756150"
+version = "1.1.4"
 
 [[deps.Adapt]]
 deps = ["LinearAlgebra"]
@@ -1469,11 +1473,23 @@ git-tree-sha1 = "709d864e3ed6e3545230601f94e11ebc65994641"
 uuid = "34004b35-14d8-5ef3-9330-4cdb6864b03a"
 version = "0.3.11"
 
+[[deps.Hyperscript]]
+deps = ["Test"]
+git-tree-sha1 = "8d511d5b81240fc8e6802386302675bdf47737b9"
+uuid = "47d2ed2b-36de-50cf-bf87-49c2cf4b8b91"
+version = "0.0.4"
+
 [[deps.HypertextLiteral]]
 deps = ["Tricks"]
 git-tree-sha1 = "c47c5fa4c5308f27ccaac35504858d8914e102f9"
 uuid = "ac1192a8-f4b3-4bfe-ba22-af5b92cd3ab2"
 version = "0.9.4"
+
+[[deps.IOCapture]]
+deps = ["Logging", "Random"]
+git-tree-sha1 = "f7be53659ab06ddc986428d3a9dcc95f6fa6705a"
+uuid = "b5f81e59-6552-4d32-b1f0-c071b021bf89"
+version = "0.2.2"
 
 [[deps.IniFile]]
 git-tree-sha1 = "f550e6e32074c939295eb5ea6de31849ac2c9625"
@@ -1827,6 +1843,12 @@ deps = ["Base64", "Contour", "Dates", "Downloads", "FFMPEG", "FixedPointNumbers"
 git-tree-sha1 = "5a1e85f3aed2e0d3d99a4068037c8582597b89cf"
 uuid = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 version = "1.31.3"
+
+[[deps.PlutoUI]]
+deps = ["AbstractPlutoDingetjes", "Base64", "ColorTypes", "Dates", "Hyperscript", "HypertextLiteral", "IOCapture", "InteractiveUtils", "JSON", "Logging", "Markdown", "Random", "Reexport", "UUIDs"]
+git-tree-sha1 = "8d1f54886b9037091edf146b517989fc4a09efec"
+uuid = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
+version = "0.7.39"
 
 [[deps.PolynomialRoots]]
 git-tree-sha1 = "5f807b5345093487f733e520a1b7395ee9324825"

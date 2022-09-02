@@ -8,28 +8,27 @@ using InteractiveUtils
 begin
 	using Clapeyron, ForwardDiff, Roots, Optim, LinearAlgebra, PolynomialRoots # Numerical packages
 	using LaTeXStrings, Plots, ShortCodes, Printf # Display and plotting
-	using HypertextLiteral
+	using HypertextLiteral, PlutoUI
 	# using JSON2, Tables,Random # Data handling
 	using BenchmarkTools
+	PlutoUI.TableOfContents()
 end
 
 # ╔═╡ 2a34397e-7498-4f17-b0dd-7c5b011b8787
 md"""
-### Section 2.5
-# Multi-parameter Equations of State
-The last class of equations of state we will discuss are multi-parameter equations of state. The objective of the previous equations of state was to model a large range of species with (preferrably) as few parameters as possible. Multi-parameter equations of state do the exact opposite: only intended to be used for a single system where you can use as many parameters as you want. The benefit of this is that these equations are _very_ accurate, often considered as good as experimental data (in fact, the results one gets from NIST's chemistry webbok are typically obtained from such equations). While this does limit the equations to just one system, one often finds, in industry, most systems of interest are made up of the same species. As such, it is often worthwhile to use these equations of state with the benefit of significantly greater accuracy, in contrast to any other available.
+# Section 2.5 - Multi-parameter Equations of State
+The last class of equations of state we will discuss is multi-parameter equations of state. The objective of the previous equations of state was to model a large range of species with (preferrably) as few parameters as possible. Multi-parameter equations of state do the exact opposite: these are only intended to be used for a single system where you can use as many parameters as you want. The benefit of this is that these equations are _very_ accurate, often considered as good as experimental data (in fact, the results one gets from NIST's chemistry webbook are typically obtained from such equations). While this does limit the equations to just one system, one often finds, in industry, most systems of interest are made up of the same species. As such, it is often worthwhile to use these equations of state with the benefit of significantly greater accuracy, in contrast to any other available.
 
-The only 'weakness' to these equations of state is that they are intended for interpolation, not extrapolation. Typically, they will have been fitted to quite a large range of conditions, thus making it difficult to find conditions where they begin to perform badly. However, it is something to bear in mind when using these equations.
+The only 'weakness' to these equations of state is that they are intended for interpolation, not extrapolation. Typically, they will have been fitted over quite a large range of conditions, thus making it difficult to find conditions where they begin to perform badly. However, it is something to bear in mind.
 
 Since these equations are devoid of any actual physical intuition, we will only give two examples to illustrate their impressive accuracy, but also highlight some of their limitations.
 """
 
 # ╔═╡ 57d13242-601a-4447-8041-a6a31b7a0cf2
 md"""
-### Section 2.5.1
-## The International Association for the Properties of Water and Steam Equation (IAPWS-95)
+## Section 2.5.1 - The International Association for the Properties of Water and Steam Equation (IAPWS-95)
 
-This equation of state is designed for just one species: water. Despite all the improvements made with equations like SAFT, there are still significant issues that are left to be addressed. For example, even in the saturation envelope:
+This equation of state was designed for just one species: water. Despite all the improvements made with equations like SAFT, there are still significant issues that are left to be addressed. For example, even in the saturation envelope:
 """
 
 # ╔═╡ 1680fee0-6f0a-4f56-a9b9-bb0638a0f95a
@@ -153,16 +152,17 @@ end
 
 # ╔═╡ 17e419a1-a190-4f14-9161-459ce685fddf
 md"""
-As we can see above, despite its advancements, SAFT-VR Mie still overestimates the critical point. Furthermore, if one looks at the saturated liquid densities around 300 K, one can see that SAFT-VR Mie is unable to predict a maxima in the liquid density. This is something that has been of interest to developers of SAFT equations for years. However, for the highly-regressed IAPWS-95 equation of state, it captures this behaviour very well.
+As we can see above, despite its advancements, with SAFT-VR Mie, we still overestimates the critical temperature. Furthermore, if one looks at the saturated-liquid densities around 300 K, one can see an anomalous but curious feature of the water phase diagram: a maximum in the liquid density. This is something that has been of interest to developers of SAFT equations for years but even SAFT-VR Mie is unable to capture this phenomenon. However, for the highly-regressed IAPWS-95 equation of state, this behaviour is captured very well.
 
-The IAPWS-95 equation was fitted using almost all data available for water, covering temperatures from 251.2 K to 1273 K, and pressures up to 1000 MPa. As such, for most practical purposes, we will always be interpolating when using IAPWS-95, making it effectively impossible to find conditions where it performs badly.
+The IAPWS-95 equation was fitted using almost all data available for water, covering temperatures from 251.2 K to 1273 K, and pressures up to 1000 MPa. As such, for most practical purposes, we will always be interpolating when using IAPWS-95, making it effectively impossible to find conditions where it performs badly. 
+
+This is also the equation of state used by the NIST Chemistry Webbook to represent water.
 """
 
 # ╔═╡ 20731888-cc20-4a49-9b63-eed1fcfe5d32
 md"""
-### Section 2.5.2
-## The Groupe Européen de Recherches Gazières 2008 equation of state (GERG-2008)
-As one can imagine, a lot of experimental data has been collected for natural gas systems. As a result, this data was used to fit a high-accuracy equation of state designed solely for natural gas systems. The GERG-2008 version involves 21 different species and is able to model bulk and equilibrium properties for both pure and mixed systems very accurately: 
+## Section 2.5.2 - The Groupe Européen de Recherches Gazières 2008 equation of state (GERG-2008)
+As one can imagine, a lot of experimental data have been collected for natural-gas systems. As a result, these data were used to fit a high-accuracy equation of state designed solely for natural-gas systems. The GERG-2008 version involves 21 different species and is able to model bulk and equilibrium properties for both pure and mixed systems very accurately: 
 """
 
 # ╔═╡ 561e5395-9849-4779-bacb-e0a23663911b
@@ -248,7 +248,7 @@ end
 
 # ╔═╡ f2f063f5-d5b5-4e1c-94e7-1d17305ab30f
 md"""
-The above example are intended to highlight that GERG-2008 is indeed very accurate for the conditions it was regressed in (approximately 90 to 450 K and pressures up to 35 MPa). However, when one starts to extrapolate, we can begin seeing some of the limitations of such multi-parametric equations of state. In the case of water's heat capacity, at intermediate pressures, agreement with experimental data is excellent. At much higher pressures, the model beings to struggle.
+The above examples are intended to highlight that GERG-2008 is indeed very accurate for the conditions over which it was regressed (approximately 90 to 450 K and pressures up to 35 MPa). However, when we start to extrapolate, we can begin seeing some of the limitations of such multi-parametric equations of state. In the case of water's heat capacity, at intermediate pressures, agreement with experimental data is excellent. At much higher pressures, the model beings to perform less well.
 
 Even for binary mixtures within the temperature range it was fitted in (see hydrogen sulfide + methane phase diagrams), it begins to perform poorly. This is to be expected and serves as a reminder to always verify the results from such equations instead of using them blindly.
 """
@@ -526,6 +526,7 @@ LaTeXStrings = "b964fa9f-0449-5b57-a5c2-d3ea65f4040f"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 Optim = "429524aa-4258-5aef-a3af-852621145aeb"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
+PlutoUI = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
 PolynomialRoots = "3a141323-8675-5d76-9d11-e1df1406c778"
 Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
 Roots = "f2b01f46-fcfa-551c-844a-d8ac1e96c665"
@@ -539,6 +540,7 @@ HypertextLiteral = "~0.9.4"
 LaTeXStrings = "~1.3.0"
 Optim = "~1.7.0"
 Plots = "~1.31.4"
+PlutoUI = "~0.7.39"
 PolynomialRoots = "~1.0.0"
 Roots = "~2.0.2"
 ShortCodes = "~0.3.3"
@@ -550,7 +552,13 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.8.0"
 manifest_format = "2.0"
-project_hash = "c4b8046a17338e691c3b702f66bf1225dd76f8a8"
+project_hash = "9fe256970afcfaff39be4e01821711b5a222a3b4"
+
+[[deps.AbstractPlutoDingetjes]]
+deps = ["Pkg"]
+git-tree-sha1 = "8eaf9f1b4921132a4cff3f36a1d9ba923b14a481"
+uuid = "6e696c72-6542-2067-7265-42206c756150"
+version = "1.1.4"
 
 [[deps.Adapt]]
 deps = ["LinearAlgebra"]
@@ -915,11 +923,23 @@ git-tree-sha1 = "709d864e3ed6e3545230601f94e11ebc65994641"
 uuid = "34004b35-14d8-5ef3-9330-4cdb6864b03a"
 version = "0.3.11"
 
+[[deps.Hyperscript]]
+deps = ["Test"]
+git-tree-sha1 = "8d511d5b81240fc8e6802386302675bdf47737b9"
+uuid = "47d2ed2b-36de-50cf-bf87-49c2cf4b8b91"
+version = "0.0.4"
+
 [[deps.HypertextLiteral]]
 deps = ["Tricks"]
 git-tree-sha1 = "c47c5fa4c5308f27ccaac35504858d8914e102f9"
 uuid = "ac1192a8-f4b3-4bfe-ba22-af5b92cd3ab2"
 version = "0.9.4"
+
+[[deps.IOCapture]]
+deps = ["Logging", "Random"]
+git-tree-sha1 = "f7be53659ab06ddc986428d3a9dcc95f6fa6705a"
+uuid = "b5f81e59-6552-4d32-b1f0-c071b021bf89"
+version = "0.2.2"
 
 [[deps.IniFile]]
 git-tree-sha1 = "f550e6e32074c939295eb5ea6de31849ac2c9625"
@@ -1273,6 +1293,12 @@ deps = ["Base64", "Contour", "Dates", "Downloads", "FFMPEG", "FixedPointNumbers"
 git-tree-sha1 = "0a0da27969e8b6b2ee67c112dcf7001a659049a0"
 uuid = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 version = "1.31.4"
+
+[[deps.PlutoUI]]
+deps = ["AbstractPlutoDingetjes", "Base64", "ColorTypes", "Dates", "Hyperscript", "HypertextLiteral", "IOCapture", "InteractiveUtils", "JSON", "Logging", "Markdown", "Random", "Reexport", "UUIDs"]
+git-tree-sha1 = "8d1f54886b9037091edf146b517989fc4a09efec"
+uuid = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
+version = "0.7.39"
 
 [[deps.PolynomialRoots]]
 git-tree-sha1 = "5f807b5345093487f733e520a1b7395ee9324825"
@@ -1800,7 +1826,7 @@ version = "0.9.1+5"
 """
 
 # ╔═╡ Cell order:
-# ╟─b2496a06-0f95-11ed-2a05-2b39c1c42836
+# ╠═b2496a06-0f95-11ed-2a05-2b39c1c42836
 # ╟─2a34397e-7498-4f17-b0dd-7c5b011b8787
 # ╟─57d13242-601a-4447-8041-a6a31b7a0cf2
 # ╠═1680fee0-6f0a-4f56-a9b9-bb0638a0f95a
