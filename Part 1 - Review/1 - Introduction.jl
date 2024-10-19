@@ -21,7 +21,7 @@ md"""
 
 # ╔═╡ 380e0107-0986-4472-a863-6f98b084cfe8
 md"""
-The essence of automatic differentiation is tracing the elementary operations, like addition and subtraction, that happen to a given variable through some code. This can then be differentiated directly and combined using the chain rule. There are two main "modes" of automatic differentiation. Forward-mode and Reverse-mode. To learn more about these, I recommend taking a look at the [wikipedia page](https://en.wikipedia.org/wiki/Automatic_differentiation) as well as the relevant notes from the course 18.337 at MIT; [forward-mode notes](https://book.sciml.ai/notes/08/) and [reverse-mode notes](https://book.sciml.ai/notes/10/).
+The essence of automatic differentiation is tracing the elementary operations, like addition and subtraction, that happen to a given variable through some code. This can then be differentiated directly and combined using the chain rule. There are two main "modes" of automatic differentiation. Forward-mode and Reverse-mode. To learn more about these, I recommend taking a look at the [Wikipedia page](https://en.wikipedia.org/wiki/Automatic_differentiation) as well as the relevant notes from the course 18.337 at MIT; [forward-mode notes](https://book.sciml.ai/notes/08/) and [reverse-mode notes](https://book.sciml.ai/notes/10/).
 """
 
 # ╔═╡ f06ace4f-83bd-42ef-a400-3f2d576ef10b

@@ -8,7 +8,7 @@ using InteractiveUtils
 begin
 	using Clapeyron: VT_chemical_potential, ABCubicModel, SAFTModel, p_scale, T_scale, R̄, N_A
 	const R = R̄;
-	
+
 	using Clapeyron, ForwardDiff, Roots, NLsolve, LinearAlgebra # Numerical packages
 	using LaTeXStrings, Plots, ShortCodes, Printf # Display and plotting
 	using HypertextLiteral
@@ -93,7 +93,7 @@ where ϵ is a **user-defined tolerance**. By using scaling factors, our variable
 
 # ╔═╡ 103b01a4-971a-44b1-be08-b3e59d952dcb
 md"""
-Using Clapeyron, we can access the pressure and temperature scaling factors using 
+Using Clapeyron, we can access the pressure and temperature scaling factors using
 
 ```julia
 ps = p_scale(model)
@@ -118,7 +118,7 @@ v^\textrm{sat. liq vdW} = 3b/c^\textrm{sat. liq vdW}\\
 v^\textrm{sat. vap vdW} = 3b/c^\textrm{sat. vap vdW}
 \end{gather}$$
 
-where $c$ is given by 
+where $c$ is given by
 
 $$c^\textrm{sat. liq vdW} = 1 + 2(1-T_\mathrm{r})^{1/2} + \frac25(1-T_\mathrm{r}) - \frac{13}{25}(1-T_\mathrm{r})^{3/2} + 0.115(1-T_\mathrm{r})^2$$
 
@@ -133,7 +133,7 @@ v^\textrm{sat. liq}_0 = 0.5v^\textrm{sat. liq vdW}\\
 v^\textrm{sat. vap}_0 = 2v^\textrm{sat. vap vdW}
 \end{gather}$$
 
- This is done to avoid the guesses falling _inside_ the saturation curve of the fluid we're solving for, as that can lead to numerical instability and convergence issues. 
+ This is done to avoid the guesses falling _inside_ the saturation curve of the fluid we're solving for, as that can lead to numerical instability and convergence issues.
 
 The derivation of the volume expression can be seen in the article [_The van der Waals equation: analytical and approximate
 solutions_](https://rdcu.be/cTmlc). The code is implemented below:
@@ -141,7 +141,7 @@ solutions_](https://rdcu.be/cTmlc). The code is implemented below:
 
 # ╔═╡ 80662d56-e97c-4ea5-9ba7-0d2ad827740d
 md"""
-Because we only have temperature specified, we cannot use the ideal gas equation without requiring another correlation to generate a guess for the saturation pressure. To avoid this we estimate a vapour volume of 
+Because we only have temperature specified, we cannot use the ideal gas equation without requiring another correlation to generate a guess for the saturation pressure. To avoid this we estimate a vapour volume of
 
 $$V^\mathrm{vap}_0 = -2B(T)$$
 
@@ -149,7 +149,7 @@ where $B$ is the second virial coefficient.
 
 For liquids our approach differs depending on the class of model we're using. For cubic equations of state the $b$ parameter can be used [^2]
 
-$$V^\mathrm{liq}_0 = b$$ 
+$$V^\mathrm{liq}_0 = b$$
 
 where $b$ corresponds to the $b$ parameter within the repulsive term of the equation of state. For SAFT and its derivatives, we can use the same approach we used in Section 3.1, where the initial guess is defined as
 
@@ -197,7 +197,7 @@ And we can compare it to the Clapeyron result
 md"""
 ## Building phase diagrams
 
-Now we are able to determine the location of the saturation curve, how do we build up a graph of the entire phase boundary? We can call the solver we just wrote above again and again for different temperatures with the same initial guess, and for most cases it will probably converge. However, as before there are a particular number of difficulties near the critical point and the solver can become very sensitive to the initial guesses. 
+Now we are able to determine the location of the saturation curve, how do we build up a graph of the entire phase boundary? We can call the solver we just wrote above again and again for different temperatures with the same initial guess, and for most cases it will probably converge. However, as before there are a particular number of difficulties near the critical point and the solver can become very sensitive to the initial guesses.
 
 To help with this, we can reuse each previous result as the new guess to the solver. On top of being very important near the critical point, this technique is very important for speeding up the overall solver -- the very good initial guesses obtained in this way allow for rapid convergence.
 
@@ -232,7 +232,7 @@ md"""
 ### Initial guesses
 The final issue we must resolve is the generation of **initial guesses**. Luckily, a critical point solver isn't too sensitive to initial guesses.
 
-The volume guess is an empirically chosen packing fraction of $0.3$. This corresponds to 
+The volume guess is an empirically chosen packing fraction of $0.3$. This corresponds to
 
 $$V_0^\mathrm{liq} = \frac{1}{0.3}\cdot\frac{\pi}{6}\cdot N_A \cdot \sigma^3$$
 
@@ -299,9 +299,9 @@ function solve_critical_point(model)
 	Ts = T_scale(model)
 	# Generate initial guesses
 	x0 = critical_point_guess(model)
-	
+
 	# Solve system for critical point
-	res = nlsolve((F, x) -> critical_objective!(model, F, [exp10(x[1]), Ts*x[2]]), x0, autodiff = :forward, xtol=1e-9, method=:newton)	
+	res = nlsolve((F, x) -> critical_objective!(model, F, [exp10(x[1]), Ts*x[2]]), x0, autodiff = :forward, xtol=1e-9, method=:newton)
 
 	# Extract answer
 	Vc = exp10(res.zero[1])
@@ -346,7 +346,7 @@ begin
 		  </tr>
 		</table>
 		""")
-	catch 
+	catch
 		@htl("""
 		<table>
 		<caption>Solver Results</caption>
@@ -394,17 +394,17 @@ And we've converged correctly on the right answer!
 # ╔═╡ 58b76139-6976-4624-8d71-347b50e1b494
 md"""
 # Footnotes
-[^1]: Equation conditioning generally refers to the sensitivity of the output to small pertubations in the input. Often in numerical methods, a highly sensitive (i.e. poorly conditioned) problem can result in the loss of precision. The condition number is often discussed for both matrices and for functions.
+[^1]: Equation conditioning generally refers to the sensitivity of the output to small perturbations in the input. Often in numerical methods, a highly sensitive (i.e. poorly conditioned) problem can result in the loss of precision. The condition number is often discussed for both matrices and for functions.
 
 [^2]: If you are using a model with volume translation, you should also account for that in your initial guess.
 
 [^3]: A trivial solution is encountered when the solver converges both phases to the same solution, resulting in the automatic satisfaction of the equilibrium conditions (equality of temperature, pressure, and chemical potential)
 
-[^4]: Finite differencing is the traditional method for calculation of derivatives. A good explanation can be found on [wikipedia](https://en.wikipedia.org/wiki/Finite_difference).
+[^4]: Finite differencing is the traditional method for calculation of derivatives. A good explanation can be found on [Wikipedia](https://en.wikipedia.org/wiki/Finite_difference).
 """
 
 # ╔═╡ 1d24ec62-7457-4b75-b2b6-740711df3e49
-#The essence of automatic differentiation is tracing the elementary operations, like addition and subtraction, that happen to a given variable through some code. This can then be differentiated directly and combined using the chain rule. There are two main "modes" of automatic differentiation. Forward-mode and Reverse-mode. To learn more about these, I recommend taking a look at the [wikipedia page](https://en.wikipedia.org/wiki/Automatic_differentiation) as well as the relevant notes from the course 18.337 at MIT; [forward-mode notes](https://book.sciml.ai/notes/08/) and [reverse-mode notes](https://book.sciml.ai/notes/10/).
+#The essence of automatic differentiation is tracing the elementary operations, like addition and subtraction, that happen to a given variable through some code. This can then be differentiated directly and combined using the chain rule. There are two main "modes" of automatic differentiation. Forward-mode and Reverse-mode. To learn more about these, I recommend taking a look at the [Wikipedia page](https://en.wikipedia.org/wiki/Automatic_differentiation) as well as the relevant notes from the course 18.337 at MIT; [forward-mode notes](https://book.sciml.ai/notes/08/) and [reverse-mode notes](https://book.sciml.ai/notes/10/).
 
 # ╔═╡ 33ed3f41-3107-4497-85e0-aa7de6686612
 hint(text) = Markdown.MD(Markdown.Admonition("hint", "Hint", [text]));
@@ -446,7 +446,7 @@ Returns the saturation curve for a van der Waals with an equivalent critical tem
 function vdW_saturation_volume(model, T)
 	Tc, pc, vc = crit_pure(model)
 	Tr = T/Tc
-	
+
 	# Valid for 0 ≤ Tᵣ ≤ 1
 	cL = 1 + 2(1-Tr)^(1/2) + 2/5*(1-Tr) - 13/25*(1-Tr)^(3/2) + 0.115*(1-Tr)^2
 
@@ -472,7 +472,7 @@ end
 Solves an equation of state for the saturation pressure at a given temperature using Newton's method. By default uses the solution to the van der Waals equation for initial guesses. Returns (psat, _v_\\_liq, _v_\\_vap)
 """
 function solve_sat_p(model, T; V0 = vdW_saturation_volume(model, T), itersmax=100, abstol=1e-10)
-	# Objective function accepting a vector of volumes, R²→R² 
+	# Objective function accepting a vector of volumes, R²→R²
 	f(logV) = sat_p_objective(model, T, exp10.(logV))
 	# function returning the Jacobian of our solution, R²→R²ˣ²
 	Jf(logV) = ForwardDiff.jacobian(f, logV)
@@ -483,20 +483,20 @@ function solve_sat_p(model, T; V0 = vdW_saturation_volume(model, T), itersmax=10
 	fx = 1.0
 	fx0 = f(logV0)
 	iters = 0
-	
+
 	# Iterate until converged or the loop has reached the maximum number of iterations
 	while (iters < itersmax && all(abs.(fx) .> abstol))
-		Jfx = Jf(logV) # Calculate the jacobian
+		Jfx = Jf(logV) # Calculate the Jacobian
 		fx = f(logV) # Calculate the value of f at V
 		d = -Jfx\fx # Calculate the newton step
 		logVold = logV # Store current iteration
 		logV = logV .+ d # Take newton step
 		iters += 1 # Increment our iteration counter
 	end
-	
+
 	# Show a warning if the solver did not converge (uses short circuit evaluation rather than if statement)
 	iters == itersmax && @warn "solver did not converge in $(iters) iterations\nfV=$(fx)"
-	
+
 	V = exp10.(logV)
 	p_sat = pressure(model, V[1], T)
 	return (p_sat, V[1], V[2])
@@ -507,7 +507,7 @@ begin
 	# Specify our state
 	cubic_model = PR(["hexane"])
 	T = 373.15 # K
-	# Solve the nonlinear system 
+	# Solve the nonlinear system
 	(p_sat, V_liq, V_vap) = solve_sat_p(cubic_model, T)
 end
 
@@ -593,9 +593,9 @@ let
 	for (i, T) in enumerate(Ts2)
 		(satp[i], Vlsat[i], Vvsat[i]) = saturation_pressure(cubic_model, T)
 	end
-	
+
 	plotlyjs()
-	
+
 	surface(ps./1e6, Ts, (x, y) -> log10(volume(cubic_model, 1e6x, y)), c=:summer, xlabel="p / MPa", ylabel="T / K", zlabel="log10(v / m³/mol)", camera=(45, 90), colorbar=false)
 	scatter!([pcrit/1e6], [Tcrit], log10.([vcrit]), label="critical point", color=2)
 	plot!(repeat(satp./1e6, 2), repeat(Ts2, 2), log10.(vcat(Vlsat, Vvsat)), width=5, color=1, label="saturation envelope")
@@ -623,7 +623,7 @@ begin
 	for (i, T) in enumerate(T_vec)
 		try
 			sat = solve_sat_p(cubic_model, T; V0=V0)
-			
+
 			if ~any(isnan.(sat))
 				(p_vec[i], Vl_vec[i], Vv_vec[i]) = sat
 				V0 = [Vl_vec[i], Vv_vec[i]] # Store previous iteration for new guess

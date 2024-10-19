@@ -29,7 +29,7 @@ It is likely that most undergraduates will have encountered the van der Waals eq
 
 $$p = \frac{Nk_\mathrm{B}T}{V}$$
 
-As mentioned previously, the ideal gas equation is based on an assumption that particles are infinitesmally small and experience perfectly elastic collisions. However, for most molecules, this assumption is not valid. Firstly, molecules have volume and thus, take up space in the system, thus reducing the total amount of volume available for other molecules to move around in. The excluded volume of a single particle is typically denoted by the parameter $b$. For $N$ particles, we reduce the available volume by $Nb$:
+As mentioned previously, the ideal gas equation is based on an assumption that particles are infinitesimally small and experience perfectly elastic collisions. However, for most molecules, this assumption is not valid. Firstly, molecules have volume and thus, take up space in the system, thus reducing the total amount of volume available for other molecules to move around in. The excluded volume of a single particle is typically denoted by the parameter $b$. For $N$ particles, we reduce the available volume by $Nb$:
 
 $$p = \frac{Nk_\mathrm{B}T}{V-Nb}$$
 
@@ -53,7 +53,7 @@ This was a very high-level description of the van der Waals equation; it is poss
 
 # ╔═╡ 51306a06-e837-4e83-a892-a6de8617374d
 md"""
-Interestingly, for all cubics we will discuss, this visual picture does not change singificantly. The parameters $a_m$ and $b_m$ can be obtained by constraining the equation such that it must pass through the critical pressure and temperature of a given species:
+Interestingly, for all cubics we will discuss, this visual picture does not change significantly. The parameters $a_m$ and $b_m$ can be obtained by constraining the equation such that it must pass through the critical pressure and temperature of a given species:
 
 $$a = \frac{27}{64} \frac{(RT_\mathrm{c})^2}{p_\mathrm{c}}$$
 $$b = \frac{1}{8} \frac{RT_\mathrm{c}}{p_\mathrm{c}}$$
@@ -68,9 +68,9 @@ Despite its significant contributions towards the development of equations of st
 begin
 	species="methane"
 	model = vdW([species])
-	
+
 	Tc,pc,Vc = crit_pure(model)
-	
+
 	N = 400
 	T = range(0.3*Tc,Tc,length=N)
 
@@ -129,7 +129,7 @@ begin
 		title="Vapour—liquid envelope of methane",
 		label="van der Waals",
 		yguidefontsize=16, xguidefontsize=16,
-		legendfont=font(10), framestyle=:box, 
+		legendfont=font(10), framestyle=:box,
 		tick_direction=:out, grid=:off,foreground_color_legend = nothing,
 		ylabel=L"T / \mathrm{K}", xlabel=L"\rho / (\mathrm{mol}/\mathrm{L})")
 	plot!(1e-3./vv1,T,color=:blue,label="")
@@ -179,7 +179,7 @@ begin
 	vv3 = [sat3[i][3] for i ∈ 1:N]
 
 	sat4 = saturation_pressure.(model4,T)
-	
+
 	psat4 = [sat4[i][1] for i ∈ 1:N]
 	vl4 = [sat4[i][2] for i ∈ 1:N]
 	vv4 = [sat4[i][3] for i ∈ 1:N]
@@ -188,7 +188,7 @@ begin
 		title="Vapour—liquid envelope of methane",
 		label="van der Waals",
 		yguidefontsize=16, xguidefontsize=16,
-		legendfont=font(10), framestyle=:box, 
+		legendfont=font(10), framestyle=:box,
 		tick_direction=:out, grid=:off,foreground_color_legend = nothing,background_color_legend = nothing,legend=:topright,
 		ylabel=L"T / \mathrm{K}", xlabel=L"\rho / (\mathrm{mol}/\mathrm{L})")
 	plot!(1e-3./vv1,T,color=:blue,label="")
@@ -221,7 +221,7 @@ where $\omega$ is the acentricity, a species-specific parameter, defined as:
 
 $$\omega = -\log{(p_\mathrm{sat}/p_c)}-1\,\,\mathrm{at}\,\,T=0.7T_c$$
 
-Interestingly, the acentricity does carry some physical meaning: the more-spherical the species is, the closer its value should be to zero (such as methane or the noble gases). 
+Interestingly, the acentricity does carry some physical meaning: the more-spherical the species is, the closer its value should be to zero (such as methane or the noble gases).
 
 The idea behind the $\alpha$-function is that, if you can nail-down, in ($p,T$) space, both the critical point (which the Redlich—Kwong equation already does) and a second point on the saturation curve around 0.7$T_c$, characterised by the acentricity, then, ideally, you should be able to capture the entire saturation curve. This is indeed what happens for most species:
 """
@@ -232,7 +232,7 @@ plot(T,psat1./1e6,color=:blue,yaxis=:log,xlim=(75,200),ylim=(1e-4,1e1),
 		title="Saturation curve of methane",
 		label="van der Waals",
 		yguidefontsize=16, xguidefontsize=16,
-		legendfont=font(10), framestyle=:box, 
+		legendfont=font(10), framestyle=:box,
 		tick_direction=:out, grid=:off,foreground_color_legend = nothing,background_color_legend = nothing,legend=:bottomright,
 		xlabel=L"T / \mathrm{K}", ylabel=L"p / \mathrm{MPa}")
 	plot!(T,psat2./1e6,color=:red,
@@ -405,7 +405,7 @@ begin
 		title="Vapour—liquid envelope of methane and n-butane\n using SRK",
 		label="methane",
 		yguidefontsize=16, xguidefontsize=16,
-		legendfont=font(10), framestyle=:box, 
+		legendfont=font(10), framestyle=:box,
 		tick_direction=:out, grid=:off,foreground_color_legend = nothing,background_color_legend = nothing,
 		ylabel=L"T / \mathrm{K}", xlabel=L"\rho / (\mathrm{mol}/\mathrm{L})")
 	plot!(1e-3./vv3,T,color=:blue,label="")
@@ -447,7 +447,7 @@ begin
 		title="Vapour—liquid envelope of n-butane",
 		label="SRK",
 		yguidefontsize=16, xguidefontsize=16,
-		legendfont=font(10), framestyle=:box, 
+		legendfont=font(10), framestyle=:box,
 		tick_direction=:out, grid=:off,foreground_color_legend = nothing,background_color_legend = nothing,
 		ylabel=L"T / \mathrm{K}", xlabel=L"\rho / (\mathrm{mol}/\mathrm{L})")
 	plot!(1e-3./vvb1,Tb,color=:blue,label="")
@@ -465,7 +465,7 @@ end
 
 # ╔═╡ 59a53741-74c5-46f0-81b7-2310078e6a3f
 md"""
-That isn't to say SRK is no longer useful. In fact, both SRK and PR represent the industry standards for equation of state modelling as, depending on what you are trying to model (do fugacities or densities matter more?), one may be more-accurate than the other. 
+That isn't to say SRK is no longer useful. In fact, both SRK and PR represent the industry standards for equation of state modelling as, depending on what you are trying to model (do fugacities or densities matter more?), one may be more-accurate than the other.
 
 However, it is also important to bear in mind what systems these equations of state are intended for: hydrocarbon / natural gases. If you were to try and model something like water using either of these equations the results would be disappointing:
 """
@@ -494,7 +494,7 @@ begin
 		title="Vapour—liquid envelope of water",
 		label="SRK",
 		yguidefontsize=16, xguidefontsize=16,
-		legendfont=font(10), framestyle=:box, 
+		legendfont=font(10), framestyle=:box,
 		tick_direction=:out, grid=:off,foreground_color_legend = nothing,background_color_legend = nothing,
 		ylabel=L"T / \mathrm{K}", xlabel=L"\rho / (\mathrm{mol}/\mathrm{L})")
 	plot!(1e-3./vvw1,Tw,color=:blue,label="")
@@ -550,7 +550,7 @@ end
 md"""
 Before moving on to writing the `a_res` function, there are a few key details to remember:
 
-Firstly, as we are going to be using automatic differentiation, we need to make sure all of our variables are explicitly defined. This may seem obvious since variables like the volume and temperature are quite clearly laid out. However, for equilibrium calculations, where we require the chemical potential, the composition becomes very important. Often, in literature, as one mole is usually assumed, authors often forget to write out explicitly the composition dependence. We have ensured that, wherever a composition dependence is present, it has been written out explicitly. 
+Firstly, as we are going to be using automatic differentiation, we need to make sure all of our variables are explicitly defined. This may seem obvious since variables like the volume and temperature are quite clearly laid out. However, for equilibrium calculations, where we require the chemical potential, the composition becomes very important. Often, in literature, as one mole is usually assumed, authors often forget to write out explicitly the composition dependence. We have ensured that, wherever a composition dependence is present, it has been written out explicitly.
 
 For consistency, we will assume $a$ and $b$ are in molar units, meaning our generalised equation becomes:
 
@@ -577,9 +577,9 @@ function a_res(model::CubicModel,V,T,z)
 	aα,b,c = cubic_ab(model, V, T, z) # ignore c for now
 
 	r1,r2 = cubic_r(model)
-	
+
 	a1 = 0
-	
+
 	if r1==r2
 		a2 = 0
 	else
@@ -626,7 +626,7 @@ begin
 		title="Vapour-liquid envelope of water",
 		label="PR",
 		yguidefontsize=16, xguidefontsize=16,
-		legendfont=font(10), framestyle=:box, 
+		legendfont=font(10), framestyle=:box,
 		tick_direction=:out, grid=:off,foreground_color_legend = nothing,background_color_legend = nothing,legend=:topleft,
 		ylabel=L"p / \mathrm{MPa}", xlabel=L"T / \mathrm{K}")
 	plot!(Tw,psatw3./1e6,color=:red,
@@ -662,7 +662,7 @@ begin
 		title="pxy diagram of benzene+methanol",
 		label="PR",
 		yguidefontsize=16, xguidefontsize=16,
-		legendfont=font(10), framestyle=:box, 
+		legendfont=font(10), framestyle=:box,
 		tick_direction=:out, grid=:off,foreground_color_legend = nothing,background_color_legend = nothing,legend=:topright,
 		ylabel=L"p / \mathrm{MPa}", xlabel=L"x(\mathrm{benzene}),y(\mathrm{benzene})")
 	plot!(y_pr1,p_pr1./1e6,color=:blue,
@@ -674,11 +674,11 @@ begin
 	annotate!(0.02, 0.0145, text("T=300.15 K", :black, :left, 14))
 
 end
-	
+
 
 # ╔═╡ 1b34fd27-47ba-4545-aed2-3615cb792886
 md"""
-Without considering experimental data, it is clear that the $\alpha$ function can have a profound impact on mixture properties. The logic behind this is simple: the saturation pressure of the pure components is the end points for VLE envelope of the mixutres. If you can't get those right, then you shouldn't expect to get the points inbetween correctly.
+Without considering experimental data, it is clear that the $\alpha$ function can have a profound impact on mixture properties. The logic behind this is simple: the saturation pressure of the pure components is the end points for VLE envelope of the mixtures. If you can't get those right, then you shouldn't expect to get the points in-between correctly.
 
 However, the impact can go beyond this. Even when one of the components is supercritical, the $\alpha$ function selected still matters. Consider a mixture of carbon dioxide and carbon monoxide at a temperature where carbon monoxide is supercritical:
 """
@@ -708,7 +708,7 @@ begin
 		title="pxy diagram of carbon monoxide+carbon dioxide",
 		label="PR",
 		yguidefontsize=16, xguidefontsize=16,
-		legendfont=font(10), framestyle=:box, 
+		legendfont=font(10), framestyle=:box,
 		tick_direction=:out, grid=:off,foreground_color_legend = nothing,background_color_legend = nothing,legend=:bottomright,
 		ylabel=L"p / \mathrm{MPa}", xlabel=L"x(\mathrm{CO}),y(\mathrm{CO})")
 	plot!(y_pr3,p_pr3./1e6,color=:blue,
@@ -744,7 +744,7 @@ begin
 		title="Vapour-liquid envelope of water",
 		label="PR",
 		yguidefontsize=16, xguidefontsize=16,
-		legendfont=font(10), framestyle=:box, 
+		legendfont=font(10), framestyle=:box,
 		tick_direction=:out, grid=:off,foreground_color_legend = nothing,background_color_legend = nothing,
 		ylabel=L"T / \mathrm{K}", xlabel=L"\rho / (\mathrm{mol}/\mathrm{L})")
 	plot!(1e-3./vvw2,Tw,color=:blue,label="")
@@ -779,7 +779,7 @@ begin
 		title="Vapour-liquid envelope of water",
 		label="PR",
 		yguidefontsize=16, xguidefontsize=16,
-		legendfont=font(10), framestyle=:box, 
+		legendfont=font(10), framestyle=:box,
 		tick_direction=:out, grid=:off,foreground_color_legend = nothing,background_color_legend = nothing,
 		ylabel=L"T / \mathrm{K}", xlabel=L"\rho / (\mathrm{mol}/\mathrm{L})")
 	plot!(1e-3./vvw2,Tw,color=:blue,label="")
@@ -794,7 +794,7 @@ end
 
 # ╔═╡ 54cc3ea9-a512-4344-8ea5-212f4ccc5a59
 md"""
-Although still not quite ideal for water, it is an improvement over the untranslated results. 
+Although still not quite ideal for water, it is an improvement over the untranslated results.
 
 One thing to consider is the impact on our generalised equation for the cubics. Introducing the shift gives us a slightly different equation:
 
@@ -805,7 +805,7 @@ $$A_\mathrm{res.} = -n\bar{R}T\log{(1-n(c-b)/V)}-\frac{na}{b}\frac{\log(V+n(c+r_
 md"""
 Nevertheless, using the code we previously wrote, incorporating this shift should be quite straightforward.
 
-Generally, volume translations should only be used when we need accurate volumetric properties. If this is not the case, then one can afford to ignore the translation. 
+Generally, volume translations should only be used when we need accurate volumetric properties. If this is not the case, then one can afford to ignore the translation.
 """
 
 # ╔═╡ ab519b39-d547-4bd8-aead-050bdf5a5c9d
@@ -823,7 +823,7 @@ Now that we have established all the tools needed to model pure systems using cu
 
 # ╔═╡ 93a18e36-7769-441c-abfb-235b33035991
 md"""
-How can we do this? The critical points for the mixtures are generally not known, thus, using the usual definition for $a$ and $b$ is not an option. 
+How can we do this? The critical points for the mixtures are generally not known, thus, using the usual definition for $a$ and $b$ is not an option.
 """
 
 # ╔═╡ d71826d0-1b95-4b21-9c5b-125e0c10f9b0
@@ -839,7 +839,7 @@ where, if $i=j$, then $a_{ii}$ and $b_{ii}$ are the usual parameters for a pure 
 $$a_{ij} = \sqrt{a_{ii}a_{jj}}(1-k_{ij})$$
 $$b_{ij} = \frac{b_{ii}+b_{jj}}{2}(1-l_{ij})$$
 
-The above are known as combining rules, and $k_{ij}$ and $l_{ij}$ are known as binary interaction parameters. Typically, the van der Waals mixing rule will work well for mixtures of similar species (e.g. ethane+propane) but struggle with associating (e.g. water+ethanol) and/or size asymmetric (e.g. carbon dioxide+n-decane) mixtures. $k_{ij}$ and $l_{ij}$ are fitted using experimental data for mixtures containing species $i$ and $j$ to account for these `non-ideal' interactions. Generally, $l_{ij}=0$, meaning the mixing rule for $\bar{b}$ simplifies to: 
+The above are known as combining rules, and $k_{ij}$ and $l_{ij}$ are known as binary interaction parameters. Typically, the van der Waals mixing rule will work well for mixtures of similar species (e.g. ethane+propane) but struggle with associating (e.g. water+ethanol) and/or size asymmetric (e.g. carbon dioxide+n-decane) mixtures. $k_{ij}$ and $l_{ij}$ are fitted using experimental data for mixtures containing species $i$ and $j$ to account for these `non-ideal' interactions. Generally, $l_{ij}=0$, meaning the mixing rule for $\bar{b}$ simplifies to:
 
 $$\bar{b}=\sum_ix_i b_{ii}$$
 
@@ -878,7 +878,7 @@ begin
 		title="pxy diagram of benzene+methanol",
 		label="kᵢⱼ=0",
 		yguidefontsize=16, xguidefontsize=16,
-		legendfont=font(10), framestyle=:box, 
+		legendfont=font(10), framestyle=:box,
 		tick_direction=:out, grid=:off,foreground_color_legend = nothing,background_color_legend = nothing,legend=:topright,
 		ylabel=L"p / \mathrm{MPa}", xlabel=L"x(\mathrm{benzene}),y(\mathrm{benzene})")
 	plot!(y_bm1,p_bm1./1e6,color=:blue,
@@ -897,7 +897,7 @@ end
 md"""
 Clearly, this binary interaction parameter can have a profound effect on the predicted equilibria for the mixture. We can see above that the equilibrium goes from being almost ideal to having an azeotrope, as well as agreeing more-quantitatively with the experimental data.
 
-There are other mixing rules similar to the van der Waals one-fluid mixing rule (e.g. Kay's rule, Rao's rule, etc.). However, all of these require binary interaction parameters to accurately model mixtures. These binary interactions can usually be found in literature, although tools like ASPEN and gPROMS have large databases available. If these are not available, it is recommended to simply fit these parameters using any available experimental data. 
+There are other mixing rules similar to the van der Waals one-fluid mixing rule (e.g. Kay's rule, Rao's rule, etc.). However, all of these require binary interaction parameters to accurately model mixtures. These binary interactions can usually be found in literature, although tools like ASPEN and gPROMS have large databases available. If these are not available, it is recommended to simply fit these parameters using any available experimental data.
 
 Naturally, there comes the limitation that we sometimes need to model systems for which there are no binary interaction parameters or experimental data available in literature.
 """
@@ -905,7 +905,7 @@ Naturally, there comes the limitation that we sometimes need to model systems fo
 # ╔═╡ 967d43b8-deb2-4365-98d3-65d798395e76
 md"""
 ### EoS/$G^E$ mixing rules
-Having now seen the limitations of simple mixing rules in cubics, we now consider another class of mixing rules. In the previous section, we showed how effective activity coefficient-based models were for modelling equilibrium properties of mixture systems, despite being unable to model pure systems and limited to a few properties. What if we could 'borrow' this better modelling from the activity coefficent models, and use it together with cubics? 
+Having now seen the limitations of simple mixing rules in cubics, we now consider another class of mixing rules. In the previous section, we showed how effective activity coefficient-based models were for modelling equilibrium properties of mixture systems, despite being unable to model pure systems and limited to a few properties. What if we could 'borrow' this better modelling from the activity coefficient models, and use it together with cubics?
 
 The basic ideal behind $G^E$ mixing rules is we set the excess Gibbs free energy obtained from the cubic equation of state to that obtained from activity models:
 
@@ -937,7 +937,7 @@ begin
 		title="pxy diagram of benzene+methanol",
 		label="PR",
 		yguidefontsize=16, xguidefontsize=16,
-		legendfont=font(10), framestyle=:box, 
+		legendfont=font(10), framestyle=:box,
 		tick_direction=:out, grid=:off,foreground_color_legend = nothing,background_color_legend = nothing,legend=:bottomleft,
 		ylabel=L"p / \mathrm{MPa}", xlabel=L"x(\mathrm{benzene}),y(\mathrm{benzene})")
 	plot!(y_bm1,p_bm1./1e6,color=:blue,
@@ -987,7 +987,7 @@ begin
 
 	bub     = bubble_pressure.(m,T_mix_bm,X)
 	bub_bm5 = bubble_pressure.(mix_bm5,T_mix_bm,X)
-	
+
 	pbub  = [bub[i][1] for i ∈ 1:N]
 	y = [bub[i][4][1] for i ∈ 1:N]
 	p_bm5 = [bub_bm5[i][1] for i ∈ 1:N]
@@ -997,7 +997,7 @@ begin
 		title="pxy diagram of benzene+methanol",
 		label="Your model",
 		yguidefontsize=16, xguidefontsize=16,
-		legendfont=font(10), framestyle=:box, 
+		legendfont=font(10), framestyle=:box,
 		tick_direction=:out, grid=:off,foreground_color_legend = nothing,background_color_legend = nothing,legend=:bottomleft,
 		ylabel=L"p / \mathrm{MPa}", xlabel=L"x(\mathrm{benzene}),y(\mathrm{benzene})")
 	plot!(y,pbub./1e6,color=:blue,

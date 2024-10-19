@@ -16,7 +16,7 @@ end
 
 # ╔═╡ 23962934-2638-4788-9677-ae42245801ec
 begin
-	using Clapeyron: VT_isothermal_compressibility, VT_chemical_potential, R̄, ABCubicModel, SAFTModel, N_A 
+	using Clapeyron: VT_isothermal_compressibility, VT_chemical_potential, R̄, ABCubicModel, SAFTModel, N_A
 	const R = R̄
 	using Clapeyron, ForwardDiff, Roots, Optim, LinearAlgebra, PolynomialRoots # Numerical packages
 	using LaTeXStrings, Plots, ShortCodes, Printf # Display and plotting
@@ -44,7 +44,7 @@ As you have seen in section 2, the general cubic equation of state can be writte
 
 $$p = \frac{RT}{v-b} - \frac{a\alpha(T)}{(v + \delta_1 b)(v + \delta_2b)}$$
 
-where the values of $\delta_1, \delta_2$ are specific to each equation of state (van der Waals, Peng Robinson, Redlich Kwong), and the form of the **alpha function**, $a(T)$, can be selected to match specific types of components or problems. In this workbook we will consider the van der Waals EoS, which is the case when 
+where the values of $\delta_1, \delta_2$ are specific to each equation of state (van der Waals, Peng Robinson, Redlich Kwong), and the form of the **alpha function**, $a(T)$, can be selected to match specific types of components or problems. In this workbook we will consider the van der Waals EoS, which is the case when
 
 $$\delta_1 = \delta_2 = 0$$
 $$\alpha(T) = 1$$
@@ -58,7 +58,7 @@ $$p = \frac{RT}{v-b} - \frac{a}{v^2}~,$$
 
 where
 
-$$\begin{align} 
+$$\begin{align}
 a &= \frac{27}{64}\frac{(RT_\mathrm{c})^2}{p_\mathrm{c}}\\
 b &= \frac{1}{8}\frac{RT_\mathrm{c}}{p_\mathrm{c}}~.\\
 \end{align}$$
@@ -77,7 +77,7 @@ Z^3 - \left(1 + \frac{bp}{RT}\right)Z^2 + \left(\frac{ap}{(RT)^2}\right)Z - \fra
 
 To express this cubic neatly we define two constants, $A$ and $B$.
 
-$$\begin{align} 
+$$\begin{align}
 A &= a\cdot\frac{p}{(RT)^2}\\
 B &= b\cdot\frac{p}{RT}
 \end{align}$$
@@ -96,7 +96,7 @@ The three roots for the van der Waals equation of state can be seen below:
 
 # ╔═╡ 2807debe-5c79-40a7-acf3-947b288449d7
 md"""
-T = 
+T =
 """
 
 # ╔═╡ 591b6a0b-548b-44f4-8415-16b8aa219c0b
@@ -106,26 +106,26 @@ T =
 let
 	function cubic_volume(model, p, T)
 		Tc, pc, _ = crit_pure(model)
-	
+
 		a = 27/64 * (R*Tc)^2/pc
 		b = 1/8 * (R*Tc)/pc
-		
+
 		A = a*p/(R*T)^2
 		B = b*p/(R*T)
-		
+
 		poly = [-A*B, A, -(1+B), 1.0]
 		Zvec = roots(poly)
 		Vvec = Zvec.*(R*T/p)
 		return Vvec
 	end
-	
+
 	model = vdW(["carbon dioxide"])
 	R = 8.314
-	
+
 	a, b = model.params.a.values[1], model.params.b.values[1]
 	# p_raw(v, T) = R*T/(v-b) - a/v^2
 	p_raw(v, T) = pressure(model, v, T)
-	
+
 	Tcrit, pcrit, vcrit = crit_pure(model)
 	Tsat = LinRange(200.0, 0.9999Tcrit, 500)
 	# ps = LinRange(1e5, 0.9999pcrit, 500)
@@ -166,19 +166,19 @@ let
 
 	T1 = ustrip(T_plt1)
 	psat1, Vlsat1, Vvsat1 = saturation_pressure(model, T1)
-	
+
 	plot!(
 		v -> p_raw(v, T1)/1e6,
 		range(minimum(Vlsat), maximum(Vvsat), 500),
 		linewidth=2.5, color=7, linestyle=:dashdot,
 		label="vdW isotherm at $T1 K"
 	)
-	
+
 	plot!([Vlsat1, Vvsat1], [psat1, psat1]/1e6,
 		 linewidth=2, color=:black, linestyle=:dash,
 		label="pressure construction"
 	)
-	
+
 	Vroots = real.(cubic_volume(model, psat1, T1))
 	scatter!(Vroots, repeat([psat1], 3)/1e6, label="volume roots", markersize=5.5, markershape=:diamond, color=4)
 end
@@ -249,7 +249,7 @@ end
 md"""
 We can see that our lowest chemical potential is given by our third root, showing this is the most stable root and that it is the correct volume for the system.
 
-We can compare our answer for $v$ to the result calculated using Clapeyron, using 
+We can compare our answer for $v$ to the result calculated using Clapeyron, using
 
 ```
 volume(model, p, T)
@@ -283,7 +283,7 @@ One way to obtain an expression we could solve for the volume at a specified pre
 
 $$\left(\frac{\partial a^\mathrm{res}}{\partial V}\right)_T = -p~.$$
 
-This can then be rearranged to 
+This can then be rearranged to
 
 $$f(V,T,p) = \left(\frac{\partial a^\mathrm{res}(V,T)}{\partial V}\right)_T + p = 0\tag{1}$$
 
@@ -376,7 +376,7 @@ T =
 # ╔═╡ 68cad9ec-8f72-41f1-8665-3b0fb87147de
 let
 	model = PCSAFT(["carbon dioxide"])
-	
+
 	Tcrit, pcrit, vcrit = crit_pure(model)
 	Tsat = LinRange(200.0, 0.9999Tcrit, 500)
 
@@ -397,7 +397,7 @@ let
 		xscale=:log,
 		ylim = (minimum(psat), 1.1pcrit)
 	)
-	
+
 	plot!(
 		Vlsat, psat,
 		linewidth=2, color=1, linestyle=:solid,
@@ -412,19 +412,19 @@ let
 
 	T1 = ustrip(T_plt2)
 	psat1, Vlsat1, Vvsat1 = saturation_pressure(model, T1)
-	
+
 	plot!(
 		v -> pressure(model, v, T1)/1e6,
 		10 .^ range(log10(minimum(Vlsat)), log10(maximum(Vvsat)), 1000),
 		linewidth=2.5, color=7, linestyle=:dashdot,
 		label="PCSAFT isotherm at $T1 K"
 	)
-	
+
 	plot!([Vlsat1, Vvsat1], [psat1, psat1]/1e6,
 		 linewidth=2, color=:black, linestyle=:dash,
 		label="pressure construction"
 	)
-	
+
 	# scatter!(Vroots, repeat([psat1], 3)/1e6, label="volume roots", markersize=5.5, markershape=:diamond, color=4)
 end
 
@@ -437,7 +437,7 @@ To implement this, the functions we'll need are
 ```julia
 β = VT_isothermal_compressibility(model, V, T)
 p = pressure(model, V, T)
- 
+
 ```
 
 The ```volume_guess``` function for the liquid phase directly indexes the model object to obtain the sigma and segment values. Because only SAFT type models have these parameters, it is important we restrict our function to only accept the correct types. We do this with the ```::SAFTModel``` syntax in our function definition.
@@ -447,11 +447,11 @@ The ```volume_guess``` function for the liquid phase directly indexes the model 
 """
 	volume_guess(model, p, T, phase)
 
-Generates initial guessses for the a volume solver. The liquid phase initial guess is based on the packing fraction limit, and the vapour phase guess is based on the ideal-gas equation.
+Generates initial guesses for the a volume solver. The liquid phase initial guess is based on the packing fraction limit, and the vapour phase guess is based on the ideal-gas equation.
 """
 function volume_guess(model::SAFTModel, p, T, phase)
 	if phase == :liquid
-		# Extract parameters 
+		# Extract parameters
 		σ = model.params.sigma.diagvalues[1]
 		seg = model.params.segment.values[1]
 		V0 = 1.25 * π/6 * N_A * σ^3 * seg
@@ -489,7 +489,7 @@ function SAFT_volume(model, p, T, phase;
 					maxiters=100,
 					V0=volume_guess(model, p, T, phase)
 	)
-	
+
 	β(V) = VT_isothermal_compressibility(model, V, T)
 	p₁(V) = pressure(model, V, T)
 
@@ -507,7 +507,7 @@ function SAFT_volume(model, p, T, phase;
 		# Calculate convergence critera
 		test_norm = abs(Vold - V)
 	end
-	
+
 	if iters == maxiters
 		@warn "Volume iteration failed to converge in $maxiters iterations"
 	end
@@ -545,7 +545,7 @@ Note that if we don't know _a-priori_ which phase we should solve for, it's once
 
 # ╔═╡ c9974fa6-6418-4c4e-bf4e-37bc97a03a40
 md"""
-### Convergence 
+### Convergence
 
 We can also look at the convergence of our volume solver method by plotting the performance of our successive substitution relation against the plot of the first objective function we derived.
 """
@@ -561,7 +561,7 @@ function SAFT_volume_trace(model, p, T, phase;
 					maxiters=100,
 					V0=volume_guess(model, p, T, phase)
 	)
-	
+
 	β(V) = VT_isothermal_compressibility(model, V, T)
 	p₁(V) = pressure(model, V, T)
 
@@ -581,7 +581,7 @@ function SAFT_volume_trace(model, p, T, phase;
 		# Calculate convergence critera
 		test_norm = abs(Vold - V)
 	end
-	
+
 	if iters == maxiters
 		@warn "Volume iteration failed to converge in $maxiters iterations"
 	end
@@ -604,9 +604,9 @@ let
 	V0 = V0*1e5
 	V = V*1e5
 	Vtrack = Vtrack*1e5
-	
+
 	V_range = range(V0, 1.1V, 500)
-	
+
 	gr()
 	plt = plot(
 		title="",
@@ -615,7 +615,7 @@ let
 		xlim = (0.95V_range[1], V_range[end]),
 		dpi = 800
 	)
-	
+
 	hline!([0.0], color=:black, label="")
 	plot!(V_range, f_plt.(V_range),
 		color = 1,
@@ -665,7 +665,7 @@ let
 		xlim = (V_range[1], V_range[end]),
 		inset = (1, bbox(0.03, 0.03, 0.5, 0.5, :center, :right)),
 	)
-	
+
 	hline!(subplot=2, [0.0], color=:black, label="")
 	plot!(subplot=2, V_range, f_plt.(V_range),
 		color = 1,
@@ -682,7 +682,7 @@ let
 		markersize=4.5,
 		label=""
 	)
-	
+
 
 	plt
 end
@@ -703,7 +703,7 @@ The only issue encountered with this is that we need to re-think our approach to
 md"""
 Helmholtz-explicit equations of state often have more than three volume roots within the saturation envelope. This introduces some additional risk when solving for the volume, as converging to the incorrect root can become more likely.
 
-Luckily, for these equations of state there are usually well-defined methods for generating good initial guesses, such as a known solution to the IAPWS-95 saturation curve, or a select reference fluid for the GERG-2004 model. A good initial guess massively reduces the risk of incorrect convergence, making these models very reliable to use. 
+Luckily, for these equations of state there are usually well-defined methods for generating good initial guesses, such as a known solution to the IAPWS-95 saturation curve, or a select reference fluid for the GERG-2004 model. A good initial guess massively reduces the risk of incorrect convergence, making these models very reliable to use.
 """
 
 # ╔═╡ 8af302d2-371e-457d-a0de-06819d01df92
@@ -726,17 +726,17 @@ T<sub>2</sub> =
 let
 	p1 = let
 		model = IAPWS95()
-		
+
 		Tcrit, pcrit, vcrit = crit_pure(model)
 		Tsat = LinRange(550.0, 0.99999Tcrit, 500)
-	
+
 		psat = zeros(length(Tsat))
 		Vlsat = zeros(length(Tsat))
 		Vvsat = zeros(length(Tsat))
 		for (i, T) in enumerate(Tsat)
 			(psat[i], Vlsat[i], Vvsat[i]) = saturation_pressure(model, T)
 		end
-	
+
 		psat = psat./1e6
 		pcrit = pcrit/1e6
 		gr()
@@ -747,7 +747,7 @@ let
 			xscale=:log, legend=:bottomleft,
 			ylim = (minimum(psat), 1.1pcrit)
 		)
-		
+
 		plot!(
 			Vlsat, psat,
 			linewidth=2, color=1, linestyle=:solid,
@@ -759,17 +759,17 @@ let
 			label=""
 		)
 		scatter!([vcrit], [pcrit], label="critical point", markersize=5.5, color=3)
-	
+
 		T1 = ustrip(T_plt3)
 		psat1, Vlsat1, Vvsat1 = saturation_pressure(model, T1)
-		
+
 		plot!(
 			v -> pressure(model, v, T1)/1e6,
 			10 .^ range(log10(minimum(Vlsat)), log10(maximum(Vvsat)), 1000),
 			linewidth=2.5, color=7, linestyle=:dashdot,
 			label="isotherm at $T1 K"
 		)
-		
+
 		plot!([Vlsat1, Vvsat1], [psat1, psat1]/1e6,
 			 linewidth=2, color=:black, linestyle=:dash,
 			label="pressure construction"
@@ -777,17 +777,17 @@ let
 	end
 	p2 = let
 		model = GERG2008(["methane"])
-		
+
 		Tcrit, pcrit, vcrit = crit_pure(model)
 		Tsat = LinRange(140.0, 0.99999Tcrit, 500)
-	
+
 		psat = zeros(length(Tsat))
 		Vlsat = zeros(length(Tsat))
 		Vvsat = zeros(length(Tsat))
 		for (i, T) in enumerate(Tsat)
 			(psat[i], Vlsat[i], Vvsat[i]) = saturation_pressure(model, T)
 		end
-	
+
 		psat = psat./1e6
 		pcrit = pcrit/1e6
 		gr()
@@ -798,7 +798,7 @@ let
 			xscale=:log, legend=:bottomleft,
 			ylim = (minimum(psat), 1.1pcrit)
 		)
-		
+
 		plot!(
 			Vlsat, psat,
 			linewidth=2, color=1, linestyle=:solid,
@@ -810,17 +810,17 @@ let
 			label=""
 		)
 		scatter!([vcrit], [pcrit], label="critical point", markersize=5.5, color=3)
-	
+
 		T1 = ustrip(T_plt4)
 		psat1, Vlsat1, Vvsat1 = saturation_pressure(model, T1)
-		
+
 		plot!(
 			v -> pressure(model, v, T1)/1e6,
 			10 .^ range(log10(minimum(Vlsat)), log10(maximum(Vvsat)), 1000),
 			linewidth=2.5, color=7, linestyle=:dashdot,
 			label="isotherm at $T1 K"
 		)
-		
+
 		plot!([Vlsat1, Vvsat1], [psat1, psat1]/1e6,
 			 linewidth=2, color=:black, linestyle=:dash,
 			label="pressure construction"

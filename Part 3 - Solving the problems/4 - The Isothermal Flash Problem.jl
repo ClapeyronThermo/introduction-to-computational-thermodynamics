@@ -35,7 +35,7 @@ The flash problem refers to knowing **when** a fluid will undergo a phase split,
 
 Before we begin, there are a few important ideas and equations we should mention.
 
-### Chemical equilibrium 
+### Chemical equilibrium
 
 At equilibrium, we have the **equivalence of chemical potential**, so that for a mixture with $C$ components and $P$ phases $(\alpha, \beta, \dots, P)$ we have an equality for every component _i_ in _C_:
 
@@ -67,7 +67,7 @@ In flash problems we run the risk of converging to the so-called trivial solutio
 md"""
 ## The Rachford--Rice equation
 
-For the case where we have **composition independent** K values and a suspected two-phase region, we can solve for the phase compositions and distribution using just material balances. 
+For the case where we have **composition independent** K values and a suspected two-phase region, we can solve for the phase compositions and distribution using just material balances.
 
 $$\begin{align}
 z_i F &= x_i L + y_i V\\
@@ -101,7 +101,7 @@ let
 	βmax = 1/(1 - minimum(K0))-1e-5
 	β_vec = range(βmin, βmax, length=1000)
 	plot(title="The Rachford-Rice equation", xlabel="β", ylabel="f(β)", framestyle=:box, xlim=(βmin, βmax), ylim=(-4, 4), tick_direction=:out, grid=:off, legendfont=font(10), xtick=-0.6:0.2:1.6)
-	
+
 	plot!(β_vec, rr_plot.(β_vec), label="", linewidth=2)
 	vline!([0.0, 1.0], label="physical domain of β", linewidth=2)
 	hline!([0.0], linecolor=:black, label="")
@@ -109,7 +109,7 @@ end
 
 # ╔═╡ 2ec95442-1bd2-4133-864f-037bc5c35c9e
 md"""
-From inspecting our equation, we can see that the equation will diverge to infinity when 
+From inspecting our equation, we can see that the equation will diverge to infinity when
 
 $$\beta(K_i - 1) = -1$$
 
@@ -149,7 +149,7 @@ Also use the Newton method in 1D, remembering it is defined as
 
 $$x_{n+1} = x_n - \frac{f(x)}{f^\prime(x)}$$
 
-The step-limiting will be done by checking if 
+The step-limiting will be done by checking if
 
 $$β_\mathrm{new} ≥ β_\mathrm{max}$$
 or
@@ -194,11 +194,11 @@ end
 Solves the Rachford-Rice equation for the vapour fraction β using a step-limited Newton method.
 """
 function solve_β(z, K)
-	
+
 	βmin = 1/(1-maximum(K))
 	βmax = 1/(1-minimum(K))
 
-	# Initial guess for β. 
+	# Initial guess for β.
 	β = (βmin + βmax)/2
 	δβ = 1.0
 	i = 0
@@ -325,7 +325,7 @@ This is the same initialisation procedure we used for our **stability analysis**
 # 			K = exp(log(Pc/P) + 5.373*(1+ω)*(1-Tc/T))
 # 			return K
 # 			end
-			
+
 # 			Ksol = Wilson_K_factor_test.(pure_models, P, T)
 # 			pure_test_model = PR(["methane"])
 # 			P_test, T_test = (1e6, 190.0)
@@ -349,7 +349,7 @@ This is the same initialisation procedure we used for our **stability analysis**
 md"""
 ### 2. Rachford--Rice equation
 
-For this, we will use the solver we just developed to calculate 
+For this, we will use the solver we just developed to calculate
 
 $$β = f(\mathbf K, \mathbf z)$$
 
@@ -369,7 +369,7 @@ To calculate the next set of K-factors we use the expression
 
 $$K_i = \frac{\varphi_i^\mathrm{liq}}{\varphi_i^\mathrm{vap}}$$
 
-where $\varphi$ can be obtained using Clapeyron with 
+where $\varphi$ can be obtained using Clapeyron with
 
 ```julia
 fugacity_coefficient(model, p, T, z; phase = :unknown)
@@ -381,7 +381,7 @@ fugacity_coefficient(model, p, T, z; phase = :unknown)
 md"""
 ### 4. Return values
 
-We then apply the same procudure as in step 2 to calculate the final return values
+We then apply the same procedure as in step 2 to calculate the final return values
 
 $$(β,~\mathbf x,~\mathbf y)$$
 """
@@ -409,7 +409,7 @@ returns a vector of K-factors predicted by the Wilson correlation for a pure com
 function Wilson_K_factor(pure_model, p, T)
 	Tc, pc, vc = crit_pure(pure_model)
 	ω = acentric_factor(pure_model)
-	
+
 	# Calculate K-factors
 	K = exp(log(pc/p) + 5.373*(1+ω)*(1-Tc/T))
 	return K
@@ -471,9 +471,9 @@ z<sub>methane</sub> =
 begin
 	comps = ["methane", "hydrogen sulfide"] # Define the components
 	model = PR(comps) # Create our fluid model
-	
+
 	pure_models = split_model.(model) # Create a vector of models for each of our pure substances
-	
+
 	# Describe our state
 	p = 55e5 # Pa
 	T = 255.0 # K
@@ -618,7 +618,7 @@ In the figure below we show the convergence speed of three different iteration p
 
 However, before analysing their real-world performance, we should have an idea of how they may be expected to perform.
 
-Successive substitution has **linear** convergence. This means that each successive error is approximately proportional, 
+Successive substitution has **linear** convergence. This means that each successive error is approximately proportional,
 
 $$||x_{i+1} - x^*|| \leq c ||x_i - x^*||$$
 
@@ -649,7 +649,7 @@ end;
 # ╔═╡ 734dd8c9-cf26-4cf8-baf2-63cf97c34c2b
 begin
 	f!(F, K) = rootfinding_obj_func!(model, F, K, p, T, z, zeros(length(z)), zeros(length(z)))
-	
+
 	res_vec = []
 
 	res = nlsolve(f!, log10.(K0); store_trace=true, method=:anderson, m=0)
@@ -660,7 +660,7 @@ begin
 
 	res = nlsolve(f!, log10.(K0); autodiff=:forward, store_trace=true, method=:newton)
 	push!(res_vec, ["newton", res])
-end; 
+end;
 
 # ╔═╡ 6b9fdb5c-db31-483e-8329-0ebebb9ba40f
 md"""
@@ -670,7 +670,7 @@ md"""
 # ╔═╡ 457b66ff-7972-49b8-b57a-4b4fc5f0ad06
 let
 	p = plot(title="Convergence characteristics of flash calculations", xlabel="iteration", ylabel="error", framestyle=:box, tick_direction=:out, grid=:off, yaxis=:log, yticks=exp10.(range(-11, 0)), xlim=(0, 25), legendfont=font(10))
-	
+
 	for (method, res) in res_vec
 		iter = [x.iteration for x in res.trace.states]
 		method == "newton" && map!(x -> x+1, iter, iter)
@@ -729,14 +729,14 @@ These benchmarks show that the Newton method in this case performs worse than ev
 
 This occurs because of the increased complexity of Newton's method. Requiring a full Jacobian for each iteration, as well as the subsequent linear solve, there is considerably more computational cost for each iteration.
 
-Attempting to get the "best of both worlds", Michelsen proposed a combination algorithm, leveraging the advantages of both accelerated successive substitution and the Newton method. As we can see accelerated successive substitution converges very quickly for most situations, we perform up to 15 iterations of this method, then switch to a faster converging, but slower to evalute, method like Newton's [^3].
+Attempting to get the "best of both worlds", Michelsen proposed a combination algorithm, leveraging the advantages of both accelerated successive substitution and the Newton method. As we can see accelerated successive substitution converges very quickly for most situations, we perform up to 15 iterations of this method, then switch to a faster converging, but slower to evaluate, method like Newton's [^3].
 """
 
 # ╔═╡ 47544f89-b3e4-4b60-b4f1-92cc55faa2c7
 md"""
 ### Effects of mixture choice
 
-A key factor in the converence characteristics of multiphase flash calculations is the ideality of the mixture. The more ideal a mixture, the weaker the composition dependence of the K-factors, and the faster the convergence.
+A key factor in the convergence characteristics of multiphase flash calculations is the ideality of the mixture. The more ideal a mixture, the weaker the composition dependence of the K-factors, and the faster the convergence.
 """
 
 # ╔═╡ e715a1b3-c11b-4d01-96d3-af3b64dee96c
@@ -745,22 +745,22 @@ A key factor in the converence characteristics of multiphase flash calculations 
 
 # 	x = [0.96611, 0.01475, 0.01527, 0.00385]
 # 	Tc, pc, Vc = crit_mix(model, x)
-	
+
 # 	Tcrit = Tc
 # 	Tmax = 265.5
-	
+
 # 	T1 = range(150, Tcrit, length=400)
 # 	T2 = range(200, Tmax, length=400)
 # 	T3 = range(Tmax, 215, length=400)
-	
+
 # 	# Preallocate arrays
 # 	p1 = zeros(400)
 # 	p2 = zeros(400)
 # 	p3 = zeros(400)
-	
+
 # 	v1 = zeros(6)
 # 	v2 = zeros(6)
-	
+
 # 	for (i, (T1ᵢ, T2ᵢ)) in enumerate(zip(T1, T2))
 # 	    if i == 1
 # 	        bub1 = bubble_pressure(model, T1ᵢ, x)
@@ -774,23 +774,23 @@ A key factor in the converence characteristics of multiphase flash calculations 
 # 	    v1 .= [log10(bub1[2]), log10(bub1[3]), bub1[4][1], bub1[4][2], bub1[4][3], bub1[4][4]]
 # 	    v2 .= [log10(bub2[2]), log10(bub2[3]), bub2[4][1], bub2[4][2], bub2[4][3], bub2[4][4]]
 # 	end
-	
+
 # 	v3 = v2
 # 	v3[2] = 1.1*v3[2]
-	
+
 # 	for (i, T3ᵢ) in enumerate(T3)
 # 	    bub3 = dew_pressure(model, T3ᵢ, x; v0=v3)
 # 	    p3[i] = bub3[1]
 # 	    v3 .= [log10(bub3[2]), log10(bub3[3]), bub3[4][1], bub3[4][2], bub3[4][3], bub3[4][4]]
 # 	end
-	
+
 # 	T_plot = vcat(T1, reverse(T3), reverse(T2));
 # 	p_plot = vcat(p1, reverse(p3), reverse(p2));
 
 # 	iters_p = Vector{Float64}()
 # 	iters_T = Vector{Float64}()
 # 	iters_vec = Vector{Float64}()
-	
+
 # 	# stable_bool = false
 # 	for p in range(2e6, 7e6, 10)
 # 	    for T in range(190, 260.0, 10)
@@ -814,13 +814,13 @@ A key factor in the converence characteristics of multiphase flash calculations 
 # 	        end
 # 	    end
 # 	end
-	
+
 # 	plot(title="pT isopleth", xlabel="T / K", ylabel="p / MPa", framestyle=:box, tick_direction=:out, grid=:off, right_margin = 4Plots.mm, thickness_scaling=1.2)
 
 # 	scatter!(iters_T, iters_p./1e6, zcolor=iters_vec, colorbar_title="\nflash iterations", label="", c = :plasma)
-	
+
 # 	plot!(T_plot, p_plot./1e6, linewidth=3, label="binodal", color=1)
-	
+
 # 	scatter!([Tc], [pc/1e6], markersize=7, color=:red, label="critical point")
 # 	plot!(legend=:topleft)
 # end
@@ -859,7 +859,7 @@ hint(title, text) = Markdown.MD(Markdown.Admonition("hint", title, [text]));
 
 # ╔═╡ c2e866df-a46b-4ca0-8b3f-e7fa2e7b4143
 hint(md"""
-Calculate your Newton step using 
+Calculate your Newton step using
 
 $$d = \frac{f}{f^′}$$
 
@@ -906,11 +906,11 @@ end;
 
 # ╔═╡ 41510187-5241-44fd-86ce-b094a1e7f00d
 function solve_β_correct(z, K)
-	
+
 	βmin = 1/(1-maximum(K))
 	βmax = 1/(1-minimum(K))
 
-	# Initial guess for β. 
+	# Initial guess for β.
 	β = (βmin + βmax)/2
 	δβ = 1.0
 	i = 0

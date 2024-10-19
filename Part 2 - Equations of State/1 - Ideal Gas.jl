@@ -32,7 +32,7 @@ As a common starting ground, let us examine an equation of state most of us will
 
 $$pV=Nk_\mathrm{B}T$$
 
-where $k_\mathrm{B}$ is the Boltzmann constant and $N$ is the total number of particles. The ideal gas equation models species as infinitesmally small particles with perfectly elastic collisions. Visually:
+where $k_\mathrm{B}$ is the Boltzmann constant and $N$ is the total number of particles. The ideal gas equation models species as infinitesimally small particles with perfectly elastic collisions. Visually:
 """
 
 # ╔═╡ 9f25ace7-8c2d-4f1c-aefd-9f00eb7a3e15
@@ -81,21 +81,21 @@ For example, let us consider the ideal gas model for methane (whose limit should
 begin
 	model1 = WalkerIdeal(["methane"])
 	model2 = ReidIdeal(["methane"])
-	
+
 	T = range(100,4000,length=100)
-	
+
 	Cp1 = isobaric_heat_capacity.(model1,1e5,T)
 	Cp2 = isobaric_heat_capacity.(model2,1e5,T);
-	
+
 end
 
 # ╔═╡ f7a185a4-32c6-404d-a590-982ea50ca79c
-begin	
+begin
 	plot(T,Cp1/8.314,xlim=(100,3000),ylim=(3,18),
 		title="Ideal isobaric heat capacity of methane",
 		label="WalkerIdeal",
 		yguidefontsize=16, xguidefontsize=16,
-		legendfont=font(10), framestyle=:box, 
+		legendfont=font(10), framestyle=:box,
 		tick_direction=:out, grid=:off,legend=:topleft,foreground_color_legend = nothing,
 		ylabel=L"c_p / R", xlabel=L"T / K")
 	plot!(T,Cp2/8.314,label="ReidIdeal")
@@ -121,7 +121,7 @@ where the parameters $a$, $b$, $c$ and $d$ are all species-specific. This genera
 
 # ╔═╡ 43cff1c0-35c4-4720-b147-456a27a58f5e
 md"""
-Typically, the groups and their occurence (or multiplicity) can be specified within a group-contribution based model:
+Typically, the groups and their occurrence (or multiplicity) can be specified within a group-contribution based model:
 """
 
 # ╔═╡ 7a4755d3-81e6-43eb-84a1-2188099b4bc5
@@ -133,11 +133,11 @@ Each of these groups has a set of parameters assigned to it. As an example, let 
 
 $$C_p = \sum_k n_k(a_k-37.93)+T\sum_k n_k(b_k-0.210)+T^2\sum_k n_k(c_k-3.91\times 10^{-4})+T^3\sum_k n_k(d_k-2.06\times 10^{-7})$$
 
-where $a_k$, $b_k$, $c_k$ and $d_k$ are all group-specific parameters and $n_k$ is the occurence of a group $k$ in a particular species. 
+where $a_k$, $b_k$, $c_k$ and $d_k$ are all group-specific parameters and $n_k$ is the occurrence of a group $k$ in a particular species.
 
 Whilst this method is quite simple, one of the failings of group contribution is, given we are now trying to fit a larger dataset with fewer parameters, the accuracy will inevitably be reduced, in comparison to species-specific correlations. However, the accuracy of the method can generally be improved based on how the groups are selected; if a group covers a larger set of atoms, we can expect that it will provide a better estimate of the ideal heat capacity. For example, when modelling ethanol, using CH $_3$ and CH $_2$ OH groups instead of CH $_3$, CH $_2$, and OH groups would most likely result in more accurate estimates of the heat capacity. This argument holds true for any group contribution methodology.
 
-_Note: with the advent of machine learning, many ideal heat capacity correlations that leverage these tools have also been developed. However, as they can only really be treated as a black box, for the purposes of this course, we have choosen to omit these._
+_Note: with the advent of machine learning, many ideal heat capacity correlations that leverage these tools have also been developed. However, as they can only really be treated as a black box, for the purposes of this course, we have chosen to omit these._
 
 As a general rule, if a species-specific approach is available for your system of interest, implementation aside, the values obtained can be trusted. When using a group contribution approach, it is recommended to spend some time verifying that the values obtained are realistic (for example, does the high-temperature limit match what we would expect if we count up the number of rotations and vibrations?).
 
@@ -177,7 +177,7 @@ begin
 		title="Isobaric heat capacity with different EoS",
 		label="ReidIdeal",
 		yguidefontsize=16, xguidefontsize=16,
-		legendfont=font(10), framestyle=:box, 
+		legendfont=font(10), framestyle=:box,
 		tick_direction=:out, grid=:off,foreground_color_legend = nothing,
 		ylabel=L"C_p / (\mathrm{J/K/mol})", xlabel=L"T / K",)
 	plot!(T1,Y2,label="PC-SAFT")
@@ -186,9 +186,9 @@ end
 
 # ╔═╡ 0e17bbea-99be-46cc-b469-6293c0c62b25
 md"""
-As we can see, the ideal model represents a non-negligible contribution to our overall property where, at high temperatures, it pratically becomes the only contribution which matters (even with species like water).
+As we can see, the ideal model represents a non-negligible contribution to our overall property where, at high temperatures, it practically becomes the only contribution which matters (even with species like water).
 
-Nevertheless, once the best ideal model has been selected, all that is needed is to then integrate it using the equation for the Helmholtz free energy given earlier. Leveraging automatic differentiation will then make it possible to obtain all other properties. 
+Nevertheless, once the best ideal model has been selected, all that is needed is to then integrate it using the equation for the Helmholtz free energy given earlier. Leveraging automatic differentiation will then make it possible to obtain all other properties.
 """
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
