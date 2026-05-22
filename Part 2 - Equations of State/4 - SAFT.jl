@@ -475,7 +475,7 @@ Exp_water = [175.61 1.8636e-07 28230. 3.5423e-05;
 begin
 	N = 150
 	function Clapeyron.x0_crit_pure(model::Clapeyron.CPAModel)
-	    lb_v = Clapeyron.lb_volume(model)
+	    lb_v = Clapeyron.lb_volume(model, 300., [1.])
 	    if isempty(model.params.epsilon_assoc.values[1,1])
 	        [2.0, log10(lb_v/0.3)]
 	    else
